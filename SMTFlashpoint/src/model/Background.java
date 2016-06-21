@@ -33,7 +33,7 @@ public class Background extends Zone{
 
 	@Override
 	public void touch() {
-		drag();
+		//drag();
 	}
 	
 	
