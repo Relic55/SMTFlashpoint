@@ -141,6 +141,7 @@ public class GameEngine implements ILevelListener {
 		//initActions();
 		init_measures();
 		init_board();
+		init_blocks(json_path+"/block_start_json.json");
 		
 		
 	}
@@ -249,19 +250,19 @@ public class GameEngine implements ILevelListener {
 
 		panel_width = 6*block_size;
 		panel_height = block_size;
-		board_width=8*block_size;
-		board_height=10*block_size;		
+		board_width=10*block_size;
+		board_height=8*block_size;		
 		
 
 
-		y_offset = (AppInjector.application().displayHeight - vertical_blocks*block_size)/2;
-		x_offset = (AppInjector.application().displayWidth - horizontal_blocks*block_size)/2;
+		y_offset = (AppInjector.application().displayHeight - vertical_blocks*block_size)/4;
+		x_offset = (AppInjector.application().displayWidth - horizontal_blocks*block_size)/4;
 		
 				
 	}
 	public void init_board()
 	{
-		background=new Background(backgroundpic,0,0,board_height,board_width );
+		background=new Background(backgroundpic,x_offset,y_offset,board_width,board_height );
 		SMT.add(background);
 	}	
 	
@@ -312,13 +313,14 @@ public class GameEngine implements ILevelListener {
 	
 
 	
-    private void fillmatrixFromJSON(JSONObject jsonObject) {
+    public void fillmatrixFromJSON(JSONObject jsonObject) {
     	
     	JSONArray jsonboard = jsonObject.getJSONArray("Board");
     	
     	for (int i=0;i<jsonboard.size();i++) 
     	{
-    	board[jsonObject.getInt("x")][jsonObject.getInt("y")].set_all(jsonObject.getBoolean("inside_Block")  , jsonObject.getBoolean("smoke"), jsonObject.getBoolean("fire"), jsonObject.getInt("danger"), jsonObject.getBoolean("interest"), jsonObject.getBoolean("seat"), jsonObject.getInt("people"), jsonObject.getInt("healed_people"), null, null, null, null);
+    	JSONObject boardobj = jsonboard.getJSONObject(i);
+    	board[boardobj.getInt("x")][boardobj.getInt("y")].set_all(boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
     	}
     	
     	//Boardgrenzen anlegen
@@ -337,28 +339,40 @@ public class GameEngine implements ILevelListener {
     	}
     	
     	JSONArray jsonwalls = jsonObject.getJSONArray("Walls");
+    	int x1,y1,x2,y2,direction,walltype;
     	for (int i=0;i<jsonwalls.size();i++) 
     	{    	
+    		JSONObject wallobj = jsonwalls.getJSONObject(i);
+    		x1=wallobj.getInt("x1");
+    		x2=wallobj.getInt("x2");
+    		y1=wallobj.getInt("y1");
+    		y2=wallobj.getInt("y2");
+    		walltype=wallobj.getInt("walltype");
+    		
+    		direction=wallobj.getInt("direction");
+    		
+    		if(direction ==0) //horizontal
+    		{
+    			wall=new Wallblock(direction, walltype );
+    			board[x1][y1].setSouth(wall);
+    			board[x2][y2].setNorth(wall);
+    		}
+    		else if(direction ==1) //horizontal
+    		{
+    			wall=new Wallblock(direction, walltype );
+    			board[x1][y1].setEast(wall);
+    			board[x2][y2].setWest(wall);
+    		}    		
     		
     	}
-    	/*
-    	Block imageContributor = new Block(jsonObject.getString("Name"),jsonObject.getInt("Age"));
-        String imgaePath = jsonObject.getString("Image");
-        int theme = jsonObject.getInt("Theme");
-        PictureData pd = new PictureData(Paths.get(imgaePath), imageContributor, PictureIncentive.values()[theme]);
-        
-        
-        JSONArray comments = jsonObject.getJSONArray("Comments");
-        for (int i=0;i<comments.size();i++) {
-            JSONObject comment = comments.getJSONObject(i);
-            Contributor commentContributor = new Contributor(comment.getString("Name"),comment.getInt("Age"));
-            pd.addComment(new PictureComment(commentContributor, comment.getString("Text")));
-        }
-        
-        return pd;
-        */
+    	
     }
 	
-	
+	public void init_blocks(String jsonpath)
+	{
+		JSONObject obj= Utility.getJSONObjectFromPath(jsonpath);
+		fillmatrixFromJSON(obj);
+		return;
+	}
 	
 }

@@ -3,46 +3,46 @@
     {
     "x": 0,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 0,  "y": 1, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 0,  "y": 2, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 0,  "y": 3, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 0,  "y": 4, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 0,  "y": 5, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 0,  "y": 6, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 0,  "y": 7, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 0,  "y": 8, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 0,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
 
 
 
@@ -50,90 +50,90 @@
     {
     "x": 1,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }   
+    }, 
     {
     "x": 1,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 1,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 1,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 1,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 1,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 1,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 1,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 1,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 1,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
  
  
  
     {
     "x": 2,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }       
+    },      
     {
     "x": 2,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 2,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 2,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 2,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 2,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 2,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 2,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 2,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 2,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }    
+    },    
 
 
 
@@ -141,90 +141,90 @@
     {
     "x": 3,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }   
+    },   
     {
     "x": 3,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 3,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 3,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 3,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 3,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 3,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 3,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 3,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 3,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
  
  
  
     {
     "x": 4,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }       
+    },      
     {
     "x": 4,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 4,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 4,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 4,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 4,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 4,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 4,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 4,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 4,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }    
+    },    
 
 
 
@@ -232,231 +232,231 @@
     {
     "x": 5,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }   
+    },   
     {
     "x": 5,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 5,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 5,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 5,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 5,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 5,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 5,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 5,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 5,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
  
  
  
     {
     "x": 6,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }       
+    },       
     {
     "x": 6,  "y": 1, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 6,  "y": 2, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 6,  "y": 3, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 6,  "y": 4, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 6,  "y": 5, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 6,  "y": 6, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 6,  "y": 7, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 6,  "y": 8, "inside_Block": true, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 6,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }    
+    },    
 
 
 
     {
     "x": 7,  "y": 0, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 7,  "y": 1, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 7,  "y": 2, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 7,  "y": 3, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
         {
     "x": 7,  "y": 4, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 7,  "y": 5, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     
     {
     "x": 7,  "y": 6, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 7,  "y": 7, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 7,  "y": 8, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
-    }
+    },
     {
     "x": 7,  "y": 9, "inside_Block": false, "smoke": false,	"fire": false,	"danger": 0,
 	"interest": false,	"seat": false, 	"people": 0,"healed_people": 0,	"firetruck": false,	"ambulance": false,
     }
 
     
-]
+],
 "Walls": [
 	{
 	"x1":0 , "y1": 1 , "x2":1 , "y2":1  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 2 , "x2":1 , "y2":2  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 3 , "x2":1 , "y2":3  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 4 , "x2":1 , "y2":4  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 5 , "x2":1 , "y2":5  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 6 , "x2":1 , "y2":6  , "direction": 0 , "walltype": 7,
-	}
+	},
 	{
 	"x1":0 , "y1": 7 , "x2":1 , "y2":7  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":0 , "y1": 8 , "x2":1 , "y2":8  , "direction": 0 , "walltype": 1,
-	}
+	},
 	
 	
 	{
 	"x1":6 , "y1": 1 , "x2":7 , "y2":1  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 2 , "x2":7 , "y2":2  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 3 , "x2":7 , "y2":3  , "direction": 0 , "walltype": 7,
-	}
+	},
 	{
 	"x1":6 , "y1": 4 , "x2":7 , "y2":4  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 5 , "x2":7 , "y2":5  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 6 , "x2":7 , "y2":6  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 7 , "x2":7 , "y2":7  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 8 , "x2":7 , "y2":8  , "direction": 0 , "walltype": 1,
-	}
+	},
 	
 	
 	
 	{
 	"x1":1 , "y1": 0 , "x2":1 , "y2":1  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 0 , "x2":2 , "y2":1  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":3 , "y1": 0 , "x2":3 , "y2":1  , "direction": 1 , "walltype": 7,
-	}
+	},
 	{
 	"x1":4 , "y1": 0 , "x2":4 , "y2":1  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":5 , "y1": 0 , "x2":5 , "y2":1  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 0 , "x2":6 , "y2":1  , "direction": 1 , "walltype": 1,
-	}
+	},
 
 
 	{
 	"x1":1 , "y1": 8 , "x2":1 , "y2":9  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 8 , "x2":2 , "y2":9  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":3 , "y1": 8 , "x2":3 , "y2":9  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 8 , "x2":4 , "y2":9  , "direction": 1 , "walltype": 7,
-	}
+	},
 	{
 	"x1":5 , "y1": 8 , "x2":5 , "y2":9  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 8 , "x2":6 , "y2":9  , "direction": 1 , "walltype": 1,
-	}
+	},
 
 
 	
@@ -464,92 +464,92 @@
 
 	{
 	"x1":1 , "y1": 3 , "x2":1 , "y2":4  , "direction": 1 , "walltype": 4,
-	}
+	},
 	{
 	"x1":2 , "y1": 3 , "x2":2 , "y2":4  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":1 , "y1": 5 , "x2":1 , "y2":6  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 5 , "x2":2 , "y2":6  , "direction": 1 , "walltype": 4,
-	}
+	},
 	
 	
 	{
 	"x1":2 , "y1": 3 , "x2":3 , "y2":3  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 4 , "x2":3 , "y2":4  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 5 , "x2":3 , "y2":5  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":2 , "y1": 6 , "x2":3 , "y2":6  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":1 , "y1": 7 , "x2":3 , "y2":7  , "direction": 0 , "walltype": 1,
-	}					
+	},					
 	{
 	"x1":2 , "y1": 8 , "x2":3 , "y2":8  , "direction": 0 , "walltype": 4,
-	}
+	},
 	
 	
 
 
 	{
 	"x1":3 , "y1": 2 , "x2":3 , "y2":3  , "direction": 1 , "walltype": 4,
-	}
+	},
 	{
 	"x1":4 , "y1": 2 , "x2":4 , "y2":3  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":3 , "y1": 6 , "x2":3 , "y2":7  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 6 , "x2":4 , "y2":7  , "direction": 1 , "walltype": 4,
-	}
+	},
 
 
 	
 	{
 	"x1":4 , "y1": 1 , "x2":5 , "y2":1  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 2 , "x2":5 , "y2":2  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 3 , "x2":5 , "y2":3  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 4 , "x2":5 , "y2":4  , "direction": 0 , "walltype": 4,
-	}
+	},
 	{
 	"x1":4 , "y1": 5 , "x2":5 , "y2":5  , "direction": 0 , "walltype": 1,
-	}					
+	},					
 	{
 	"x1":4 , "y1": 6 , "x2":5 , "y2":6  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 7 , "x2":5 , "y2":7  , "direction": 0 , "walltype": 1,
-	}
+	},
 	{
 	"x1":4 , "y1": 8 , "x2":5 , "y2":8  , "direction": 0 , "walltype": 1,
-	}
+	},
 	
 
 
 
 	{
 	"x1":5 , "y1": 5 , "x2":5 , "y2":6  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 5 , "x2":6 , "y2":6  , "direction": 1 , "walltype": 4,
-	}
+	},
 	{
 	"x1":5 , "y1": 7 , "x2":5 , "y2":8  , "direction": 1 , "walltype": 1,
-	}
+	},
 	{
 	"x1":6 , "y1": 7 , "x2":6 , "y2":8  , "direction": 1 , "walltype": 4,
 	}	

@@ -25,9 +25,9 @@ public class Background extends Zone{
 
 	@Override
 	public void draw() {
-		noStroke();
-		fill(0xAFEEEEEE);
-        rect(x,y,this.width,this.height);
+		//noStroke();
+		//fill(0xAFEEEEEE);
+        //rect(x,y,this.width,this.height);
 		image(picture,x,y,width,height);
 	}
 
