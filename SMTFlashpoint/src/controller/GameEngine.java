@@ -64,7 +64,7 @@ public class GameEngine implements ILevelListener {
 	public String pic_path="./pictures";
 	public String json_path="./jsonfiles";
 	private Integer mapnumber;
-	public Block[][] board= new Block[vertical_blocks][horizontal_blocks];
+	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
 	
 	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groﬂ.gif");
 	
@@ -135,12 +135,19 @@ public class GameEngine implements ILevelListener {
 		resources = loadResources();
 		currentLevel = 1;
 		
-		
 		// Since we created the Level objects in the loadResources() method we can now add the Engine as a listener to each one.
 		initLevelListeners();
 		//initActions();
 		init_measures();
 		init_board();
+		
+		for (int i=0;i<vertical_blocks;i++) {
+			  for (int j=0;j<horizontal_blocks;j++) 
+			  {
+			      board[i][j]= new Block(); 
+			      }
+			}
+			
 		init_blocks(json_path+"/block_start_json.json");
 		
 		
@@ -320,6 +327,10 @@ public class GameEngine implements ILevelListener {
     	for (int i=0;i<jsonboard.size();i++) 
     	{
     	JSONObject boardobj = jsonboard.getJSONObject(i);
+    	//System.out.println(boardobj.getInt("x")+ " " +boardobj.getInt("y")+ " " +boardobj.getBoolean("inside_Block")+ " " +boardobj.getBoolean("smoke")+ " " + boardobj.getBoolean("fire")+ " " +boardobj.getInt("danger")+ " " +boardobj.getBoolean("interest")+ " " +boardobj.getBoolean("seat")+ " " + boardobj.getInt("people")+ " " + boardobj.getInt("healed_people"));
+    	//System.out.println(board[0][0].getHealed_people());
+    	//board[boardobj.getInt("x")][boardobj.getInt("y")]=new Block(boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
+    	//System.out.println(board[0][0].isInside_Block());
     	board[boardobj.getInt("x")][boardobj.getInt("y")].set_all(boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
     	}
     	

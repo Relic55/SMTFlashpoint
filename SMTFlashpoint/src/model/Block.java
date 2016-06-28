@@ -46,11 +46,13 @@ public class Block {
 		this.seat=seat;
 		this.people=people;
 		this.healed_people=healed_people;
+		
 		this.north=north;
 		this.east=east;
 		this.south=south;
 		this.west=west;
-			
+
+		//System.out.println(this.north+" "+this.east);
 	}
 
 	public Integer getDanger() {
