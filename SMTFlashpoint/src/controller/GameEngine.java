@@ -26,7 +26,10 @@ import controller.listener.ILevelListener;
 import model.Actiontype;
 import model.Background;
 import model.Block;
+import model.Color;
 import model.Level;
+import model.Player;
+import model.SpecialistType;
 import model.Wallblock;
 import model.Walltype;
 import processing.core.PImage;
@@ -65,6 +68,7 @@ public class GameEngine implements ILevelListener {
 	public String json_path="./jsonfiles";
 	private Integer mapnumber;
 	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
+	private Player ff0,ff1,ff2,ff3,ff4,ff5;
 	
 	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groﬂ.gif");
 	
@@ -149,10 +153,17 @@ public class GameEngine implements ILevelListener {
 			}
 			
 		init_blocks(json_path+"/block_start_json.json");
+		init_player();
+
 		
 		
 	}
 	
+	/**
+	 * 
+	 */
+
+
 	/**
 	 * 
 	 */
@@ -384,6 +395,14 @@ public class GameEngine implements ILevelListener {
 		JSONObject obj= Utility.getJSONObjectFromPath(jsonpath);
 		fillmatrixFromJSON(obj);
 		return;
+	}
+	
+	private void init_player() {
+		//test mit ff1 als gruen
+		ff1=new Player(this);
+		ff1.setplayer(SpecialistType.DUMMY, Color.GREEN, 4, 0, 0, 0);
+		SMT.add(ff1);
+		
 	}
 	
 }

@@ -3,28 +3,34 @@
  */
 package model;
 
+import controller.GameEngine;
+import vialab.SMT.Zone;
+
 /**
  * @author Relic
  *
  */
-public class Player {
+public class Player extends Zone{
 	
 	private SpecialistType specialist;
 	private Color color;
-	private Integer x,y, ap, sp, apgain, spgain;
+	private Integer xb,yb, ap, sp, apgain, spgain;
+	private GameEngine g;
 	
-	public Player()
+
+	 public Player(GameEngine g)	 
 	{
-		this(SpecialistType.DUMMY, Color.DEFAULT);
+		this(g, SpecialistType.DUMMY, Color.DEFAULT);
 	}
-	
-	public Player(SpecialistType specialist,Color color )
+
+	public Player(GameEngine g, SpecialistType specialist,Color color )
 	{
+		this.g=g;
 		this.color=color;
 		ap=0;
 		sp=0;
-		x=100;		//Startwert für ausserhalb des Feldes
-		y=100;		//Startwert für ausserhalb des Feldes
+		xb=100;		//Startwert für ausserhalb des Feldes
+		yb=100;		//Startwert für ausserhalb des Feldes
 		spgain=0;
 		this.specialist=specialist;
 		if(specialist==SpecialistType.ALLESKOENNER)
@@ -51,14 +57,14 @@ public class Player {
 		}	
 
 	}
-	public void setplayer(SpecialistType specialist,Color color,Integer ap,Integer sp,Integer x ,Integer y )
+	public void setplayer(SpecialistType specialist,Color color,Integer ap,Integer sp,Integer xb ,Integer yb )
 	{
 		this.color=color;
 		this.specialist=specialist;
 		this.ap=ap;
 		this.sp=sp;
-		this.x=x;		
-		this.y=y;		
+		this.xb=xb;		
+		this.yb=yb;		
 		spgain=0;
 		if(specialist==SpecialistType.ALLESKOENNER)
 		{
@@ -135,8 +141,16 @@ public class Player {
 	{
 		SpecialistType new_specialist=SpecialistType.ALLESKOENNER;
 		//Klassenauswahl anzeigen und new_specialist zuweisen
-		this.setplayer(new_specialist,color,ap-2,sp,x ,y );
+		this.setplayer(new_specialist,color,ap-2,sp,xb ,yb );
 		
+	}
+	public void draw() {
+		int size=g.getBlock_size();
+		//noStroke();
+		fill(0xAFEEEEEE);	
+        //rect(x,y,this.width,this.height);
+        ellipse(g.getX_offset()+(xb*size), g.getY_offset()+yb*size, size*80/100,size*80/100 );
+		//image(picture,x,y,width,height);
 	}
 
 }
