@@ -7,7 +7,7 @@ package model;
  * @author Relic
  *
  */
-public enum Color {
+public enum PlayerColor {
 	DEFAULT,RED, BLUE, WHITE, GREEN, YELLOW, ORANGE;
 
 }

@@ -3,6 +3,8 @@
  */
 package model;
 
+import java.awt.Color;
+
 import controller.GameEngine;
 import vialab.SMT.Zone;
 
@@ -13,20 +15,56 @@ import vialab.SMT.Zone;
 public class Player extends Zone{
 	
 	private SpecialistType specialist;
-	private Color color;
-	private Integer xb,yb, ap, sp, apgain, spgain;
+	private PlayerColor playerColor;
+	java.awt.Color fillColor;
+	private Integer xb,yb, ap, sp, apgain, spgain; 
+	float xpos,ypos;
 	private GameEngine g;
 	
-
+	
 	 public Player(GameEngine g)	 
 	{
-		this(g, SpecialistType.DUMMY, Color.DEFAULT);
+		this(g, SpecialistType.DUMMY, PlayerColor.DEFAULT);
 	}
 
-	public Player(GameEngine g, SpecialistType specialist,Color color )
+	public Player(GameEngine g, SpecialistType specialist,PlayerColor playerColor )
 	{
 		this.g=g;
-		this.color=color;
+		
+		this.playerColor=playerColor;
+		//fillColor = new Color(100,100,100);
+		int size=g.getBlock_size();
+		if(playerColor==playerColor.GREEN)
+		{
+			xpos=size/6;
+			ypos=size/6;
+		}
+		else if(playerColor==playerColor.BLUE)
+		{			
+			xpos=size/6*5;
+			ypos=size/6*3;
+		}
+		
+		else if(playerColor==playerColor.RED)
+		{
+			xpos=size/6;
+			ypos=size/6*5;	
+		}
+		else if(playerColor==playerColor.ORANGE)
+		{
+			xpos=size/6*5;
+			ypos=size/6*5;
+		}
+		else if(playerColor==playerColor.WHITE)
+		{
+			xpos=size/6;
+			ypos=size/6*3;
+		}
+		else if(playerColor==playerColor.YELLOW)
+		{
+			xpos=size/6*5;
+			ypos=size/6;
+		}
 		ap=0;
 		sp=0;
 		xb=100;		//Startwert für ausserhalb des Feldes
@@ -57,9 +95,41 @@ public class Player extends Zone{
 		}	
 
 	}
-	public void setplayer(SpecialistType specialist,Color color,Integer ap,Integer sp,Integer xb ,Integer yb )
+	public void setplayer(SpecialistType specialist,PlayerColor playerColor,Integer ap,Integer sp,Integer xb ,Integer yb )
 	{
-		this.color=color;
+		this.playerColor=playerColor;
+		int size=g.getBlock_size();
+		if(playerColor==playerColor.GREEN)
+		{
+			xpos=size/6;
+			ypos=size/6;
+		}
+		else if(playerColor==playerColor.BLUE)
+		{			
+			xpos=size/6*5;
+			ypos=size/6*3;
+		}
+		
+		else if(playerColor==playerColor.RED)
+		{
+			xpos=size/6;
+			ypos=size/6*5;	
+		}
+		else if(playerColor==playerColor.ORANGE)
+		{
+			xpos=size/6*5;
+			ypos=size/6*5;
+		}
+		else if(playerColor==playerColor.WHITE)
+		{
+			xpos=size/6;
+			ypos=size/6*3;
+		}
+		else if(playerColor==playerColor.YELLOW)
+		{
+			xpos=size/6*5;
+			ypos=size/6;
+		}
 		this.specialist=specialist;
 		this.ap=ap;
 		this.sp=sp;
@@ -141,16 +211,42 @@ public class Player extends Zone{
 	{
 		SpecialistType new_specialist=SpecialistType.ALLESKOENNER;
 		//Klassenauswahl anzeigen und new_specialist zuweisen
-		this.setplayer(new_specialist,color,ap-2,sp,xb ,yb );
+		this.setplayer(new_specialist,playerColor,ap-2,sp,xb ,yb );
 		
 	}
 	public void draw() {
 		int size=g.getBlock_size();
 		//noStroke();
-		fill(0xAFEEEEEE);	
+		if(playerColor==playerColor.GREEN)
+		{
+			fill(0,100,0);
+			
+		}
+		else if(playerColor==playerColor.BLUE)
+		{			
+			fill(0,0,100);
+		}
+		
+		else if(playerColor==playerColor.RED)
+		{
+			fill(100,0,0);	
+		}
+		else if(playerColor==playerColor.ORANGE)
+		{
+			fill(255,140,0);
+		}
+		else if(playerColor==playerColor.WHITE)
+		{
+			fill(255,255,255);
+		}
+		else if(playerColor==playerColor.YELLOW)
+		{
+			fill(238,238,0);
+		}
         //rect(x,y,this.width,this.height);
-        ellipse(g.getX_offset()+(xb*size), g.getY_offset()+yb*size, size*80/100,size*80/100 );
+        //ellipse(g.getX_offset()+(xb*size)+((float)0.5*size),g.getY_offset()+yb*size+((float)0.5*size), (size*80/100),(size*80/100) );
+        ellipse(g.getX_offset()+(xb*size)+(xpos),g.getY_offset()+yb*size+(ypos), (size*80/100/3),(size*80/100/3) );
 		//image(picture,x,y,width,height);
 	}
-
+	
 }

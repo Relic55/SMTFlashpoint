@@ -26,7 +26,7 @@ import controller.listener.ILevelListener;
 import model.Actiontype;
 import model.Background;
 import model.Block;
-import model.Color;
+import model.PlayerColor;
 import model.Level;
 import model.Player;
 import model.SpecialistType;
@@ -273,14 +273,14 @@ public class GameEngine implements ILevelListener {
 		
 
 
-		y_offset = (AppInjector.application().displayHeight - vertical_blocks*block_size)/4;
-		x_offset = (AppInjector.application().displayWidth - horizontal_blocks*block_size)/4;
+		y_offset = (AppInjector.application().displayHeight - vertical_blocks*block_size)/2;
+		x_offset = (AppInjector.application().displayWidth - horizontal_blocks*block_size)/2;
 		
 				
 	}
 	public void init_board()
 	{
-		background=new Background(backgroundpic,x_offset,y_offset,board_width,board_height );
+		background=new Background(backgroundpic,x_offset/2,y_offset/2,board_width,board_height );
 		SMT.add(background);
 	}	
 	
@@ -399,9 +399,24 @@ public class GameEngine implements ILevelListener {
 	
 	private void init_player() {
 		//test mit ff1 als gruen
+		ff0=new Player(this);
+		ff0.setplayer(SpecialistType.DUMMY, PlayerColor.GREEN, 4, 0, 0, 0);
+		SMT.add(ff0);
 		ff1=new Player(this);
-		ff1.setplayer(SpecialistType.DUMMY, Color.GREEN, 4, 0, 0, 0);
+		ff1.setplayer(SpecialistType.DUMMY, PlayerColor.WHITE, 4, 0, 4, 0);
 		SMT.add(ff1);
+		ff2=new Player(this);
+		ff2.setplayer(SpecialistType.DUMMY, PlayerColor.RED, 4, 0, 0, 3);
+		SMT.add(ff2);
+		ff3=new Player(this);
+		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 9, 5);
+		SMT.add(ff3);
+		ff4=new Player(this);
+		ff4.setplayer(SpecialistType.DUMMY, PlayerColor.BLUE, 4, 0, 3, 7);
+		SMT.add(ff4);
+		ff5=new Player(this);
+		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 8, 7);
+		SMT.add(ff5);
 		
 	}
 	
