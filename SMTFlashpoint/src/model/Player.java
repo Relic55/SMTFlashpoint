@@ -215,6 +215,8 @@ public class Player extends Zone{
 		
 	}
 	public void draw() {
+		if(xb==100||yb==100)
+			return;
 		int size=g.getBlock_size();
 		//noStroke();
 		if(playerColor==playerColor.GREEN)

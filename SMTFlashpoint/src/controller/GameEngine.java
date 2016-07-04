@@ -24,8 +24,10 @@ import vialab.SMT.*;
 
 import controller.listener.ILevelListener;
 import model.Actiontype;
+import model.Action;
 import model.Background;
 import model.Block;
+import model.Gamedifficulty;
 import model.PlayerColor;
 import model.Level;
 import model.Player;
@@ -81,26 +83,30 @@ public class GameEngine implements ILevelListener {
 	private int board_height;
 	
 	public model.Player[] playerbase=new model.Player[6];
-	private model.Player active_firefighter;
-	private model.Action move= new model.Action(model.Actiontype.MOVE);
-	private model.Action move_to_fire= new model.Action(model.Actiontype.MOVE_TO_FIRE);
-	private model.Action move_carry_person= new model.Action(model.Actiontype.MOVE_CARRY_PERSON);
-	private model.Action move_with_healed_person= new model.Action(model.Actiontype.MOVE_WITH_HEALED_PERSON);	
-	private model.Action move_caryy_and_healed= new model.Action(model.Actiontype.MOVE_CARRY_AND_HEALED);
-	private model.Action transport_danger= new model.Action(model.Actiontype.TRANSPORT_DANGER);
-	private model.Action extinquish_fire= new model.Action(model.Actiontype.EXTINQUISH_FIRE);
-	private model.Action extinquish_smoke= new model.Action(model.Actiontype.EXTINQUISH_SMOKE);	
-	private model.Action heal_person= new model.Action(model.Actiontype.HEAL_PERSON);
-	private model.Action remove_danger= new model.Action(model.Actiontype.REMOVE_DANGER);
-	private model.Action identify= new model.Action(model.Actiontype.IDENTIFY);
-	private model.Action control_firefighter= new model.Action(model.Actiontype.CONTROL_FIREFIGHTER);	
-	private model.Action move_ambulance= new model.Action(model.Actiontype.MOVE_AMBULANCE);
-	private model.Action move_firetruck= new model.Action(model.Actiontype.MOVE_FIRETRUCK);
-	private model.Action use_firetruck= new model.Action(model.Actiontype.USE_FIRETRUCK);
-	private model.Action open_door= new model.Action(model.Actiontype.OPEN_DOOR);	
-	private model.Action close_door= new model.Action(model.Actiontype.CLOSE_DOOR);
-	private model.Action damage_wall= new model.Action(model.Actiontype.DAMAGE_WALL);
-	private model.Action cancel= new model.Action(model.Actiontype.CANCEL);	
+	private int playercount;
+	
+	private Gamedifficulty difficulty;
+	
+	private Player active_firefighter;
+	private Action move= new Action(model.Actiontype.MOVE);
+	private Action move_to_fire= new Action(model.Actiontype.MOVE_TO_FIRE);
+	private Action move_carry_person= new Action(model.Actiontype.MOVE_CARRY_PERSON);
+	private Action move_with_healed_person= new Action(model.Actiontype.MOVE_WITH_HEALED_PERSON);	
+	private Action move_caryy_and_healed= new Action(model.Actiontype.MOVE_CARRY_AND_HEALED);
+	private Action transport_danger= new Action(model.Actiontype.TRANSPORT_DANGER);
+	private Action extinquish_fire= new Action(model.Actiontype.EXTINQUISH_FIRE);
+	private Action extinquish_smoke= new Action(model.Actiontype.EXTINQUISH_SMOKE);	
+	private Action heal_person= new Action(model.Actiontype.HEAL_PERSON);
+	private Action remove_danger= new Action(model.Actiontype.REMOVE_DANGER);
+	private Action identify= new Action(model.Actiontype.IDENTIFY);
+	private Action control_firefighter= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
+	private Action move_ambulance= new Action(model.Actiontype.MOVE_AMBULANCE);
+	private Action move_firetruck= new Action(model.Actiontype.MOVE_FIRETRUCK);
+	private Action use_firetruck= new Action(model.Actiontype.USE_FIRETRUCK);
+	private Action open_door= new Action(model.Actiontype.OPEN_DOOR);	
+	private Action close_door= new Action(model.Actiontype.CLOSE_DOOR);
+	private Action damage_wall= new Action(model.Actiontype.DAMAGE_WALL);
+	private Action cancel= new Action(model.Actiontype.CANCEL);	
 	
 	
 	
@@ -153,6 +159,8 @@ public class GameEngine implements ILevelListener {
 			}
 			
 		init_blocks(json_path+"/block_start_json.json");
+		init_choosing();
+		init_beginningfire();
 		init_player();
 
 		
@@ -162,7 +170,30 @@ public class GameEngine implements ILevelListener {
 	/**
 	 * 
 	 */
+	private void init_choosing() {
+		// TODO Auto-generated method stub
+		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
+		//Testwerte:
+		playercount=6;
+		difficulty= Gamedifficulty.RECRUT;
+		
+	}
 
+	/**
+	 * 
+	 */
+
+
+	/**
+	 * @param difficulty2
+	 * @param playercount2
+	 */
+	private void init_beginningfire() 
+	{
+		// TODO Auto-generated method stub
+		//Feuer auswaehlen bei Spielbeginn
+		
+	}
 
 	/**
 	 * 
