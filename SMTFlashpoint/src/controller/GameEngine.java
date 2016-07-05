@@ -208,7 +208,6 @@ public class GameEngine implements ILevelListener {
 			false_alarm_marker=5;	
 			board[1][6].setFire(true);
 			board[1][7].setFire(true);
-			//board[1][6].setFire(true);
 			
 			explosion(1,6);
 			explosion(1,6);
