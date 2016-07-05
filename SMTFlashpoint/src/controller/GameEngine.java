@@ -84,6 +84,12 @@ public class GameEngine implements ILevelListener {
 	
 	public model.Player[] playerbase=new model.Player[6];
 	private int playercount;
+	private int saved_person;
+	private int dead_person;
+	private int buildingdamage=0;
+	private int maxbuildingdamage=24;
+	private int person_marker;
+	private int false_alarm_marker;
 	
 	private Gamedifficulty difficulty;
 	
@@ -144,7 +150,9 @@ public class GameEngine implements ILevelListener {
 		levelMap = new HashMap<Integer, Level>();
 		resources = loadResources();
 		currentLevel = 1;
-		
+		saved_person=0;
+		dead_person=0;
+		buildingdamage=0;	
 		// Since we created the Level objects in the loadResources() method we can now add the Engine as a listener to each one.
 		initLevelListeners();
 		//initActions();
@@ -154,7 +162,8 @@ public class GameEngine implements ILevelListener {
 		for (int i=0;i<vertical_blocks;i++) {
 			  for (int j=0;j<horizontal_blocks;j++) 
 			  {
-			      board[i][j]= new Block(); 
+			      board[i][j]= new Block(this, pic_path); 
+			      AppInjector.zoneManager().add(board[i][j]);
 			      }
 			}
 			
@@ -175,7 +184,7 @@ public class GameEngine implements ILevelListener {
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
 		playercount=6;
-		difficulty= Gamedifficulty.RECRUT;
+		difficulty= Gamedifficulty.BEGINNER;
 		
 	}
 
@@ -191,10 +200,174 @@ public class GameEngine implements ILevelListener {
 	private void init_beginningfire() 
 	{
 		// TODO Auto-generated method stub
-		//Feuer auswaehlen bei Spielbeginn
+		//Feuer verursachen bei Spielbeginn
+		 
+		if(difficulty == Gamedifficulty.BEGINNER)
+		{
+			person_marker=10;
+			false_alarm_marker=5;	
+			board[1][6].setFire(true);
+			board[1][7].setFire(true);
+			//board[1][6].setFire(true);
+			
+			explosion(1,6);
+			explosion(1,6);
+			explosion(1,6);
+			explosion(1,6);
+			explosion(1,6);
+			
+			/*
+			 * board[2][2].setFire(true);
+			board[2][3].setFire(true);
+			board[3][2].setFire(true);
+			board[3][3].setFire(true);
+			board[3][4].setFire(true);
+			board[3][5].setFire(true);
+			board[4][4].setFire(true);
+			board[5][6].setFire(true);
+			board[5][7].setFire(true);
+			board[6][6].setFire(true);
+			
+			board[6][7].setSmoke(true);
+			
+			board[2][4].setInterest(true);
+			board[5][1].setInterest(true);
+			board[5][8].setInterest(true);
+			*/
+		}
+		if(difficulty == Gamedifficulty.RECRUT)
+		{
+			int explosion_count= 3;
+		}
+		
+		
 		
 	}
-
+	
+	private void explosion(int x, int y)
+	{
+		//in alle 4 Richtungen einzeln abprüfen
+		//Norden
+		boolean extention=true;
+		int i=x, j=y;
+		while (extention)
+		{
+			Wallblock wall=board[i][j].getNorth();
+			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
+			{
+				if(!board[i-1][j].isFire())
+				{
+					board[i-1][j].setFire(true);
+					extention=false;
+				}
+				else
+					i--;
+			}
+			else //Wand beschaedigen
+			{
+				if(wall.getWall()==Walltype.BOARDEND)
+					extention=false;
+				else
+				{
+					int dmg=wall.damage_Wall();
+					buildingdamage+=dmg;
+					extention=false;
+				}
+			}
+		}
+		
+		
+		//Sueden
+		extention=true;
+		i=x; j=y;
+		while (extention)
+		{
+			Wallblock wall=board[i][j].getSouth();
+			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
+			{
+				if(!board[i+1][j].isFire())
+				{
+					board[i+1][j].setFire(true);
+					extention=false;
+				}
+				else
+					i++;
+			}
+			else //Wand beschaedigen
+			{
+				if(wall.getWall()==Walltype.BOARDEND)
+					extention=false;
+				else
+				{
+					int dmg=wall.damage_Wall();
+					buildingdamage+=dmg;
+					extention=false;
+				}
+			}
+		}
+		
+		//Osten
+		
+		extention=true;
+		i=x; j=y;
+		while (extention)
+		{
+			Wallblock wall=board[i][j].getEast();
+			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
+			{
+				if(!board[i][j+1].isFire())
+				{
+					board[i][j+1].setFire(true);
+					extention=false;
+				}
+				else
+					j++;
+			}
+			else //Wand beschaedigen
+			{
+				if(wall.getWall()==Walltype.BOARDEND)
+					extention=false;
+				else
+				{
+					int dmg=wall.damage_Wall();
+					buildingdamage+=dmg;
+					extention=false;
+				}
+			}
+		}
+		//Westen
+		
+		extention=true;
+		i=x; j=y;
+		while (extention)
+		{
+			Wallblock wall=board[i][j].getWest();
+			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
+			{
+				if(!board[i][j-1].isFire())
+				{
+					board[i][j-1].setFire(true);
+					extention=false;
+				}
+				else
+					j--;
+			}
+			else //Wand beschaedigen
+			{
+				if(wall.getWall()==Walltype.BOARDEND)
+					extention=false;
+				else
+				{
+					int dmg=wall.damage_Wall();
+					buildingdamage+=dmg;
+					extention=false;
+				}
+			}
+		}
+		
+		
+	}
+	
 	/**
 	 * 
 	 */
@@ -312,7 +485,7 @@ public class GameEngine implements ILevelListener {
 	public void init_board()
 	{
 		background=new Background(backgroundpic,x_offset/2,y_offset/2,board_width,board_height );
-		SMT.add(background);
+		AppInjector.zoneManager().add(background);
 	}	
 	
 
@@ -369,11 +542,9 @@ public class GameEngine implements ILevelListener {
     	for (int i=0;i<jsonboard.size();i++) 
     	{
     	JSONObject boardobj = jsonboard.getJSONObject(i);
-    	//System.out.println(boardobj.getInt("x")+ " " +boardobj.getInt("y")+ " " +boardobj.getBoolean("inside_Block")+ " " +boardobj.getBoolean("smoke")+ " " + boardobj.getBoolean("fire")+ " " +boardobj.getInt("danger")+ " " +boardobj.getBoolean("interest")+ " " +boardobj.getBoolean("seat")+ " " + boardobj.getInt("people")+ " " + boardobj.getInt("healed_people"));
-    	//System.out.println(board[0][0].getHealed_people());
-    	//board[boardobj.getInt("x")][boardobj.getInt("y")]=new Block(boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
-    	//System.out.println(board[0][0].isInside_Block());
-    	board[boardobj.getInt("x")][boardobj.getInt("y")].set_all(boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
+    	int x= boardobj.getInt("x");
+    	int y=boardobj.getInt("y");
+    	board[x][y].set_all(x,y,boardobj.getBoolean("inside_Block")  , boardobj.getBoolean("smoke"), boardobj.getBoolean("fire"), boardobj.getInt("danger"), boardobj.getBoolean("interest"), boardobj.getBoolean("seat"), boardobj.getInt("people"), boardobj.getInt("healed_people"), null, null, null, null);
     	}
     	
     	//Boardgrenzen anlegen
@@ -410,11 +581,13 @@ public class GameEngine implements ILevelListener {
     			board[x1][y1].setSouth(wall);
     			board[x2][y2].setNorth(wall);
     		}
-    		else if(direction ==1) //horizontal
+    		else if(direction ==1) //vertikal
     		{
     			wall=new Wallblock(direction, walltype );
-    			board[x1][y1].setEast(wall);
     			board[x2][y2].setWest(wall);
+    			board[x1][y1].setEast(wall);
+    			
+    			
     		}    		
     		
     	}
@@ -425,6 +598,7 @@ public class GameEngine implements ILevelListener {
 	{
 		JSONObject obj= Utility.getJSONObjectFromPath(jsonpath);
 		fillmatrixFromJSON(obj);
+
 		return;
 	}
 	
@@ -432,23 +606,23 @@ public class GameEngine implements ILevelListener {
 		//test mit ff1 als gruen
 		ff0=new Player(this);
 		ff0.setplayer(SpecialistType.DUMMY, PlayerColor.GREEN, 4, 0, 0, 0);
-		SMT.add(ff0);
+		AppInjector.zoneManager().add(ff0);
 		ff1=new Player(this);
 		ff1.setplayer(SpecialistType.DUMMY, PlayerColor.WHITE, 4, 0, 4, 0);
-		SMT.add(ff1);
+		AppInjector.zoneManager().add(ff1);
 		ff2=new Player(this);
 		ff2.setplayer(SpecialistType.DUMMY, PlayerColor.RED, 4, 0, 0, 3);
-		SMT.add(ff2);
+		AppInjector.zoneManager().add(ff2);
 		ff3=new Player(this);
-		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 9, 5);
-		SMT.add(ff3);
+		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 7, 5);
+		AppInjector.zoneManager().add(ff3);
 		ff4=new Player(this);
 		ff4.setplayer(SpecialistType.DUMMY, PlayerColor.BLUE, 4, 0, 3, 7);
-		SMT.add(ff4);
+		AppInjector.zoneManager().add(ff4);
 		ff5=new Player(this);
-		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 8, 7);
-		SMT.add(ff5);
+		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 5, 7);;
+		AppInjector.zoneManager().add(ff5);
 		
 	}
-	
+
 }

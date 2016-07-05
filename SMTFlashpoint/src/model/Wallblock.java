@@ -1,6 +1,8 @@
 package model;
 
-public class Wallblock {
+import vialab.SMT.Zone;
+
+public class Wallblock extends Zone {
 	
 	
 	private Integer direction; //0=horizontal, 1=vertikal
@@ -82,6 +84,12 @@ public class Wallblock {
 
 	public Walltype getWall() {
 		return wall;
+	}
+	
+	@Override
+	public void draw()
+	{
+		return;
 	}
 	
 	

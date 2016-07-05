@@ -1,7 +1,16 @@
 package model;
 
-public class Block {
+import controller.GameEngine;
+import processing.core.PImage;
+import util.io.Utility;
+import vialab.SMT.SMT;
+import vialab.SMT.Zone;
+
+public class Block extends Zone{
 	
+	private int xb,yb;
+	private GameEngine g;
+	private int size, x_offset, y_offset;
 	private boolean inside_Block;
 	private boolean smoke;
 	private boolean fire;
@@ -13,15 +22,27 @@ public class Block {
 	private Wallblock north, east, south, west;
 	private boolean firetruck;
 	private boolean ambulance;
+	private String pic_path;
 	
-	public Block()
+	private PImage fireimage;
+	private PImage smokeimage;
+	private PImage interestimage;
+	
+	
+	public Block(GameEngine g,String pic_path)
 	{
-		this(false, false, false,0,false,false,0,0,null, null, null, null);
+		
+		this(g, pic_path,false, false, false,0,false,false,0,0,null, null, null, null);
+		
 	}
 	
 	
-	public Block(boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
+	public Block(GameEngine g,String pic_path, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{
+		this.g=g;
+		this.x=0;
+		this.y=0;
+		this.pic_path=pic_path;
 		this.inside_Block=inside_Block;
 		this.smoke=smoke;
 		this.fire=fire;
@@ -34,10 +55,15 @@ public class Block {
 		this.east=east;
 		this.south=south;
 		this.west=west;
+		size=g.getBlock_size();
+		x_offset=g.getX_offset();
+		y_offset=g.getY_offset();
 			
 	}
-	public void set_all(boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
+	public void set_all(int xb, int yb, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{
+		this.xb=xb;
+		this.yb=yb;
 		this.inside_Block=inside_Block;
 		this.smoke=smoke;
 		this.fire=fire;
@@ -216,6 +242,83 @@ public class Block {
 
 	public void setWest(Wallblock west) {
 		this.west = west;
+	}
+
+
+	/**
+	 * @param interest the interest to set
+	 */
+	public void setInterest(boolean interest) {
+		this.interest = interest;
+	}
+
+
+	/**
+	 * @param seat the seat to set
+	 */
+	public void setSeat(boolean seat) {
+		this.seat = seat;
+	}
+
+
+	/**
+	 * @param people the people to set
+	 */
+	public void setPeople(Integer people) {
+		this.people = people;
+	}
+
+
+	/**
+	 * @param healed_people the healed_people to set
+	 */
+	public void setHealed_people(Integer healed_people) {
+		this.healed_people = healed_people;
+	}
+	
+	
+	@Override
+	public void draw()
+	{
+		if (fire)
+		{
+			//fireimage=Utility.getImage(pic_path+"/Feuer");
+			//image(fireimage,x_offset+(xb*size),y_offset+yb*size,size,size);
+			fill(100,0,0);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
+		}
+		if (smoke)
+		{
+			//fireimage=Utility.getImage(pic_path+"/Feuer");
+			//image(fireimage,x_offset+(xb*size),y_offset+yb*size,size,size);
+			fill(102,102,102);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
+		}	
+		
+		if(east!=null&&(east.getWall()==Walltype.DOORCLOSED))
+		{
+				//vertikal
+			fill(80,80,80);
+			ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
+		
+		}
+		
+		if(south!=null&&(south.getWall()==Walltype.DOORCLOSED))
+		{
+			fill(80,80,80);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
+		
+		}
+		if(interest)
+		{
+			fill(30,144,255);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.25*size), (size*30/100),(size*30/100) );
+					
+		}
+		
+		
+		return;
+	
 	}
 	
 }

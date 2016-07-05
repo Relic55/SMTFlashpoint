@@ -16,7 +16,7 @@ public class Player extends Zone{
 	
 	private SpecialistType specialist;
 	private PlayerColor playerColor;
-	java.awt.Color fillColor;
+	int fillColor;
 	private Integer xb,yb, ap, sp, apgain, spgain; 
 	float xpos,ypos;
 	private GameEngine g;
@@ -38,32 +38,38 @@ public class Player extends Zone{
 		{
 			xpos=size/6;
 			ypos=size/6;
+			fillColor= 0xFF006400;
 		}
 		else if(playerColor==playerColor.BLUE)
 		{			
 			xpos=size/6*5;
 			ypos=size/6*3;
+			fillColor= 0xFF0000CD;
 		}
 		
 		else if(playerColor==playerColor.RED)
 		{
 			xpos=size/6;
 			ypos=size/6*5;	
+			fillColor= 0xFF8B0000;
 		}
 		else if(playerColor==playerColor.ORANGE)
 		{
 			xpos=size/6*5;
 			ypos=size/6*5;
+			fillColor= 0xFFFF8C00;
 		}
 		else if(playerColor==playerColor.WHITE)
 		{
 			xpos=size/6;
 			ypos=size/6*3;
+			fillColor= 0xFFFFFAF0;
 		}
 		else if(playerColor==playerColor.YELLOW)
 		{
 			xpos=size/6*5;
 			ypos=size/6;
+			fillColor= 0xFFFFFF00;
 		}
 		ap=0;
 		sp=0;
@@ -103,32 +109,38 @@ public class Player extends Zone{
 		{
 			xpos=size/6;
 			ypos=size/6;
+			fillColor= 0xFF006400;
 		}
 		else if(playerColor==playerColor.BLUE)
 		{			
 			xpos=size/6*5;
 			ypos=size/6*3;
+			fillColor= 0xFF0000CD;
 		}
 		
 		else if(playerColor==playerColor.RED)
 		{
 			xpos=size/6;
-			ypos=size/6*5;	
+			ypos=size/6*5;
+			fillColor= 0xFF8B0000;
 		}
 		else if(playerColor==playerColor.ORANGE)
 		{
 			xpos=size/6*5;
 			ypos=size/6*5;
+			fillColor= 0xFFFF8C00;
 		}
 		else if(playerColor==playerColor.WHITE)
 		{
 			xpos=size/6;
 			ypos=size/6*3;
+			fillColor= 	0xFFFFFAF0;
 		}
 		else if(playerColor==playerColor.YELLOW)
 		{
 			xpos=size/6*5;
 			ypos=size/6;
+			fillColor= 0xFFFFFF00;
 		}
 		this.specialist=specialist;
 		this.ap=ap;
@@ -214,40 +226,18 @@ public class Player extends Zone{
 		this.setplayer(new_specialist,playerColor,ap-2,sp,xb ,yb );
 		
 	}
+	
+	@Override
 	public void draw() {
 		if(xb==100||yb==100)
 			return;
 		int size=g.getBlock_size();
 		//noStroke();
-		if(playerColor==playerColor.GREEN)
-		{
-			fill(0,100,0);
-			
-		}
-		else if(playerColor==playerColor.BLUE)
-		{			
-			fill(0,0,100);
-		}
-		
-		else if(playerColor==playerColor.RED)
-		{
-			fill(100,0,0);	
-		}
-		else if(playerColor==playerColor.ORANGE)
-		{
-			fill(255,140,0);
-		}
-		else if(playerColor==playerColor.WHITE)
-		{
-			fill(255,255,255);
-		}
-		else if(playerColor==playerColor.YELLOW)
-		{
-			fill(238,238,0);
-		}
+
+		fill(fillColor);
         //rect(x,y,this.width,this.height);
         //ellipse(g.getX_offset()+(xb*size)+((float)0.5*size),g.getY_offset()+yb*size+((float)0.5*size), (size*80/100),(size*80/100) );
-        ellipse(g.getX_offset()+(xb*size)+(xpos),g.getY_offset()+yb*size+(ypos), (size*80/100/3),(size*80/100/3) );
+        ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
 		//image(picture,x,y,width,height);
 	}
 	
