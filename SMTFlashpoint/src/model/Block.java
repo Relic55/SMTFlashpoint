@@ -295,25 +295,75 @@ public class Block extends Zone{
 			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
 		}	
 		
-		if(east!=null&&(east.getWall()==Walltype.DOORCLOSED))
+		if(east!=null)//vertikal
 		{
-				//vertikal
-			fill(80,80,80);
-			ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
-		
+			if(east.getWall()==Walltype.DOORCLOSED)
+			{	
+				fill(80,80,80);
+				ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
+			}
+			else if(east.getWall()==Walltype.DOOROPEN)
+			{	
+				fill(150,150,150);
+				ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
+			}
+			else if(east.getWall()==Walltype.WALLDAMAGED)
+			{
+				
+				fill(43,43,43);
+				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.3*size),(size*15/100),(size*15/100));
+			}
+			else if(east.getWall()==Walltype.WALLDESTROYED)
+			{
+				
+				fill(43,43,43);
+				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.3*size),(size*15/100),(size*15/100));
+				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.6*size),(size*15/100),(size*15/100));
+			}
 		}
 		
-		if(south!=null&&(south.getWall()==Walltype.DOORCLOSED))
+		if(south!=null)	
 		{
-			fill(80,80,80);
-			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
-		
+			if(south.getWall()==Walltype.DOORCLOSED)
+			{
+				fill(80,80,80);
+				ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
+			}
+			else if(south.getWall()==Walltype.DOOROPEN)
+			{
+				
+				fill(150,150,150);
+				ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
+			}
+			else if(south.getWall()==Walltype.WALLDAMAGED)
+			{
+				fill(43,43,43);
+				rect((float)(x_offset+(yb*size)+0.3*size),(float)(y_offset+(xb*size)+size),(size*15/100),(size*15/100));
+			}
+			else if(south.getWall()==Walltype.WALLDESTROYED)
+			{
+				fill(43,43,43);
+				rect((float)(x_offset+(yb*size)+0.3*size),(float)(y_offset+(xb*size)+size),(size*15/100),(size*15/100));
+				rect((float)(x_offset+(yb*size)+0.6*size),(float)(y_offset+(xb*size)+size),(size*15/100),(size*15/100));
+			}
+			
 		}
+
 		if(interest)
 		{
 			fill(30,144,255);
 			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.25*size), (size*30/100),(size*30/100) );
 					
+		}
+		if(seat)
+		{
+			fill(255,20,147);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*30/100),(size*30/100) );			
+		}
+		if(danger>0)
+		{
+			fill(69,139,0);
+			ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.75*size), (size*30/100),(size*30/100) );			
 		}
 		
 		

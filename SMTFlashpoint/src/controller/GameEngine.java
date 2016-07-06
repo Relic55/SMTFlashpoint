@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 
 import vialab.SMT.*;
 
+import java.util.Random; //Zufallszahlen
+
 import controller.listener.ILevelListener;
 import model.Actiontype;
 import model.Action;
@@ -83,13 +85,16 @@ public class GameEngine implements ILevelListener {
 	private int board_height;
 	
 	public model.Player[] playerbase=new model.Player[6];
-	private int playercount;
-	private int saved_person;
-	private int dead_person;
-	private int buildingdamage=0;
+	private int playercount;			//Anzahl aktiver Spieler
+	private int saved_person=0;			//Anzahl geretteter Personen
+	private int dead_person=0;			//Anzahl verstorbener Personen
+	private int buildingdamage=0;		
 	private int maxbuildingdamage=24;
-	private int person_marker;
-	private int false_alarm_marker;
+	private int person_marker=10;			//Anzahl Personen im Spiel insgesamt
+	private int false_alarm_marker=5;		//Anzahl falscher Alarme insgesamt
+	private int active_seats;			//aktive Brandherde
+	private int inactive_seats;			//weitere Brandherde
+	private Random rand;				//Objekt fuer Zufallszahlen
 	
 	private Gamedifficulty difficulty;
 	
@@ -169,6 +174,7 @@ public class GameEngine implements ILevelListener {
 			
 		init_blocks(json_path+"/block_start_json.json");
 		init_choosing();
+		rand = new Random();
 		init_beginningfire();
 		init_player();
 
@@ -184,7 +190,7 @@ public class GameEngine implements ILevelListener {
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
 		playercount=6;
-		difficulty= Gamedifficulty.BEGINNER;
+		difficulty= Gamedifficulty.HERO;
 		
 	}
 
@@ -206,6 +212,9 @@ public class GameEngine implements ILevelListener {
 		{
 			person_marker=10;
 			false_alarm_marker=5;	
+			
+			
+			/* explosionstest
 			board[1][6].setFire(true);
 			board[1][7].setFire(true);
 			
@@ -213,10 +222,12 @@ public class GameEngine implements ILevelListener {
 			explosion(1,6);
 			explosion(1,6);
 			explosion(1,6);
-			explosion(1,6);
-			
-			/*
-			 * board[2][2].setFire(true);
+			explosion(1,6);	
+			explosion(2,4);
+			explosion(5,1);
+			explosion(2,4);		
+			*/
+			board[2][2].setFire(true);
 			board[2][3].setFire(true);
 			board[3][2].setFire(true);
 			board[3][3].setFire(true);
@@ -232,11 +243,158 @@ public class GameEngine implements ILevelListener {
 			board[2][4].setInterest(true);
 			board[5][1].setInterest(true);
 			board[5][8].setInterest(true);
-			*/
+			
 		}
-		if(difficulty == Gamedifficulty.RECRUT)
-		{
-			int explosion_count= 3;
+		else 
+		{		
+			//erste Explosion
+			
+			int randomvalue = rand.nextInt(8);
+			if(randomvalue==0)
+			{
+				board[3][3].setFire(true);
+				board[3][3].setSeat(true);
+				explosion(3,3);
+			}
+			else if(randomvalue==1)
+			{
+				board[3][4].setFire(true);
+				board[3][4].setSeat(true);
+				explosion(3,4);
+			}
+			else if(randomvalue==2)
+			{
+				board[3][5].setFire(true);
+				board[3][5].setSeat(true);
+				explosion(3,5);
+			}
+			else if(randomvalue==3)
+			{
+				board[3][6].setFire(true);
+				board[3][6].setSeat(true);
+				explosion(3,6);
+			}
+			else if(randomvalue==4)
+			{
+				board[4][6].setFire(true);
+				board[4][6].setSeat(true);
+				explosion(4,6);
+			}
+			else if(randomvalue==5)
+			{
+				board[4][5].setFire(true);
+				board[4][5].setSeat(true);
+				explosion(4,5);
+			}
+			else if(randomvalue==6)
+			{
+				board[4][4].setFire(true);
+				board[4][4].setSeat(true);
+				explosion(4,4);
+			}
+			else if(randomvalue==7)
+			{
+				board[4][3].setFire(true);
+				board[4][3].setSeat(true);
+				explosion(4,3);
+			}
+			
+			//Startexplosion 2
+			randomvalue = rand.nextInt(8)+1;
+			int randomvaluered = rand.nextInt(6)+1;
+			while(board[randomvaluered][randomvalue].isFire())
+			{
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+			}
+			board[randomvaluered][randomvalue].setFire(true);
+			board[randomvaluered][randomvalue].setSeat(true);
+			explosion(randomvaluered,randomvalue);
+
+				
+			//Startexplosion 3
+			if(randomvalue==1)
+				randomvalue=6;
+			else if(randomvalue==2)
+				randomvalue=5;
+			else if(randomvalue==3)
+				randomvalue=8;
+			else if(randomvalue==4)
+				randomvalue=7;
+			else if(randomvalue==5)
+				randomvalue=2;
+			else if(randomvalue==6)
+				randomvalue=1;
+			else if(randomvalue==7)
+				randomvalue=4;
+			else if(randomvalue==8)
+				randomvalue=3;
+			
+			randomvaluered=rand.nextInt(6)+1;
+			while(board[randomvaluered][randomvalue].isFire())
+			{
+				randomvaluered = rand.nextInt(6)+1;
+			}
+			board[randomvaluered][randomvalue].setFire(true);
+			board[randomvaluered][randomvalue].setSeat(true);
+			explosion(randomvaluered,randomvalue);
+
+			if(difficulty == Gamedifficulty.HERO)
+			{
+				//vierte Explosion
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+				while(board[randomvaluered][randomvalue].isFire())
+				{
+					randomvalue = rand.nextInt(8)+1;
+					randomvaluered = rand.nextInt(6)+1;
+				}
+				board[randomvaluered][randomvalue].setFire(true);
+				board[randomvaluered][randomvalue].setSeat(true);
+				explosion(randomvaluered,randomvalue);
+			}
+			
+			//Ermittlung Anzahl weiterer Brandherde und Anzahl Gefahrenstoffe
+			if(playercount>3)
+				active_seats=3;	
+			else if(playercount<3)
+				active_seats=0;
+			else
+				active_seats=2;
+			inactive_seats=0;			
+			int neededdanger=0;
+			
+			if(difficulty == Gamedifficulty.RECRUT)
+			{
+			neededdanger=3;		
+			}
+			else if(difficulty == Gamedifficulty.VETERAN)
+			{
+			neededdanger=4;	
+			active_seats+=3;
+			inactive_seats=6;
+			}
+			else if(difficulty == Gamedifficulty.HERO)
+			{
+			neededdanger=5;	
+			active_seats+=3;
+			inactive_seats=12;
+			}
+			
+			//Verteilung Gefahrenstoffe
+			while(neededdanger>0)
+			{
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+				while(board[randomvaluered][randomvalue].isFire())
+				{
+					randomvalue = rand.nextInt(8)+1;
+					randomvaluered = rand.nextInt(6)+1;
+				}
+				int tmp=board[randomvaluered][randomvalue].getDanger();
+				board[randomvaluered][randomvalue].setDanger(tmp+1);
+				neededdanger--;
+			}
 		}
 		
 		
