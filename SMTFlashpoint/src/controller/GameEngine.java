@@ -29,11 +29,13 @@ import model.Actiontype;
 import model.Action;
 import model.Background;
 import model.Block;
-import model.Gamedifficulty;
+import model.GameDifficulty;
 import model.PlayerColor;
+import model.Playerzone;
 import model.Level;
 import model.Player;
 import model.SpecialistType;
+import model.Statusoverview;
 import model.Wallblock;
 import model.Walltype;
 import processing.core.PImage;
@@ -73,6 +75,8 @@ public class GameEngine implements ILevelListener {
 	private Integer mapnumber;
 	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
 	private Player ff0,ff1,ff2,ff3,ff4,ff5;
+	private Playerzone ffz0,ffz1,ffz2,ffz3,ffz4,ffz5;
+	private Statusoverview stat;
 	
 	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groß.gif");
 	
@@ -92,11 +96,13 @@ public class GameEngine implements ILevelListener {
 	private int maxbuildingdamage=24;
 	private int person_marker=10;			//Anzahl Personen im Spiel insgesamt
 	private int false_alarm_marker=5;		//Anzahl falscher Alarme insgesamt
+	private int interestleft;
 	private int active_seats;			//aktive Brandherde
 	private int inactive_seats;			//weitere Brandherde
+	private int interest_onboard=0;		//Anzahl Einsatzmarker auf dem Spielfeld
 	private Random rand;				//Objekt fuer Zufallszahlen
 	
-	private Gamedifficulty difficulty;
+	private GameDifficulty difficulty;
 	
 	private Player active_firefighter;
 	private Action move= new Action(model.Actiontype.MOVE);
@@ -158,6 +164,7 @@ public class GameEngine implements ILevelListener {
 		saved_person=0;
 		dead_person=0;
 		buildingdamage=0;	
+		interestleft=person_marker+false_alarm_marker;
 		// Since we created the Level objects in the loadResources() method we can now add the Engine as a listener to each one.
 		initLevelListeners();
 		//initActions();
@@ -176,7 +183,9 @@ public class GameEngine implements ILevelListener {
 		init_choosing();
 		rand = new Random();
 		init_beginningfire();
+		init_statusoverview();
 		init_player();
+	
 
 		
 		
@@ -185,12 +194,22 @@ public class GameEngine implements ILevelListener {
 	/**
 	 * 
 	 */
+	private void init_statusoverview() {
+		// TODO Auto-generated method stub
+		stat= new Statusoverview(this);
+		AppInjector.zoneManager().add(stat);
+		
+	}
+
+	/**
+	 * 
+	 */
 	private void init_choosing() {
 		// TODO Auto-generated method stub
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
 		playercount=6;
-		difficulty= Gamedifficulty.HERO;
+		difficulty= GameDifficulty.HERO;
 		
 	}
 
@@ -208,7 +227,7 @@ public class GameEngine implements ILevelListener {
 		// TODO Auto-generated method stub
 		//Feuer verursachen bei Spielbeginn
 		 
-		if(difficulty == Gamedifficulty.BEGINNER)
+		if(difficulty == GameDifficulty.BEGINNER)
 		{
 			person_marker=10;
 			false_alarm_marker=5;	
@@ -237,12 +256,14 @@ public class GameEngine implements ILevelListener {
 			board[5][6].setFire(true);
 			board[5][7].setFire(true);
 			board[6][6].setFire(true);
-			
+			/*
 			board[6][7].setSmoke(true);
-			
+			board[1][5].setSmoke(true);
+			*/
 			board[2][4].setInterest(true);
 			board[5][1].setInterest(true);
 			board[5][8].setInterest(true);
+			
 			
 		}
 		else 
@@ -338,8 +359,8 @@ public class GameEngine implements ILevelListener {
 			board[randomvaluered][randomvalue].setFire(true);
 			board[randomvaluered][randomvalue].setSeat(true);
 			explosion(randomvaluered,randomvalue);
-
-			if(difficulty == Gamedifficulty.HERO)
+			
+			if(difficulty == GameDifficulty.HERO)
 			{
 				//vierte Explosion
 				randomvalue = rand.nextInt(8)+1;
@@ -364,17 +385,17 @@ public class GameEngine implements ILevelListener {
 			inactive_seats=0;			
 			int neededdanger=0;
 			
-			if(difficulty == Gamedifficulty.RECRUT)
+			if(difficulty == GameDifficulty.RECRUT)
 			{
 			neededdanger=3;		
 			}
-			else if(difficulty == Gamedifficulty.VETERAN)
+			else if(difficulty == GameDifficulty.VETERAN)
 			{
 			neededdanger=4;	
 			active_seats+=3;
 			inactive_seats=6;
 			}
-			else if(difficulty == Gamedifficulty.HERO)
+			else if(difficulty == GameDifficulty.HERO)
 			{
 			neededdanger=5;	
 			active_seats+=3;
@@ -395,7 +416,42 @@ public class GameEngine implements ILevelListener {
 				board[randomvaluered][randomvalue].setDanger(tmp+1);
 				neededdanger--;
 			}
-		}
+			
+			//EInsatzmarker verteilen
+			while (interest_onboard<3)
+			{
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+				while(board[randomvaluered][randomvalue].isFire()||board[randomvaluered][randomvalue].isInterest())
+				{
+					randomvalue = rand.nextInt(8)+1;
+					randomvaluered = rand.nextInt(6)+1;
+				}
+				board[randomvaluered][randomvalue].setInterest(true);
+				interest_onboard++;
+				interestleft--;
+			}
+			
+			//weitere Brandherde verteilen
+			int seatplace=active_seats;
+			while (seatplace >0)
+			{
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+				while(board[randomvaluered][randomvalue].isSeat())
+				{
+					randomvalue = rand.nextInt(8)+1;
+					randomvaluered = rand.nextInt(6)+1;
+				}
+				board[randomvaluered][randomvalue].setSeat(true);;
+				seatplace--;
+			}
+			
+		}	
+			
+		//TODO: Feuerwerhmaenner/Fahrzeuge auf Spielbrett stellen und Startspieler bestimmen
+			
+		
 		
 		
 		
@@ -405,9 +461,9 @@ public class GameEngine implements ILevelListener {
 	{
 		//in alle 4 Richtungen einzeln abprüfen
 		//Norden
-		boolean extention=true;
+		boolean expention=true;
 		int i=x, j=y;
-		while (extention)
+		while (expention)
 		{
 			Wallblock wall=board[i][j].getNorth();
 			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
@@ -415,7 +471,7 @@ public class GameEngine implements ILevelListener {
 				if(!board[i-1][j].isFire())
 				{
 					board[i-1][j].setFire(true);
-					extention=false;
+					expention=false;
 				}
 				else
 					i--;
@@ -423,21 +479,21 @@ public class GameEngine implements ILevelListener {
 			else //Wand beschaedigen
 			{
 				if(wall.getWall()==Walltype.BOARDEND)
-					extention=false;
+					expention=false;
 				else
 				{
 					int dmg=wall.damage_Wall();
 					buildingdamage+=dmg;
-					extention=false;
+					expention=false;
 				}
 			}
 		}
 		
 		
 		//Sueden
-		extention=true;
+		expention=true;
 		i=x; j=y;
-		while (extention)
+		while (expention)
 		{
 			Wallblock wall=board[i][j].getSouth();
 			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
@@ -445,7 +501,7 @@ public class GameEngine implements ILevelListener {
 				if(!board[i+1][j].isFire())
 				{
 					board[i+1][j].setFire(true);
-					extention=false;
+					expention=false;
 				}
 				else
 					i++;
@@ -453,21 +509,21 @@ public class GameEngine implements ILevelListener {
 			else //Wand beschaedigen
 			{
 				if(wall.getWall()==Walltype.BOARDEND)
-					extention=false;
+					expention=false;
 				else
 				{
 					int dmg=wall.damage_Wall();
 					buildingdamage+=dmg;
-					extention=false;
+					expention=false;
 				}
 			}
 		}
 		
 		//Osten
 		
-		extention=true;
+		expention=true;
 		i=x; j=y;
-		while (extention)
+		while (expention)
 		{
 			Wallblock wall=board[i][j].getEast();
 			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
@@ -475,7 +531,7 @@ public class GameEngine implements ILevelListener {
 				if(!board[i][j+1].isFire())
 				{
 					board[i][j+1].setFire(true);
-					extention=false;
+					expention=false;
 				}
 				else
 					j++;
@@ -483,20 +539,20 @@ public class GameEngine implements ILevelListener {
 			else //Wand beschaedigen
 			{
 				if(wall.getWall()==Walltype.BOARDEND)
-					extention=false;
+					expention=false;
 				else
 				{
 					int dmg=wall.damage_Wall();
 					buildingdamage+=dmg;
-					extention=false;
+					expention=false;
 				}
 			}
 		}
 		//Westen
 		
-		extention=true;
+		expention=true;
 		i=x; j=y;
-		while (extention)
+		while (expention)
 		{
 			Wallblock wall=board[i][j].getWest();
 			if(wall==null||wall.passage_Wall()) //keine Behinderung in diese Richtung
@@ -504,7 +560,7 @@ public class GameEngine implements ILevelListener {
 				if(!board[i][j-1].isFire())
 				{
 					board[i][j-1].setFire(true);
-					extention=false;
+					expention=false;
 				}
 				else
 					j--;
@@ -512,12 +568,12 @@ public class GameEngine implements ILevelListener {
 			else //Wand beschaedigen
 			{
 				if(wall.getWall()==Walltype.BOARDEND)
-					extention=false;
+					expention=false;
 				else
 				{
 					int dmg=wall.damage_Wall();
 					buildingdamage+=dmg;
-					extention=false;
+					expention=false;
 				}
 			}
 		}
@@ -540,13 +596,7 @@ public class GameEngine implements ILevelListener {
 
 
 	*/
-	public GameStates getCurrentGameState() {
-		return currentGameState;
-	}
-	
-	public void setCurrentGameState(GameStates state) {
-		this.currentGameState = state;
-	}
+
 	
 	/**
 	 * Loads all Resources from a file into the game engine. This method is only considered a placeholder.
@@ -644,50 +694,7 @@ public class GameEngine implements ILevelListener {
 		background=new Background(backgroundpic,x_offset/2,y_offset/2,board_width,board_height );
 		AppInjector.zoneManager().add(background);
 	}	
-	
 
-	public Integer getVertical_blocks() {
-		return vertical_blocks;
-	}
-
-	public void setVertical_blocks(Integer vertical_blocks) {
-		this.vertical_blocks = vertical_blocks;
-	}
-
-	public Integer getBlock_size() {
-		return block_size;
-	}
-
-	public void setBlock_size(Integer block_size) {
-		this.block_size = block_size;
-	}
-
-	public Integer getHorizontal_blocks() {
-		return horizontal_blocks;
-	}
-
-	public void setHorizontal_blocks(Integer horizontal_blocks) {
-		this.horizontal_blocks = horizontal_blocks;
-	}
-
-	public Integer getX_offset() {
-		return x_offset;
-	}
-
-	public void setX_offset(Integer x_offset) {
-		this.x_offset = x_offset;
-	}
-
-	public Integer getY_offset() {
-		return y_offset;
-	}
-
-	public void setY_offset(Integer y_offset) {
-		this.y_offset = y_offset;
-	}
-	
-
-	
 	//json
 	
 
@@ -760,7 +767,8 @@ public class GameEngine implements ILevelListener {
 	}
 	
 	private void init_player() {
-		//test mit ff1 als gruen
+		//testwerte
+		
 		ff0=new Player(this);
 		ff0.setplayer(SpecialistType.DUMMY, PlayerColor.GREEN, 4, 0, 0, 0);
 		AppInjector.zoneManager().add(ff0);
@@ -780,6 +788,163 @@ public class GameEngine implements ILevelListener {
 		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 5, 7);;
 		AppInjector.zoneManager().add(ff5);
 		
+		//Playerzones
+		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
+		ffz0=new Playerzone(pic_path,ff0, this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz0);	
+		ffz1=new Playerzone(pic_path,ff1, this, 1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz1);
+		ffz2=new Playerzone(pic_path,ff2, this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz2);
+		ffz3=new Playerzone(pic_path,ff3, this, 3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz3);
+		ffz4=new Playerzone(pic_path,ff4, this, 4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz4);
+		ffz5=new Playerzone(pic_path,ff5, this, 5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz5);
+	}
+
+	//Getter und Setter:
+	
+	
+	public GameStates getCurrentGameState() {
+		return currentGameState;
+	}
+	
+	public void setCurrentGameState(GameStates state) {
+		this.currentGameState = state;
+	}
+	public Integer getVertical_blocks() {
+		return vertical_blocks;
+	}
+
+	public void setVertical_blocks(Integer vertical_blocks) {
+		this.vertical_blocks = vertical_blocks;
+	}
+
+	public Integer getBlock_size() {
+		return block_size;
+	}
+
+	public void setBlock_size(Integer block_size) {
+		this.block_size = block_size;
+	}
+
+	public Integer getHorizontal_blocks() {
+		return horizontal_blocks;
+	}
+
+	public void setHorizontal_blocks(Integer horizontal_blocks) {
+		this.horizontal_blocks = horizontal_blocks;
+	}
+
+	public Integer getX_offset() {
+		return x_offset;
+	}
+
+	public void setX_offset(Integer x_offset) {
+		this.x_offset = x_offset;
+	}
+
+	public Integer getY_offset() {
+		return y_offset;
+	}
+
+	public void setY_offset(Integer y_offset) {
+		this.y_offset = y_offset;
+	}
+	
+
+	
+	/**
+	 * @return the panel_width
+	 */
+	public int getPanel_width() {
+		return panel_width;
+	}
+
+	/**
+	 * @return the panel_height
+	 */
+	public int getPanel_height() {
+		return panel_height;
+	}
+
+
+
+	/**
+	 * @return the playerbase
+	 */
+	public model.Player[] getPlayerbase() {
+		return playerbase;
+	}
+
+	/**
+	 * @return the playercount
+	 */
+	public int getPlayercount() {
+		return playercount;
+	}
+
+	/**
+	 * @return the saved_person
+	 */
+	public int getSaved_person() {
+		return saved_person;
+	}
+
+	/**
+	 * @return the dead_person
+	 */
+	public int getDead_person() {
+		return dead_person;
+	}
+
+	/**
+	 * @return the buildingdamage
+	 */
+	public int getBuildingdamage() {
+		return buildingdamage;
+	}
+
+	/**
+	 * @return the maxbuildingdamage
+	 */
+	public int getMaxbuildingdamage() {
+		return maxbuildingdamage;
+	}
+
+	/**
+	 * @return the person_marker
+	 */
+	public int getPerson_marker() {
+		return person_marker;
+	}
+
+	/**
+	 * @return the false_alarm_marker
+	 */
+	public int getFalse_alarm_marker() {
+		return false_alarm_marker;
+	}
+
+
+
+	/**
+	 * @return the inactive_seats
+	 */
+	public int getInactive_seats() {
+		return inactive_seats;
+	}
+
+	/**
+	 * @return the interest_onboard
+	 */
+	public int getInterest_onboard() {
+		return interest_onboard;
+	}
+	public int getInterest_left() {
+		return interestleft;
 	}
 
 }

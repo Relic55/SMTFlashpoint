@@ -7,7 +7,7 @@ package model;
  * @author Relic
  *
  */
-public enum Gamedifficulty {
+public enum GameDifficulty {
 	BEGINNER, RECRUT, VETERAN, HERO;
 
 }
