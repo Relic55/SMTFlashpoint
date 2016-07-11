@@ -240,5 +240,47 @@ public class Player extends Zone{
         ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
 		//image(picture,x,y,width,height);
 	}
+
+	/**
+	 * @return the ap
+	 */
+	public Integer getAp() {
+		return ap;
+	}
+
+	/**
+	 * @param ap the ap to set
+	 */
+	public void setAp(Integer ap) {
+		this.ap = ap;
+	}
+
+	/**
+	 * @return the sp
+	 */
+	public Integer getSp() {
+		return sp;
+	}
+
+	/**
+	 * @param sp the sp to set
+	 */
+	public void setSp(Integer sp) {
+		this.sp = sp;
+	}
+
+	/**
+	 * @return the playerColor
+	 */
+	public PlayerColor getPlayerColor() {
+		return playerColor;
+	}
+
+	/**
+	 * @return the specialist
+	 */
+	public SpecialistType getSpecialist() {
+		return specialist;
+	}
 	
 }

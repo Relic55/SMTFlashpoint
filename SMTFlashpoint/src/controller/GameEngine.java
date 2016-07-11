@@ -779,13 +779,13 @@ public class GameEngine implements ILevelListener {
 		ff2.setplayer(SpecialistType.DUMMY, PlayerColor.RED, 4, 0, 0, 3);
 		AppInjector.zoneManager().add(ff2);
 		ff3=new Player(this);
-		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 7, 5);
+		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 7, 0);
 		AppInjector.zoneManager().add(ff3);
 		ff4=new Player(this);
-		ff4.setplayer(SpecialistType.DUMMY, PlayerColor.BLUE, 4, 0, 3, 7);
+		ff4.setplayer(SpecialistType.DUMMY, PlayerColor.BLUE, 4, 0, 7, 7);
 		AppInjector.zoneManager().add(ff4);
 		ff5=new Player(this);
-		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 5, 7);;
+		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 5, 9);;
 		AppInjector.zoneManager().add(ff5);
 		
 		//Playerzones
