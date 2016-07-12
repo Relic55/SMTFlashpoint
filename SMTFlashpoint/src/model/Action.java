@@ -19,7 +19,7 @@ public class Action {
 	public Action(Actiontype type)
 	{
 		this.type=type;
-		if(type==Actiontype.MOVE||type==Actiontype.OPEN_DOOR||type==Actiontype.CLOSE_DOOR||type==Actiontype.IDENTIFY||type==Actiontype.HEAL_PERSON||type==Actiontype.MOVE_WITH_HEALED_PERSON||type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.EXTINQUISH_SMOKE)
+		if(type==Actiontype.MOVE||type==Actiontype.OPEN_DOOR||type==Actiontype.CLOSE_DOOR||type==Actiontype.IDENTIFY||type==Actiontype.HEAL_PERSON||type==Actiontype.MOVE_WITH_HEALED_PERSON||type==Actiontype.EXTINQUISH_STEP||type==Actiontype.EXTINQUISH_SMOKE)
 		{
 			apcost=1;
 		}
@@ -27,7 +27,7 @@ public class Action {
 		{
 			apcost=0;
 		}
-		if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.DAMAGE_WALL||type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK||type==Actiontype.REMOVE_DANGER||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.MOVE_CARRY_AND_HEALED)
+		if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.DAMAGE_WALL||type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK||type==Actiontype.REMOVE_DANGER||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.MOVE_CARRY_AND_HEALED)
 		{
 			apcost=2;
 		}
@@ -40,37 +40,43 @@ public class Action {
 	
 	public boolean action_possible(Block current_block,Block next_block)
 	{
+		
 		if(type==Actiontype.MOVE)
 		{
 			if(!next_block.isFire())
 				return true;
 		}
-		if(type==Actiontype.MOVE_TO_FIRE)
+		else if(type==Actiontype.MOVE_TO_FIRE)
 		{
 			if(next_block.isFire())
 				return true;
 		}		
-		if(type==Actiontype.MOVE_CARRY_PERSON)
+		else if(type==Actiontype.MOVE_CARRY_PERSON)
 		{
 			if(!next_block.isFire()&& current_block.getPeople()>0)
 				return true;
 		}
-		if(type==Actiontype.MOVE_WITH_HEALED_PERSON)
+		else if(type==Actiontype.MOVE_WITH_HEALED_PERSON)
 		{
 			if(!next_block.isFire()&& current_block.getHealed_people()>0)
 				return true;
 		}
-		if(type==Actiontype.MOVE_CARRY_AND_HEALED)
+		else if(type==Actiontype.MOVE_CARRY_AND_HEALED)
 		{
 			if(!next_block.isFire()&& current_block.getHealed_people()>0 && current_block.getPeople()>0)
 				return true;
 		}
-		if(type==Actiontype.TRANSPORT_DANGER)
+		else if(type==Actiontype.TRANSPORT_DANGER)
 		{
 			if(!next_block.isFire()&& current_block.getDanger()>0)
 				return true;
 		}	
-		if(type==Actiontype.EXTINQUISH_FIRE)
+		else if(type==Actiontype.TRANSPORT_DANGER_AND_HEALED)
+		{
+			if(!next_block.isFire()&& current_block.getDanger()>0&&current_block.getHealed_people()>0)
+				return true;
+		}
+		else if(type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.EXTINQUISH_STEP)
 		{
 			if(current_block==next_block)
 			{
@@ -80,7 +86,7 @@ public class Action {
 			if(next_block.isFire())
 				return true;
 		}			
-		if(type==Actiontype.EXTINQUISH_SMOKE)
+		else if(type==Actiontype.EXTINQUISH_SMOKE)
 		{
 			if(current_block==next_block)
 			{
@@ -90,22 +96,22 @@ public class Action {
 			if(next_block.isSmoke())
 				return true;
 		}			
-		if(type==Actiontype.HEAL_PERSON)
+		else if(type==Actiontype.HEAL_PERSON)
 		{
 			if(current_block.getPeople()>0)
 				return true;
 		}	
-		if(type==Actiontype.REMOVE_DANGER)
+		else if(type==Actiontype.REMOVE_DANGER)
 		{
 			if(current_block.getDanger()>0)
 				return true;
 		}	
-		if(type==Actiontype.MOVE_FIRETRUCK)
+		else if(type==Actiontype.MOVE_FIRETRUCK)
 		{
 			if(current_block.isFiretruck())
 				return true;
 		}			
-		if(type==Actiontype.USE_FIRETRUCK)
+		else if(type==Actiontype.USE_FIRETRUCK)
 		{
 			if(current_block.isFiretruck())	//weitere Kriterien nötig
 				return true;
@@ -113,17 +119,17 @@ public class Action {
 		
 		
 		//global
-		if(type==Actiontype.MOVE_AMBULANCE)
+		else if(type==Actiontype.MOVE_AMBULANCE)
 		{
 			if(current_block.isAmbulance())
 				return true;
 		}
-		if(type==Actiontype.IDENTIFY)
+		else if(type==Actiontype.IDENTIFY)
 		{
 			if(current_block.isInterest())
 				return true;
 		}		
-		if(type==Actiontype.CANCEL)
+		else if(type==Actiontype.CANCEL)
 		{
 				return true;
 		}			
@@ -134,20 +140,20 @@ public class Action {
 	{
 		if(type==Actiontype.OPEN_DOOR)
 		{
-			if(block.getWall()==Walltype.DOORCLOSED)
+			if(block!=null&&block.getWall()==Walltype.DOORCLOSED)
 				return true;
 		}
-		if(type==Actiontype.CLOSE_DOOR)
+		else if(type==Actiontype.CLOSE_DOOR)
 		{
-			if(block.getWall()==Walltype.DOOROPEN)
+			if(block!=null&&block.getWall()==Walltype.DOOROPEN)
 				return true;
 		}		
-		if(type==Actiontype.DAMAGE_WALL)
+		else if(type==Actiontype.DAMAGE_WALL)
 		{
-			if(block.getWall()==Walltype.WALL||block.getWall()==Walltype.WALLDAMAGED)
+			if(block!=null&&(block.getWall()==Walltype.WALL||block.getWall()==Walltype.WALLDAMAGED))
 				return true;
 		}
-		if(type==Actiontype.CANCEL)
+		else if(type==Actiontype.CANCEL)
 		{
 			return true;
 		}

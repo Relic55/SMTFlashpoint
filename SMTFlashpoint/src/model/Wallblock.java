@@ -92,7 +92,11 @@ public class Wallblock extends Zone {
 		return;
 	}
 	
-	
+	@Override
+	public void touch()
+	{
+		
+	}
 	
 	
 }

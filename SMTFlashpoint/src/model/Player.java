@@ -240,7 +240,10 @@ public class Player extends Zone{
         ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
 		//image(picture,x,y,width,height);
 	}
-
+	@Override
+	public void touch() {
+		//drag();
+	}
 	/**
 	 * @return the ap
 	 */
@@ -281,6 +284,20 @@ public class Player extends Zone{
 	 */
 	public SpecialistType getSpecialist() {
 		return specialist;
+	}
+
+	/**
+	 * @return the xb
+	 */
+	public Integer getXb() {
+		return xb;
+	}
+
+	/**
+	 * @return the yb
+	 */
+	public Integer getYb() {
+		return yb;
 	}
 	
 }

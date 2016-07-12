@@ -35,7 +35,12 @@ public class Playerzone extends Zone{
 		
 		this.pic_path=pic_path;
 		this.number=number;
-		this.ff=ff;		
+		if(number==0)
+		{
+			this.ff=g.getFf0();
+		}
+		else
+			this.ff=ff;		
 		specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_dummy.gif"); 
 		colorimage=Utility.getImage(pic_path+"/Farbkarte_schwarz.gif");
 		if(ff!=null)
@@ -81,6 +86,25 @@ public class Playerzone extends Zone{
 	public void refreshplayer()
 	{
 		//Spezialist und Farbe nach Wechsel anpassen
+
+		
+		if(ff.getSpecialist()==SpecialistType.ALLESKOENNER)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Alleskoenner.gif");
+		else if(ff.getSpecialist()==SpecialistType.GEFAHRSTOFFSPEZIALIST)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Gefahrstoffspezialist.gif");
+		else if(ff.getSpecialist()==SpecialistType.EINSATZLEITER)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Einsatzleiter.gif");
+		else if(ff.getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Waermebildkamera.gif");
+		else if(ff.getSpecialist()==SpecialistType.LOESCHSCHAUMSPEZIALIST)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Loesschaumspezialist.gif");
+		else if(ff.getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Rettungsspezialist.gif");
+		else if(ff.getSpecialist()==SpecialistType.RETTUNGSSANITAETER)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Rettungssanitaeter.gif");
+		else if(ff.getSpecialist()==SpecialistType.FAHRZEUGMASCHINIST)
+			specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_Fahrzeugmaschinist.gif");
+	
 	}
 	
 	
@@ -120,7 +144,7 @@ public class Playerzone extends Zone{
         image(colorimage,(float) (1.2*size), (float) (0.2*size), (float) width/3, (float) height/6 );
         // fill(0,100,0);
         // rect((float) (1.2*size), (float) (0.2*size), (float) width/3, (float) height/6);
-        fill(100);
+        fill(1);
         textSize((int)(size/90.0*22));
         text("AP: "+ff.getAp() , (float)(1.25*size),(float) (1*size));
         text("SP: "+ff.getSp() , (float)(1.25*size),(float) (1.2*size));
@@ -153,13 +177,36 @@ public class Playerzone extends Zone{
 	}
 	
 	@Override
-	public void touch() {
-
-		drag(); 
-		//scale();
-
+	public void pickDraw()
+	{
+		pushMatrix();
+		translate(x,y);
+		if(number==1)
+		{
+			rotate(PI/2);			
+		}
+		else if(number==2||number==3)
+		{
+			rotate(PI);
+		}
+		else if(number==4)
+		{
+			rotate((float)(PI*1.5));
+		}
+		//fill(100,0,0);
+        rect(0,0,this.width,this.height);		
+        //Farbbild
 		
+		popMatrix();		
 	}
+	
+	@Override
+	public void touch() {
+		rst(true, true, true, true);
+		//drag(); 
+		//scale();		
+	}
+
 	
 	
 	

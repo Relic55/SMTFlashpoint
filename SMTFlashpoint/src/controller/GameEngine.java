@@ -36,6 +36,7 @@ import model.Level;
 import model.Player;
 import model.SpecialistType;
 import model.Statusoverview;
+import model.VisorBlock;
 import model.Wallblock;
 import model.Walltype;
 import processing.core.PImage;
@@ -74,8 +75,8 @@ public class GameEngine implements ILevelListener {
 	public String json_path="./jsonfiles";
 	private Integer mapnumber;
 	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
-	private Player ff0,ff1,ff2,ff3,ff4,ff5;
-	private Playerzone ffz0,ffz1,ffz2,ffz3,ffz4,ffz5;
+	private Player ff0=null,ff1=null,ff2=null,ff3=null,ff4=null,ff5=null;
+	private Playerzone ffz0=null,ffz1=null,ffz2=null,ffz3=null,ffz4=null,ffz5=null;
 	private Statusoverview stat;
 	
 	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groﬂ.gif");
@@ -88,7 +89,8 @@ public class GameEngine implements ILevelListener {
 	private int board_width;
 	private int board_height;
 	
-	public model.Player[] playerbase=new model.Player[6];
+	private int activePlayer;
+	public Player[] playerbase=new Player[6];
 	private int playercount;			//Anzahl aktiver Spieler
 	private int saved_person=0;			//Anzahl geretteter Personen
 	private int dead_person=0;			//Anzahl verstorbener Personen
@@ -103,30 +105,20 @@ public class GameEngine implements ILevelListener {
 	private Random rand;				//Objekt fuer Zufallszahlen
 	
 	private GameDifficulty difficulty;
+	public boolean didwewin=false;
+	public boolean GameActive=true;
+	
+	
+	public VisorBlock[] visorfield=new VisorBlock[15];
+	//0=N, 1=O, 2=S, 3=W, 4=eigenes Feld
+	
 	
 	private Player active_firefighter;
-	private Action move= new Action(model.Actiontype.MOVE);
-	private Action move_to_fire= new Action(model.Actiontype.MOVE_TO_FIRE);
-	private Action move_carry_person= new Action(model.Actiontype.MOVE_CARRY_PERSON);
-	private Action move_with_healed_person= new Action(model.Actiontype.MOVE_WITH_HEALED_PERSON);	
-	private Action move_caryy_and_healed= new Action(model.Actiontype.MOVE_CARRY_AND_HEALED);
-	private Action transport_danger= new Action(model.Actiontype.TRANSPORT_DANGER);
-	private Action extinquish_fire= new Action(model.Actiontype.EXTINQUISH_FIRE);
-	private Action extinquish_smoke= new Action(model.Actiontype.EXTINQUISH_SMOKE);	
-	private Action heal_person= new Action(model.Actiontype.HEAL_PERSON);
-	private Action remove_danger= new Action(model.Actiontype.REMOVE_DANGER);
-	private Action identify= new Action(model.Actiontype.IDENTIFY);
-	private Action control_firefighter= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
-	private Action move_ambulance= new Action(model.Actiontype.MOVE_AMBULANCE);
-	private Action move_firetruck= new Action(model.Actiontype.MOVE_FIRETRUCK);
-	private Action use_firetruck= new Action(model.Actiontype.USE_FIRETRUCK);
-	private Action open_door= new Action(model.Actiontype.OPEN_DOOR);	
-	private Action close_door= new Action(model.Actiontype.CLOSE_DOOR);
-	private Action damage_wall= new Action(model.Actiontype.DAMAGE_WALL);
-	private Action cancel= new Action(model.Actiontype.CANCEL);	
 	
-	
-	
+	private int actionnumber=21;
+	private Action[] Actionfield=new Action[actionnumber];
+	private boolean[] possibleactions=new boolean[actionnumber];
+
 	
 	
 	private GameStates currentGameState;
@@ -148,19 +140,27 @@ public class GameEngine implements ILevelListener {
 	 *
 	 */
 	public static enum GameStates {
+		STATE_START,
+		STATE_STARTBOARD,
+		STATE_CHOOSEMENU,
+		STATE_POSITION,
 		STATE_MENU,
 		STATE_PAUSE,
 		STATE_INGAME,
 		STATE_FINISHED;
+	
 		
 		private static final int size = GameStates.values().length;
 	};
+
 	
 	
 	public GameEngine() {
 		levelMap = new HashMap<Integer, Level>();
 		resources = loadResources();
 		currentLevel = 1;
+
+		currentGameState=GameStates.STATE_START;
 		saved_person=0;
 		dead_person=0;
 		buildingdamage=0;	
@@ -170,27 +170,205 @@ public class GameEngine implements ILevelListener {
 		//initActions();
 		init_measures();
 		init_board();
-		
-		for (int i=0;i<vertical_blocks;i++) {
-			  for (int j=0;j<horizontal_blocks;j++) 
-			  {
-			      board[i][j]= new Block(this, pic_path); 
-			      AppInjector.zoneManager().add(board[i][j]);
-			      }
-			}
-			
+		init_actionfield();
 		init_blocks(json_path+"/block_start_json.json");
+		//init_choosing mit menu und auswahl versehen
+		init_statusoverview();
 		init_choosing();
 		rand = new Random();
 		init_beginningfire();
-		init_statusoverview();
+		
+		currentGameState=GameStates.STATE_POSITION;
+		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
 		init_player();
+		currentGameState=GameStates.STATE_INGAME;
+		
+		fillVisorfield();
+		
+		/*
+		while(currentGameState!=GameStates.STATE_FINISHED)
+		{
+			//eigentlicher Spielablauf
+		
+			if(this.saved_person>6)
+			{
+				//
+				currentGameState=GameStates.STATE_FINISHED;
+				didwewin=true;
+			}
+			else if(this.dead_person>3||this.buildingdamage>this.maxbuildingdamage)
+				currentGameState=GameStates.STATE_FINISHED;
+		}
 	
-
+		
+		if(didwewin)
+		{
+			//Textausgabe gewonnen --> Zone erstellen
+		}
+		else
+		{
+			//Textausgabe verloren --> Zone
+		}
+		*/
+	
 		
 		
 	}
 	
+	/**
+	 * 
+	 */
+	private void init_actionfield() {
+		// TODO Auto-generated method stub
+		
+		
+		Actionfield[0]= new Action(model.Actiontype.MOVE);
+		Actionfield[1]= new Action(model.Actiontype.MOVE_TO_FIRE);
+		Actionfield[2]= new Action(model.Actiontype.MOVE_CARRY_PERSON);
+		Actionfield[3]= new Action(model.Actiontype.MOVE_WITH_HEALED_PERSON);	
+		Actionfield[4]= new Action(model.Actiontype.MOVE_CARRY_AND_HEALED);
+		Actionfield[5]= new Action(model.Actiontype.TRANSPORT_DANGER);
+		Actionfield[6]= new Action(model.Actiontype.TRANSPORT_DANGER_AND_HEALED);
+		Actionfield[7]= new Action(model.Actiontype.EXTINQUISH_FIRE);
+		Actionfield[8]= new Action(model.Actiontype.EXTINQUISH_SMOKE);
+		Actionfield[9]= new Action(model.Actiontype.EXTINQUISH_STEP);
+		Actionfield[10]= new Action(model.Actiontype.HEAL_PERSON);
+		Actionfield[11]= new Action(model.Actiontype.REMOVE_DANGER);
+		Actionfield[12]= new Action(model.Actiontype.IDENTIFY);
+		Actionfield[13]= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
+		Actionfield[14]= new Action(model.Actiontype.MOVE_AMBULANCE);
+		Actionfield[15]= new Action(model.Actiontype.MOVE_FIRETRUCK);
+		Actionfield[16]= new Action(model.Actiontype.USE_FIRETRUCK);
+		Actionfield[17]= new Action(model.Actiontype.OPEN_DOOR);	
+		Actionfield[18]= new Action(model.Actiontype.CLOSE_DOOR);
+		Actionfield[19]= new Action(model.Actiontype.DAMAGE_WALL);
+		Actionfield[20]= new Action(model.Actiontype.CANCEL);
+		
+	}
+
+	public void showPossibleActions(int type, Block start, Block ziel, Wallblock wall1)
+	{
+		int count=0;
+		for(int i=0;i<actionnumber;i++)
+		{
+			if(i>=0&&i<17)
+			{
+				if(type==1)
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+			}
+			
+			else if(i>=17&&i<20)
+			{
+				if(type==2||type==3)
+					possibleactions[i]=Actionfield[i].wallaction_possible(wall1);
+			}
+			else
+			{
+				if(type==1)
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				else 
+					possibleactions[i]=Actionfield[i].wallaction_possible(wall1);
+			}
+
+			if(possibleactions[i])
+				count++;
+			System.out.println("i: "+i);
+		}
+		System.out.println("count: "+count);
+		
+	}
+	
+	
+	
+	/**
+	 * 
+	 */
+	private void fillVisorfield() {
+		// TODO Auto-generated method stub
+		int x,y,longside,shortside;
+		x=playerbase[activePlayer].getXb();
+		y=playerbase[activePlayer].getYb();
+		longside=(int)(this.block_size*0.7); //Laenge der Markierung
+		shortside= (int)(this.block_size*0.35);
+		float factor1=(float)0.15;
+		float factor2=(float)0.2;
+		
+		//Norden
+		Wallblock test=board[x][y].getNorth();
+		if(test==null||test.passage_Wall())
+		{
+		
+			visorfield[0]=new VisorBlock(this, this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside);
+			AppInjector.zoneManager().add(visorfield[0]);			
+		}
+		else if(test.getWall()!=Walltype.BOARDEND)
+		{
+			
+			visorfield[0]=new VisorBlock(this, this.pic_path,2, board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+x*block_size-factor2*block_size), shortside,longside);
+			AppInjector.zoneManager().add(visorfield[0]);			
+		}
+		
+		//Osten
+		
+		test=board[x][y].getEast();
+		if(test==null||test.passage_Wall())
+		{
+		
+			visorfield[1]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside);
+			AppInjector.zoneManager().add(visorfield[1]);			
+		}
+		else if(test.getWall()!=Walltype.BOARDEND)
+		{
+			
+			visorfield[1]=new VisorBlock(this, this.pic_path,3, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside);
+			AppInjector.zoneManager().add(visorfield[1]);			
+		}
+		
+		//Sueden
+		test=board[x][y].getSouth();
+		if(test==null||test.passage_Wall())
+		{
+		
+			visorfield[2]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside);
+			AppInjector.zoneManager().add(visorfield[2]);			
+		}
+		else if(test.getWall()!=Walltype.BOARDEND)
+		{
+			
+			visorfield[2]=new VisorBlock(this, this.pic_path,2, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size-factor2*block_size), shortside,longside);
+			AppInjector.zoneManager().add(visorfield[2]);			
+		}
+		
+		//Westen
+		test=board[x][y].getWest();
+		if(test==null||test.passage_Wall())
+		{
+		
+			visorfield[3]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside);
+			AppInjector.zoneManager().add(visorfield[3]);			
+		}
+		else if(test.getWall()!=Walltype.BOARDEND)
+		{
+			
+			visorfield[3]=new VisorBlock(this, this.pic_path,3, board[x][y],board[x][y-1], (float)(x_offset+y*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside);
+			AppInjector.zoneManager().add(visorfield[3]);			
+		}
+		
+		//eigenes Feld loeschbar
+		if(board[x][y].isFire()||board[x][y].isSmoke())			
+		{
+			visorfield[4]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside);
+			AppInjector.zoneManager().add(visorfield[4]);
+			
+		}
+		//TODO: weitere Aktionsmˆglichkeiten abpruefen (aktuelles Feld, Einsatzleiter, Waermebildkamera)
+		
+		
+		
+	}
+	
+	
+
 	/**
 	 * 
 	 */
@@ -210,6 +388,62 @@ public class GameEngine implements ILevelListener {
 		//Testwerte:
 		playercount=6;
 		difficulty= GameDifficulty.HERO;
+		/*   bis auf Spiel starten gedrueckt wird
+		while(currentGameState==GameStates.STATE_START)
+		{
+			
+		}
+		*/
+		
+		//testwerte
+		
+		ff0=new Player(this);
+		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 5, 5);
+		
+		AppInjector.zoneManager().add(ff0);
+		ff1=new Player(this);
+		ff1.setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 4, 0, 4, 0);
+		AppInjector.zoneManager().add(ff1);
+		ff2=new Player(this);
+		ff2.setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED, 4, 0, 0, 3);
+		AppInjector.zoneManager().add(ff2);
+		ff3=new Player(this);
+		ff3.setplayer(SpecialistType.FAHRZEUGMASCHINIST, PlayerColor.YELLOW, 4, 0, 7, 0);
+		AppInjector.zoneManager().add(ff3);
+		ff4=new Player(this);
+		ff4.setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 4, 0, 7, 7);
+		AppInjector.zoneManager().add(ff4);
+		ff5=new Player(this);
+		ff5.setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE, 4, 0, 5, 9);;
+		AppInjector.zoneManager().add(ff5);
+		
+		//Playerzones
+		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
+		ffz0=new Playerzone(pic_path,ff0, this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz0);	
+		ffz1=new Playerzone(pic_path,ff1, this, 1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz1);
+		ffz2=new Playerzone(pic_path,ff2, this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz2);
+		ffz3=new Playerzone(pic_path,ff3, this, 3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz3);
+		ffz4=new Playerzone(pic_path,ff4, this, 4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz4);
+		ffz5=new Playerzone(pic_path,ff5, this, 5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(ffz5);
+		
+		activePlayer=0;
+		playerbase[0]=ff0;
+		playerbase[1]=ff1;
+		playerbase[2]=ff2;
+		playerbase[3]=ff3;
+		playerbase[4]=ff4;
+		playerbase[5]=ff5;
+		
+		
+		
+		
+		currentGameState=GameStates.STATE_STARTBOARD;
 		
 	}
 
@@ -693,6 +927,15 @@ public class GameEngine implements ILevelListener {
 	{
 		background=new Background(backgroundpic,x_offset/2,y_offset/2,board_width,board_height );
 		AppInjector.zoneManager().add(background);
+		
+		
+		for (int i=0;i<vertical_blocks;i++) {
+			  for (int j=0;j<horizontal_blocks;j++) 
+			  {
+			      board[i][j]= new Block(this, pic_path); 
+			      AppInjector.zoneManager().add(board[i][j]);
+			      }
+			}
 	}	
 
 	//json
@@ -767,41 +1010,10 @@ public class GameEngine implements ILevelListener {
 	}
 	
 	private void init_player() {
-		//testwerte
 		
-		ff0=new Player(this);
-		ff0.setplayer(SpecialistType.DUMMY, PlayerColor.GREEN, 4, 0, 0, 0);
-		AppInjector.zoneManager().add(ff0);
-		ff1=new Player(this);
-		ff1.setplayer(SpecialistType.DUMMY, PlayerColor.WHITE, 4, 0, 4, 0);
-		AppInjector.zoneManager().add(ff1);
-		ff2=new Player(this);
-		ff2.setplayer(SpecialistType.DUMMY, PlayerColor.RED, 4, 0, 0, 3);
-		AppInjector.zoneManager().add(ff2);
-		ff3=new Player(this);
-		ff3.setplayer(SpecialistType.DUMMY, PlayerColor.YELLOW, 4, 0, 7, 0);
-		AppInjector.zoneManager().add(ff3);
-		ff4=new Player(this);
-		ff4.setplayer(SpecialistType.DUMMY, PlayerColor.BLUE, 4, 0, 7, 7);
-		AppInjector.zoneManager().add(ff4);
-		ff5=new Player(this);
-		ff5.setplayer(SpecialistType.DUMMY, PlayerColor.ORANGE, 4, 0, 5, 9);;
-		AppInjector.zoneManager().add(ff5);
+		//alle Spielfiguren nacheinander aufs Spielbrett setzen
 		
-		//Playerzones
-		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
-		ffz0=new Playerzone(pic_path,ff0, this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz0);	
-		ffz1=new Playerzone(pic_path,ff1, this, 1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz1);
-		ffz2=new Playerzone(pic_path,ff2, this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz2);
-		ffz3=new Playerzone(pic_path,ff3, this, 3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz3);
-		ffz4=new Playerzone(pic_path,ff4, this, 4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz4);
-		ffz5=new Playerzone(pic_path,ff5, this, 5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(ffz5);
+		
 	}
 
 	//Getter und Setter:
@@ -945,6 +1157,62 @@ public class GameEngine implements ILevelListener {
 	}
 	public int getInterest_left() {
 		return interestleft;
+	}
+
+	/**
+	 * @return the ff0
+	 */
+	public Player getFf0() {
+		return ff0;
+	}
+
+	/**
+	 * @return the ff1
+	 */
+	public Player getFf1() {
+		return ff1;
+	}
+
+	/**
+	 * @return the ff2
+	 */
+	public Player getFf2() {
+		return ff2;
+	}
+
+	/**
+	 * @return the ff3
+	 */
+	public Player getFf3() {
+		return ff3;
+	}
+
+	/**
+	 * @return the ff4
+	 */
+	public Player getFf4() {
+		return ff4;
+	}
+
+	/**
+	 * @return the ff5
+	 */
+	public Player getFf5() {
+		return ff5;
+	}
+
+	/**
+	 * @return the activePlayer
+	 */
+	public int getActivePlayer() {
+		return activePlayer;
+	}
+
+	/**
+	 * @param activePlayer the activePlayer to set
+	 */
+	public void setActivePlayer(int activePlayer) {
+		this.activePlayer = activePlayer;
 	}
 
 }

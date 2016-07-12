@@ -398,10 +398,29 @@ public class Block extends Zone{
 
 			}
 		}
-		
+
 		
 		return;
 	
 	}
-	
+	@Override
+	public void touch() {
+		//drag();
+	}
+
+
+	/**
+	 * @return the xb
+	 */
+	public int getXb() {
+		return xb;
+	}
+
+
+	/**
+	 * @return the yb
+	 */
+	public int getYb() {
+		return yb;
+	}
 }
