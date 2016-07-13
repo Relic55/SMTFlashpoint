@@ -118,6 +118,7 @@ public class GameEngine implements ILevelListener {
 	private int actionnumber=21;
 	private Action[] Actionfield=new Action[actionnumber];
 	private boolean[] possibleactions=new boolean[actionnumber];
+	//private Action[] possibleactions=new Action[actionnumber];
 
 	
 	
@@ -232,13 +233,15 @@ public class GameEngine implements ILevelListener {
 		Actionfield[7]= new Action(model.Actiontype.EXTINQUISH_FIRE);
 		Actionfield[8]= new Action(model.Actiontype.EXTINQUISH_SMOKE);
 		Actionfield[9]= new Action(model.Actiontype.EXTINQUISH_STEP);
-		Actionfield[10]= new Action(model.Actiontype.HEAL_PERSON);
-		Actionfield[11]= new Action(model.Actiontype.REMOVE_DANGER);
-		Actionfield[12]= new Action(model.Actiontype.IDENTIFY);
-		Actionfield[13]= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
-		Actionfield[14]= new Action(model.Actiontype.MOVE_AMBULANCE);
-		Actionfield[15]= new Action(model.Actiontype.MOVE_FIRETRUCK);
-		Actionfield[16]= new Action(model.Actiontype.USE_FIRETRUCK);
+		Actionfield[10]= new Action(model.Actiontype.MOVE_AMBULANCE);
+		Actionfield[11]= new Action(model.Actiontype.MOVE_FIRETRUCK);
+		Actionfield[12]= new Action(model.Actiontype.USE_FIRETRUCK);
+		
+		Actionfield[13]= new Action(model.Actiontype.HEAL_PERSON);
+		Actionfield[14]= new Action(model.Actiontype.REMOVE_DANGER);
+		Actionfield[15]= new Action(model.Actiontype.IDENTIFY);
+		Actionfield[16]= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
+
 		Actionfield[17]= new Action(model.Actiontype.OPEN_DOOR);	
 		Actionfield[18]= new Action(model.Actiontype.CLOSE_DOOR);
 		Actionfield[19]= new Action(model.Actiontype.DAMAGE_WALL);
@@ -249,32 +252,80 @@ public class GameEngine implements ILevelListener {
 	public void showPossibleActions(int type, Block start, Block ziel, Wallblock wall1)
 	{
 		int count=0;
-		for(int i=0;i<actionnumber;i++)
+		for(int i=0;i<actionnumber;i++) 
 		{
-			if(i>=0&&i<17)
+			if(i>=0&&i<13)		//Blockaktionen von jedem Firefighter
 			{
 				if(type==1)
+				
 					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+
+
+				
 			}
 			
-			else if(i>=17&&i<20)
+			else if(i>=17&&i<20)  //Wallaktionen
 			{
 				if(type==2||type==3)
 					possibleactions[i]=Actionfield[i].wallaction_possible(wall1);
+
 			}
-			else
+			else if(i==13)		//Heilen darf nur der Rettungssanitäter
+			{
+				if(type==1&&playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER)
+				{
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				}
+				
+			}
+			else if(i==14)		//Gefahr entfernen darf nur der Gefahrstoffspezialist
+			{
+				if(type==1&&playerbase[activePlayer].getSpecialist()==SpecialistType.GEFAHRSTOFFSPEZIALIST)
+				{
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				}
+				
+			}
+			else if(i==15)		//Identifizieren darf nur der Spezialist mit Wärmekamera
+			{
+				if(type==1&&playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+				{
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				}
+				
+			}
+			else if(i==16)		//Kommandieren darf nur der Einsatzleiter
+			{
+				if(type==1&&playerbase[activePlayer].getSpecialist()==SpecialistType.EINSATZLEITER)
+				{
+					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				}
+				
+			}
+			else //Abbruch Aktion
 			{
 				if(type==1)
+				{
 					possibleactions[i]=Actionfield[i].action_possible(start, ziel);
+				}
 				else 
+				{
 					possibleactions[i]=Actionfield[i].wallaction_possible(wall1);
+				}
 			}
 
 			if(possibleactions[i])
 				count++;
-			System.out.println("i: "+i);
 		}
 		System.out.println("count: "+count);
+		
+		
+		//Feld mit möglichen AKtionen erzeugen, in denen jeweils die Touchzones erzeugt werden
+		Action shownActions[]=new Action[count];
+		shownActions[0]=new Action(Actionfield[20].getType(), 200,200,200,200);
+		AppInjector.zoneManager().add(shownActions[0]);
+		
+		
 		
 	}
 	
@@ -396,9 +447,8 @@ public class GameEngine implements ILevelListener {
 		*/
 		
 		//testwerte
-		
 		ff0=new Player(this);
-		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 5, 5);
+		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 1, 6);
 		
 		AppInjector.zoneManager().add(ff0);
 		ff1=new Player(this);

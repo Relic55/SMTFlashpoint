@@ -55,8 +55,11 @@ public class VisorBlock extends Zone{
 		
 		
 	}
+	/*@Override
+	public void Press()
+	*/
 	@Override
-	public void touch()
+	public void touch() 
 	{
 		rst(false,false,false,false);
 		System.out.println("Test bestanden");
@@ -64,19 +67,34 @@ public class VisorBlock extends Zone{
 			g.showPossibleActions(1, start,ziel, null);
 		else if(type==2)
 		{
-			if(start.getYb()<ziel.getYb())
+			if(start.getXb()<ziel.getXb())
+			{
 				g.showPossibleActions(2, start,ziel, start.getSouth());
+				System.out.println("South");
+			}
 			else
+			{
 				g.showPossibleActions(2, start,ziel, start.getNorth());
+				System.out.println("North");
+			}
 		}
 		else if(type==3)
 		{
-			if(start.getXb()<ziel.getXb())
+			if(start.getYb()<ziel.getYb())
+			{
 				g.showPossibleActions(3, start,ziel, start.getEast());
+				System.out.println("East");
+
+			}
 			else
+			{
+
 				g.showPossibleActions(3, start,ziel, start.getWest());
+				System.out.println("West");
+			}
 		}
 		
 	}
+
 
 }
