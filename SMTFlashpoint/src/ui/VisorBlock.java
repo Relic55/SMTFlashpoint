@@ -1,10 +1,12 @@
 /**
  * 
  */
-package model;
+package ui;
 
 import controller.GameEngine;
+import model.Block;
 import processing.core.PImage;
+import util.AppInjector;
 import util.io.Utility;
 import vialab.SMT.Zone;
 
@@ -14,16 +16,17 @@ import vialab.SMT.Zone;
  */
 public class VisorBlock extends Zone{
 	private int x,y,height, width; //sb= zweiter Block, bei Wallblock nötige Angabe
-	private GameEngine g;
 	private PImage visorimage;
 	private String pic_path;
 	private int size, x_offset, y_offset,type;
 	private Block start, ziel;
+	private GameEngine g;
 	
 	
-	public VisorBlock(GameEngine g, String pic_path,int type,Block start, Block ziel,float x, float y,int height,int  width )
+	public VisorBlock( String pic_path,int type,Block start, Block ziel,float x, float y,int height,int  width,GameEngine g )
 	{
 		super((int)x,(int)y,height,width);
+		this.g=g;
 		this.x=(int)x;
 		this.y=(int)y;
 		this.start=start;
@@ -42,7 +45,6 @@ public class VisorBlock extends Zone{
 		x_offset=g.getX_offset();
 		y_offset=g.getY_offset();
 		this.type=type; //1= Block, 2=horizontaler Wall, 3=vertikaler Wall
-		this.g=g;
 	}
 	
 	@Override
@@ -50,6 +52,7 @@ public class VisorBlock extends Zone{
 	{	
 		//fill(0);
 		//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
+		if(!g.isVisorTouched())
 			image(visorimage, (float)0,(float)0,(float)(this.width),(float)(this.height));
 
 		
@@ -62,36 +65,40 @@ public class VisorBlock extends Zone{
 	public void touch() 
 	{
 		rst(false,false,false,false);
-		System.out.println("Test bestanden");
-		if(type==1)
-			g.showPossibleActions(1, start,ziel, null);
-		else if(type==2)
+		if(!g.isVisorTouched())
 		{
-			if(start.getXb()<ziel.getXb())
+			System.out.println("Visor gedrueckt");
+			if(type==1)
+				g.showPossibleActions(1, start,ziel, null);
+			else if(type==2)
 			{
-				g.showPossibleActions(2, start,ziel, start.getSouth());
-				System.out.println("South");
+				if(start.getXb()<ziel.getXb())
+				{
+					g.showPossibleActions(2, start,ziel, start.getSouth());
+					System.out.println("South");
+				}
+				else
+				{
+					g.showPossibleActions(2, start,ziel, start.getNorth());
+					System.out.println("North");
+				}
 			}
-			else
+			else if(type==3)
 			{
-				g.showPossibleActions(2, start,ziel, start.getNorth());
-				System.out.println("North");
+				if(start.getYb()<ziel.getYb())
+				{
+					g.showPossibleActions(3, start,ziel, start.getEast());
+					System.out.println("East");
+	
+				}
+				else
+				{
+	
+					g.showPossibleActions(3, start,ziel, start.getWest());
+					System.out.println("West");
+				}
 			}
-		}
-		else if(type==3)
-		{
-			if(start.getYb()<ziel.getYb())
-			{
-				g.showPossibleActions(3, start,ziel, start.getEast());
-				System.out.println("East");
-
-			}
-			else
-			{
-
-				g.showPossibleActions(3, start,ziel, start.getWest());
-				System.out.println("West");
-			}
+			g.setVisorTouched(true);
 		}
 		
 	}

@@ -29,6 +29,7 @@ public class Player extends Zone{
 
 	public Player(GameEngine g, SpecialistType specialist,PlayerColor playerColor )
 	{
+
 		this.g=g;
 		
 		this.playerColor=playerColor;
@@ -298,6 +299,20 @@ public class Player extends Zone{
 	 */
 	public Integer getYb() {
 		return yb;
+	}
+
+	/**
+	 * @param xb the xb to set
+	 */
+	public void setXb(Integer xb) {
+		this.xb = xb;
+	}
+
+	/**
+	 * @param yb the yb to set
+	 */
+	public void setYb(Integer yb) {
+		this.yb = yb;
 	}
 	
 }

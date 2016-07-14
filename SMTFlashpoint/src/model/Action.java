@@ -10,8 +10,8 @@ import vialab.SMT.Zone;
  * CONTROL_FIREFIGHTER fehlt
  * Zeile 108 USE_FIRETRUCK weitere Kriterien notwendig
  */
-public class Action extends Zone {
-	private int apcost,x=0,y=0,width=0,height=0;
+public class Action extends Zone { // 
+	private int apcost;
 	private Actiontype type;
 
 	public Action()
@@ -26,44 +26,20 @@ public class Action extends Zone {
 		{
 			apcost=1;
 		}
-		if(type==Actiontype.CONTROL_FIREFIGHTER||type==Actiontype.CANCEL)
+		else if(type==Actiontype.CONTROL_FIREFIGHTER||type==Actiontype.CANCEL)
 		{
 			apcost=0;
 		}
-		if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.DAMAGE_WALL||type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK||type==Actiontype.REMOVE_DANGER||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.MOVE_CARRY_AND_HEALED)
+		else if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.DAMAGE_WALL||type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK||type==Actiontype.REMOVE_DANGER||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.MOVE_CARRY_AND_HEALED)
 		{
 			apcost=2;
 		}
-		if(type==Actiontype.USE_FIRETRUCK)
+		else if(type==Actiontype.USE_FIRETRUCK)
 		{
 			apcost=4;
 		}
 	}
-	public Action(Actiontype type,int x, int y, int height, int width)
-	{
-		super(x,y,width,height);
-		this.x=x;
-		this.y=y;
-		this.width=width;
-		this.height=height;
-		this.type=type;
-		if(type==Actiontype.MOVE||type==Actiontype.OPEN_DOOR||type==Actiontype.CLOSE_DOOR||type==Actiontype.IDENTIFY||type==Actiontype.HEAL_PERSON||type==Actiontype.MOVE_WITH_HEALED_PERSON||type==Actiontype.EXTINQUISH_STEP||type==Actiontype.EXTINQUISH_SMOKE)
-		{
-			apcost=1;
-		}
-		if(type==Actiontype.CONTROL_FIREFIGHTER||type==Actiontype.CANCEL)
-		{
-			apcost=0;
-		}
-		if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.EXTINQUISH_FIRE||type==Actiontype.DAMAGE_WALL||type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK||type==Actiontype.REMOVE_DANGER||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.MOVE_CARRY_AND_HEALED)
-		{
-			apcost=2;
-		}
-		if(type==Actiontype.USE_FIRETRUCK)
-		{
-			apcost=4;
-		}
-	}	
+
 	
 	public boolean action_possible(Block current_block,Block next_block)
 	{
@@ -187,6 +163,7 @@ public class Action extends Zone {
 		
 		return false;
 	}
+	
 
 	public Integer getApcost() {
 		return apcost;
@@ -195,14 +172,6 @@ public class Action extends Zone {
 	public Actiontype getType() {
 		return type;
 	}
-	@Override
-	public void draw()
-	{
-		if(x!=0)
-		{
-			fill(100,0,0);
-			ellipse(x,y,height,width);
-		
-		}
-	}
+
+	
 }

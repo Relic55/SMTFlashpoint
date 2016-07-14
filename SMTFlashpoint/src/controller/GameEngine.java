@@ -24,25 +24,27 @@ import vialab.SMT.*;
 
 import java.util.Random; //Zufallszahlen
 
+import controller.listener.IActionListener;
 import controller.listener.ILevelListener;
 import model.Actiontype;
 import model.Action;
-import model.Background;
 import model.Block;
 import model.GameDifficulty;
 import model.PlayerColor;
-import model.Playerzone;
 import model.Level;
 import model.Player;
 import model.SpecialistType;
-import model.Statusoverview;
-import model.VisorBlock;
 import model.Wallblock;
 import model.Walltype;
 import processing.core.PImage;
 import processing.core.PVector;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
+import ui.ActionButton;
+import ui.Background;
+import ui.Playerzone;
+import ui.Statusoverview;
+import ui.VisorBlock;
 import util.Constants;
 import util.io.Utility;
 import util.AppInjector;
@@ -59,7 +61,7 @@ import util.AppInjector;
  *          <LI>[storz][28.07.2015] Created</LI>
  */
 //public class GameEngine implements IStencilListener, ILevelListener {
-public class GameEngine implements ILevelListener {
+public class GameEngine implements IActionListener {
 	
 	//Beginn Flashpoint Umsetzung
 	
@@ -109,7 +111,8 @@ public class GameEngine implements ILevelListener {
 	public boolean GameActive=true;
 	
 	
-	public VisorBlock[] visorfield=new VisorBlock[15];
+	private VisorBlock[] visorfield=new VisorBlock[15];
+	private int visorFill=0;
 	//0=N, 1=O, 2=S, 3=W, 4=eigenes Feld
 	
 	
@@ -120,7 +123,8 @@ public class GameEngine implements ILevelListener {
 	private boolean[] possibleactions=new boolean[actionnumber];
 	//private Action[] possibleactions=new Action[actionnumber];
 
-	
+	private boolean visorTouched=false;
+	private boolean actionTouched=false;
 	
 	private GameStates currentGameState;
 	
@@ -166,16 +170,19 @@ public class GameEngine implements ILevelListener {
 		dead_person=0;
 		buildingdamage=0;	
 		interestleft=person_marker+false_alarm_marker;
-		// Since we created the Level objects in the loadResources() method we can now add the Engine as a listener to each one.
-		initLevelListeners();
 		//initActions();
 		init_measures();
 		init_board();
 		init_actionfield();
 		init_blocks(json_path+"/block_start_json.json");
 		//init_choosing mit menu und auswahl versehen
+
+		
 		init_statusoverview();
+		
 		init_choosing();
+		
+
 		rand = new Random();
 		init_beginningfire();
 		
@@ -185,6 +192,7 @@ public class GameEngine implements ILevelListener {
 		currentGameState=GameStates.STATE_INGAME;
 		
 		fillVisorfield();
+		
 		
 		/*
 		while(currentGameState!=GameStates.STATE_FINISHED)
@@ -221,31 +229,31 @@ public class GameEngine implements ILevelListener {
 	 */
 	private void init_actionfield() {
 		// TODO Auto-generated method stub
+		// Actiontype.values()
 		
+		Actionfield[0]= new Action(Actiontype.MOVE);
+		Actionfield[1]= new Action(Actiontype.MOVE_TO_FIRE);
+		Actionfield[2]= new Action(Actiontype.MOVE_CARRY_PERSON);
+		Actionfield[3]= new Action(Actiontype.MOVE_WITH_HEALED_PERSON);	
+		Actionfield[4]= new Action(Actiontype.MOVE_CARRY_AND_HEALED);
+		Actionfield[5]= new Action(Actiontype.TRANSPORT_DANGER);
+		Actionfield[6]= new Action(Actiontype.TRANSPORT_DANGER_AND_HEALED);
+		Actionfield[7]= new Action(Actiontype.EXTINQUISH_FIRE);
+		Actionfield[8]= new Action(Actiontype.EXTINQUISH_SMOKE);
+		Actionfield[9]= new Action(Actiontype.EXTINQUISH_STEP);
+		Actionfield[10]= new Action(Actiontype.MOVE_AMBULANCE);
+		Actionfield[11]= new Action(Actiontype.MOVE_FIRETRUCK);
+		Actionfield[12]= new Action(Actiontype.USE_FIRETRUCK);
 		
-		Actionfield[0]= new Action(model.Actiontype.MOVE);
-		Actionfield[1]= new Action(model.Actiontype.MOVE_TO_FIRE);
-		Actionfield[2]= new Action(model.Actiontype.MOVE_CARRY_PERSON);
-		Actionfield[3]= new Action(model.Actiontype.MOVE_WITH_HEALED_PERSON);	
-		Actionfield[4]= new Action(model.Actiontype.MOVE_CARRY_AND_HEALED);
-		Actionfield[5]= new Action(model.Actiontype.TRANSPORT_DANGER);
-		Actionfield[6]= new Action(model.Actiontype.TRANSPORT_DANGER_AND_HEALED);
-		Actionfield[7]= new Action(model.Actiontype.EXTINQUISH_FIRE);
-		Actionfield[8]= new Action(model.Actiontype.EXTINQUISH_SMOKE);
-		Actionfield[9]= new Action(model.Actiontype.EXTINQUISH_STEP);
-		Actionfield[10]= new Action(model.Actiontype.MOVE_AMBULANCE);
-		Actionfield[11]= new Action(model.Actiontype.MOVE_FIRETRUCK);
-		Actionfield[12]= new Action(model.Actiontype.USE_FIRETRUCK);
-		
-		Actionfield[13]= new Action(model.Actiontype.HEAL_PERSON);
-		Actionfield[14]= new Action(model.Actiontype.REMOVE_DANGER);
-		Actionfield[15]= new Action(model.Actiontype.IDENTIFY);
-		Actionfield[16]= new Action(model.Actiontype.CONTROL_FIREFIGHTER);	
+		Actionfield[13]= new Action(Actiontype.HEAL_PERSON);
+		Actionfield[14]= new Action(Actiontype.REMOVE_DANGER);
+		Actionfield[15]= new Action(Actiontype.IDENTIFY);
+		Actionfield[16]= new Action(Actiontype.CONTROL_FIREFIGHTER);	
 
-		Actionfield[17]= new Action(model.Actiontype.OPEN_DOOR);	
-		Actionfield[18]= new Action(model.Actiontype.CLOSE_DOOR);
-		Actionfield[19]= new Action(model.Actiontype.DAMAGE_WALL);
-		Actionfield[20]= new Action(model.Actiontype.CANCEL);
+		Actionfield[17]= new Action(Actiontype.OPEN_DOOR);	
+		Actionfield[18]= new Action(Actiontype.CLOSE_DOOR);
+		Actionfield[19]= new Action(Actiontype.DAMAGE_WALL);
+		Actionfield[20]= new Action(Actiontype.CANCEL);
 		
 	}
 
@@ -317,16 +325,68 @@ public class GameEngine implements ILevelListener {
 			if(possibleactions[i])
 				count++;
 		}
-		System.out.println("count: "+count);
+		//System.out.println("count: "+count);
 		
 		
 		//Feld mit möglichen AKtionen erzeugen, in denen jeweils die Touchzones erzeugt werden
-		Action shownActions[]=new Action[count];
-		shownActions[0]=new Action(Actionfield[20].getType(), 200,200,200,200);
-		AppInjector.zoneManager().add(shownActions[0]);
+//	ActionButton shownActions[]=new ActionButton[3];//count
+		
+	ArrayList<ActionButton> actionButtons = new ArrayList<ActionButton>();
+	int x = 100;
+	int y = 100;
+	
+	for (int i=0;i<possibleactions.length;i++) {
+		if (possibleactions[i]) {
+			ActionButton ab = new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
+			actionButtons.add(ab);
+			ab.addListener(this);
+			AppInjector.zoneManager().add(ab);
+		}
+	}
+		
+//		shownActions[0]=new ActionButton(200,200,200,200, Actionfield[0],start,ziel,this);
+//		AppInjector.zoneManager().add(shownActions[0]);
+//		shownActions[0].addListener(this);
+//		//shownActions[0].removeFromParent();
+//		
+//		
+//		shownActions[1]=new ActionButton(100,100,200,200, Actionfield[20],start,ziel,this);
+//		AppInjector.zoneManager().add(shownActions[1]);
+//		shownActions[1].addListener(this);
+//		
+//		shownActions[2]=new ActionButton(300,300,200,200, Actionfield[5],start,ziel,this);
+//		AppInjector.zoneManager().add(shownActions[2]);
+//		shownActions[2].addListener(this);		
 		
 		
-		
+	}
+	
+	@Override
+	public void actionSelected(Action what,Block start, Block ziel) {
+		int apcost=what.getApcost();
+		if(what.getType()==Actiontype.MOVE)
+		{
+			System.out.println("X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			
+			//ap kosten: this.active_firefighter.
+		}
+		else if(what.getType()==Actiontype.TRANSPORT_DANGER)
+		{
+
+			System.out.println("Gefahr");
+
+		}
+		else if(what.getType()==Actiontype.CANCEL)
+		{
+
+			System.out.println("Abbruch");
+		}
+		this.visorTouched=false;
+		this.actionTouched=false;
+		removeVisorfield();
+		fillVisorfield();
 	}
 	
 	
@@ -334,8 +394,17 @@ public class GameEngine implements ILevelListener {
 	/**
 	 * 
 	 */
+	private void removeVisorfield()
+	{
+		for(int i=0;i<=visorFill;i++)
+			AppInjector.zoneManager().remove(visorfield[i]);
+		visorFill=0;
+	}
+	
+	
 	private void fillVisorfield() {
-		// TODO Auto-generated method stub
+
+		
 		int x,y,longside,shortside;
 		x=playerbase[activePlayer].getXb();
 		y=playerbase[activePlayer].getYb();
@@ -349,13 +418,13 @@ public class GameEngine implements ILevelListener {
 		if(test==null||test.passage_Wall())
 		{
 		
-			visorfield[0]=new VisorBlock(this, this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside);
+			visorfield[0]=new VisorBlock( this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside,this);
 			AppInjector.zoneManager().add(visorfield[0]);			
 		}
 		else if(test.getWall()!=Walltype.BOARDEND)
 		{
 			
-			visorfield[0]=new VisorBlock(this, this.pic_path,2, board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+x*block_size-factor2*block_size), shortside,longside);
+			visorfield[0]=new VisorBlock( this.pic_path,2, board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+x*block_size-factor2*block_size), shortside,longside,this);
 			AppInjector.zoneManager().add(visorfield[0]);			
 		}
 		
@@ -365,13 +434,13 @@ public class GameEngine implements ILevelListener {
 		if(test==null||test.passage_Wall())
 		{
 		
-			visorfield[1]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside);
+			visorfield[1]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
 			AppInjector.zoneManager().add(visorfield[1]);			
 		}
 		else if(test.getWall()!=Walltype.BOARDEND)
 		{
 			
-			visorfield[1]=new VisorBlock(this, this.pic_path,3, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside);
+			visorfield[1]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
 			AppInjector.zoneManager().add(visorfield[1]);			
 		}
 		
@@ -380,13 +449,13 @@ public class GameEngine implements ILevelListener {
 		if(test==null||test.passage_Wall())
 		{
 		
-			visorfield[2]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside);
+			visorfield[2]=new VisorBlock( this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside,this);
 			AppInjector.zoneManager().add(visorfield[2]);			
 		}
 		else if(test.getWall()!=Walltype.BOARDEND)
 		{
 			
-			visorfield[2]=new VisorBlock(this, this.pic_path,2, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size-factor2*block_size), shortside,longside);
+			visorfield[2]=new VisorBlock( this.pic_path,2, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size-factor2*block_size), shortside,longside,this);
 			AppInjector.zoneManager().add(visorfield[2]);			
 		}
 		
@@ -395,20 +464,22 @@ public class GameEngine implements ILevelListener {
 		if(test==null||test.passage_Wall())
 		{
 		
-			visorfield[3]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside);
+			visorfield[3]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
 			AppInjector.zoneManager().add(visorfield[3]);			
 		}
 		else if(test.getWall()!=Walltype.BOARDEND)
 		{
 			
-			visorfield[3]=new VisorBlock(this, this.pic_path,3, board[x][y],board[x][y-1], (float)(x_offset+y*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside);
+			visorfield[3]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y-1], (float)(x_offset+y*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
 			AppInjector.zoneManager().add(visorfield[3]);			
 		}
 		
+		visorFill=3;
 		//eigenes Feld loeschbar
 		if(board[x][y].isFire()||board[x][y].isSmoke())			
 		{
-			visorfield[4]=new VisorBlock(this, this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside);
+			visorFill++;
+			visorfield[4]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside,this);
 			AppInjector.zoneManager().add(visorfield[4]);
 			
 		}
@@ -434,6 +505,7 @@ public class GameEngine implements ILevelListener {
 	 * 
 	 */
 	private void init_choosing() {
+	
 		// TODO Auto-generated method stub
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
@@ -445,11 +517,13 @@ public class GameEngine implements ILevelListener {
 			
 		}
 		*/
-		
+
 		//testwerte
-		ff0=new Player(this);
-		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 1, 6);
 		
+		
+		
+		ff0=new Player(this);
+		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 1, 6);	
 		AppInjector.zoneManager().add(ff0);
 		ff1=new Player(this);
 		ff1.setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 4, 0, 4, 0);
@@ -464,22 +538,23 @@ public class GameEngine implements ILevelListener {
 		ff4.setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 4, 0, 7, 7);
 		AppInjector.zoneManager().add(ff4);
 		ff5=new Player(this);
-		ff5.setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE, 4, 0, 5, 9);;
+		ff5.setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE, 4, 0, 5, 9);
 		AppInjector.zoneManager().add(ff5);
 		
 		//Playerzones
 		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
-		ffz0=new Playerzone(pic_path,ff0, this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		
+		ffz0=new Playerzone(pic_path,ff0, this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));		
 		AppInjector.zoneManager().add(ffz0);	
-		ffz1=new Playerzone(pic_path,ff1, this, 1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		ffz1=new Playerzone(pic_path,ff1,this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(ffz1);
 		ffz2=new Playerzone(pic_path,ff2, this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(ffz2);
-		ffz3=new Playerzone(pic_path,ff3, this, 3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		ffz3=new Playerzone(pic_path,ff3,this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(ffz3);
-		ffz4=new Playerzone(pic_path,ff4, this, 4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		ffz4=new Playerzone(pic_path,ff4,this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(ffz4);
-		ffz5=new Playerzone(pic_path,ff5, this, 5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		ffz5=new Playerzone(pic_path,ff5,this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(ffz5);
 		
 		activePlayer=0;
@@ -911,51 +986,8 @@ public class GameEngine implements ILevelListener {
 		return cards;
 	}
 	
-	private void initLevelListeners() {
-		for(Level level : levelMap.values()) {
-			level.addListener(this);
-		}
-	}
-	
-	public void loadLevel() {
-		loadLevel(currentLevel);
-	}
-	
-	/**
-	 * This instructs the app to load a certain level.
-	 * @param levelNr
-	 */
-	public void loadLevel(int levelNr) {
-		
-		// Instructions for loading a level and its objects go here
-		// Consider creating helper classes for loading object information from serialized sources,
-		// e.g. XML, CSV, INI, databases, etc
-		
-		// The Engine should instruct the Controller to load (and prepare) the necessary resources (mainly Zone objects)
-		
-	}
-	
-	/**
-	 * Implemented via ILevelListener interface. Gets called if the current level is completed.
-	 */
-	@Override
-	public void levelCompleted() {
-		this.currentLevel++;
-		this.loadLevel(currentLevel);
-	}
-	
-	public int getCurrentLevelNumber() {
-		return currentLevel;
-	}
-	
-	public Level getCurrentLevel() {
-		return levelMap.get(currentLevel);
-	}
-	
-	
-	
-	
 
+	
 		
 	public void init_measures()
 	{
@@ -975,7 +1007,7 @@ public class GameEngine implements ILevelListener {
 	}
 	public void init_board()
 	{
-		background=new Background(backgroundpic,x_offset/2,y_offset/2,board_width,board_height );
+		background=new Background(backgroundpic,x_offset,y_offset,board_width,board_height );
 		AppInjector.zoneManager().add(background);
 		
 		
@@ -1264,5 +1296,38 @@ public class GameEngine implements ILevelListener {
 	public void setActivePlayer(int activePlayer) {
 		this.activePlayer = activePlayer;
 	}
+
+	/**
+	 * @return the visorTouched
+	 */
+	public boolean isVisorTouched() {
+		return visorTouched;
+	}
+
+	/**
+	 * @param visorTouched the visorTouched to set
+	 */
+	public void setVisorTouched(boolean visorTouched) {
+		this.visorTouched = visorTouched;
+	}
+
+	/**
+	 * @return the actionTouched
+	 */
+	public boolean isActionTouched() {
+		return actionTouched;
+	}
+
+	/**
+	 * @param actionTouched the actionTouched to set
+	 */
+	public void setActionTouched(boolean actionTouched) {
+		this.actionTouched = actionTouched;
+	}
+
+	/* (non-Javadoc)
+	 * @see controller.listener.IActionListener#actionSelected()
+	 */
+
 
 }

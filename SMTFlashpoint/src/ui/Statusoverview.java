@@ -1,9 +1,10 @@
 /**
  * 
  */
-package model;
+package ui;
 
 import controller.GameEngine;
+import util.AppInjector;
 import vialab.SMT.Zone;
 
 /**
@@ -16,14 +17,15 @@ public class Statusoverview extends Zone{
 	private int leftmarker=12;				//Anzahl uebriger Einsatzmarker
 	private int x1, y1, x2, y2;			//Position fuer die Anzeige
 	private int size;
-	GameEngine g;
+	private GameEngine g;
+	
 	
 
 
 	public Statusoverview(GameEngine g)
 	{
+		
 		this.g=g;
-
 		this.leftmarker=g.getInterest_left();
 		this.size=g.getBlock_size();
 		x1=g.getX_offset()-size;

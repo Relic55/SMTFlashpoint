@@ -2,9 +2,9 @@ package main;
 
 import util.AppInjector;
 import util.io.Utility;
-import model.Background;
 import processing.core.PApplet;
 import processing.core.PImage;
+import ui.Background;
 import vialab.SMT.SMT;
 import vialab.SMT.TouchSource;
 

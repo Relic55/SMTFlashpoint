@@ -1,7 +1,7 @@
 /**
  * 
  */
-package model;
+package ui;
 
 import processing.core.PImage;
 import vialab.SMT.Zone;
@@ -28,7 +28,7 @@ public class Background extends Zone{
 		//noStroke();
 		//fill(0xAFEEEEEE);
         //rect(x,y,this.width,this.height);
-		image(picture,x,y,width,height);
+		image(picture,0,0,width,height);
 	}
 
 	@Override

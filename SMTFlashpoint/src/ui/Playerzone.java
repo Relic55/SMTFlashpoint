@@ -1,10 +1,14 @@
 /**
  * 
  */
-package model;
+package ui;
 
 import controller.GameEngine;
+import model.Player;
+import model.PlayerColor;
+import model.SpecialistType;
 import processing.core.PImage;
+import util.AppInjector;
 import util.io.Utility;
 import vialab.SMT.Zone;
 
@@ -17,20 +21,22 @@ public class Playerzone extends Zone{
 	
 	private PImage picture;
 	private Player ff;
-	private GameEngine g;
 	private int x,y,width,height;
 	private int size,number;
 	private String pic_path;
 	private PImage specialistimage, colorimage;
+	private GameEngine g;
 	
 	public Playerzone(String pic_path,Player ff,GameEngine g, int number, int x, int y, int width, int height)
 	{
 		super(x,y,width,height);
-		size=g.getBlock_size();
+		
+		size=g.getBlock_size();   //size=AppInjector.engine().getBlock_size(); erzeugt ewigen Aufruf
 		this.x=x;
 		this.y=y;
 		this.width=width;
 		this.height=height;
+		this.g=g;
 		
 		
 		this.pic_path=pic_path;
