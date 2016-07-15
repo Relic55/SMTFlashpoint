@@ -338,23 +338,47 @@ public class GameEngine implements IActionListener {
 		}
 
 		
-	
+	 
 	int x = 100;
 	int y = 100;
+	double winkel=360/count*(Math.PI/180);
+	int actionsize;
+	if(count <5)
+		actionsize=(int)(block_size*0.9);
+	else if(count<9)
+		actionsize=(int)(block_size*0.8);
+	else
+		actionsize=(int)(block_size*0.5);
 	
+	int factor=0;
+	float midpointx=	(float)(x_offset+ziel.getYb()*this.block_size+0.5*block_size);
+	float midpointy=	(float)(y_offset+ziel.getXb()*this.block_size+0.5*block_size);
+	int xposition,yposition;
 	for (int i=0;i<possibleactions.length;i++) {
 		if (possibleactions[i]) {
+			xposition=(int)((midpointx+block_size*Math.cos(winkel*factor-90*(Math.PI/180)))-0.5*block_size);
+			yposition=(int)((midpointy+block_size*Math.sin(winkel*factor-90*(Math.PI/180)))-0.5*block_size);
 			ActionButton ab;
 			if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
-					ab= new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
+				ab= new ActionButton(xposition,yposition,actionsize,actionsize,Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
 			else if(i==19&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
-				ab= new ActionButton(x+=100,y,100,100,1, Actionfield[i],start,ziel);
+				ab= new ActionButton(xposition,yposition,actionsize,actionsize,1, Actionfield[i],start,ziel);
 			else if(i==12&&(playerbase[activePlayer].getSpecialist()==SpecialistType.FAHRZEUGMASCHINIST))
-				ab= new ActionButton(x+=100,y,100,100,2, Actionfield[i],start,ziel);		
+				ab= new ActionButton(xposition,yposition,actionsize,actionsize,2, Actionfield[i],start,ziel);		
 			else
-				ab= new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
+				ab= new ActionButton(xposition,yposition,actionsize,actionsize,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
+			/*
+			 * if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
+					ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
+			else if(i==19&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
+				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),1, Actionfield[i],start,ziel);
+			else if(i==12&&(playerbase[activePlayer].getSpecialist()==SpecialistType.FAHRZEUGMASCHINIST))
+				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),2, Actionfield[i],start,ziel);		
+			else
+				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),Actionfield[i].getApcost(), Actionfield[i],start,ziel);
 			
-			
+			 */
+			factor++;
 			
 			actionButtons.add(ab);
 			ab.addListener(this);
