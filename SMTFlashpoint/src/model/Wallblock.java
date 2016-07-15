@@ -76,6 +76,8 @@ public class Wallblock extends Zone {
 	}
 	public boolean passage_Wall() //ist der Wallabschnitt begehbar
 	{
+		if(wall==null)
+			return false;
 		if(wall==Walltype.DOOROPEN||wall==Walltype.DOORDESTROYED||wall==Walltype.WALLDESTROYED||wall==Walltype.OUTDOOROPEN)
 			return true;
 		

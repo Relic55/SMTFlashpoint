@@ -100,6 +100,7 @@ public class GameEngine implements IActionListener {
 	private int maxbuildingdamage=24;
 	private int person_marker=10;			//Anzahl Personen im Spiel insgesamt
 	private int false_alarm_marker=5;		//Anzahl falscher Alarme insgesamt
+	private int saved_danger=0;
 	private int interestleft;
 	private int active_seats;			//aktive Brandherde
 	private int inactive_seats;			//weitere Brandherde
@@ -122,11 +123,14 @@ public class GameEngine implements IActionListener {
 	private Action[] Actionfield=new Action[actionnumber];
 	private boolean[] possibleactions=new boolean[actionnumber];
 	//private Action[] possibleactions=new Action[actionnumber];
+	
+	ArrayList<ActionButton> actionButtons = new ArrayList<ActionButton>();
 
 	private boolean visorTouched=false;
 	private boolean actionTouched=false;
 	
 	private GameStates currentGameState;
+	private PhaseStates currentPhaseState;
 	
 	private ArrayList<Object> resources;
 	
@@ -157,7 +161,13 @@ public class GameEngine implements IActionListener {
 		
 		private static final int size = GameStates.values().length;
 	};
-
+	public static enum PhaseStates {
+		STATE_BEFORE,
+		STATE_PLAYER,
+		STATE_FIRE,
+		STATE_END;		
+		private static final int size = PhaseStates.values().length;
+	};
 	
 	
 	public GameEngine() {
@@ -166,6 +176,7 @@ public class GameEngine implements IActionListener {
 		currentLevel = 1;
 
 		currentGameState=GameStates.STATE_START;
+		currentPhaseState=PhaseStates.STATE_PLAYER;
 		saved_person=0;
 		dead_person=0;
 		buildingdamage=0;	
@@ -325,24 +336,32 @@ public class GameEngine implements IActionListener {
 			if(possibleactions[i])
 				count++;
 		}
-		//System.out.println("count: "+count);
+
 		
-		
-		//Feld mit möglichen AKtionen erzeugen, in denen jeweils die Touchzones erzeugt werden
-//	ActionButton shownActions[]=new ActionButton[3];//count
-		
-	ArrayList<ActionButton> actionButtons = new ArrayList<ActionButton>();
+	
 	int x = 100;
 	int y = 100;
 	
 	for (int i=0;i<possibleactions.length;i++) {
 		if (possibleactions[i]) {
-			ActionButton ab = new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
+			ActionButton ab;
+			if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
+					ab= new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
+			else if(i==19&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
+				ab= new ActionButton(x+=100,y,100,100,1, Actionfield[i],start,ziel);
+			else if(i==12&&(playerbase[activePlayer].getSpecialist()==SpecialistType.FAHRZEUGMASCHINIST))
+				ab= new ActionButton(x+=100,y,100,100,2, Actionfield[i],start,ziel);		
+			else
+				ab= new ActionButton(x+=100,y,100,100,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
+			
+			
+			
 			actionButtons.add(ab);
 			ab.addListener(this);
 			AppInjector.zoneManager().add(ab);
 		}
 	}
+
 		
 //		shownActions[0]=new ActionButton(200,200,200,200, Actionfield[0],start,ziel,this);
 //		AppInjector.zoneManager().add(shownActions[0]);
@@ -361,22 +380,190 @@ public class GameEngine implements IActionListener {
 		
 	}
 	
+	public void removePossibleActions()
+	{
+		while(actionButtons.size()>0) 
+		{
+				ActionButton ab= actionButtons.remove(0);
+				AppInjector.zoneManager().remove(ab);
+			
+		}
+		for(int i=0; i<possibleactions.length;i++) 
+		{
+			possibleactions[i]=false;
+		}
+	}	
+	
+	
+	
 	@Override
 	public void actionSelected(Action what,Block start, Block ziel) {
 		int apcost=what.getApcost();
 		if(what.getType()==Actiontype.MOVE)
 		{
-			System.out.println("X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			System.out.println("Move: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			
+			//ap kosten:
+		}
+		else if(what.getType()==Actiontype.MOVE_TO_FIRE)
+		{
+			System.out.println(" Firemove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 			playerbase[this.activePlayer].setXb(ziel.getXb());
 			playerbase[this.activePlayer].setYb(ziel.getYb());
 			
-			//ap kosten: this.active_firefighter.
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.MOVE_CARRY_PERSON)
+		{
+			System.out.println(" Carrymove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			start.reducePeople();
+			ziel.increasePeople();
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			//TODO: Abfrage, ob gerettet
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.MOVE_WITH_HEALED_PERSON)
+		{
+			System.out.println(" Healmove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			start.reduceHealedPeople();   
+			ziel.increaseHealedPeople();
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			// Abfrage, ob gerettet
+			//ap kosten: 
+		}	
+		else if(what.getType()==Actiontype.MOVE_CARRY_AND_HEALED)
+		{
+			System.out.println(" CarryHealmove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			start.reducePeople();
+			ziel.increasePeople();
+			start.reduceHealedPeople();   
+			ziel.increaseHealedPeople();
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			// Abfrage, ob gerettet
+			//ap kosten: 
 		}
 		else if(what.getType()==Actiontype.TRANSPORT_DANGER)
 		{
+			System.out.println(" Dangermove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			start.reduceDanger();
+			ziel.increaseDanger();
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			// Abfrage, ob gerettet
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.TRANSPORT_DANGER_AND_HEALED)
+		{
+			System.out.println(" DangerHealmove: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			playerbase[this.activePlayer].setXb(ziel.getXb());
+			playerbase[this.activePlayer].setYb(ziel.getYb());
+			start.reduceDanger();
+			ziel.increaseDanger();
+			start.reduceHealedPeople();   
+			ziel.increaseHealedPeople();
+			if(ziel.isInterest())
+				ziel.scanInterest();
+			// Abfrage, ob gerettet
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.EXTINQUISH_FIRE)
+		{
+			System.out.println(" ExtinquishFire: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			ziel.setFire(false);			
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.EXTINQUISH_SMOKE)
+		{
+			System.out.println(" ExtinquishSmoke: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			ziel.setSmoke(false);
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.EXTINQUISH_STEP)
+		{
+			System.out.println(" FireToSmoke: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			ziel.setFire(false);
+			ziel.setSmoke(true);
+			//ap kosten: 
+		}
+		//TODO: Fahrzeugaktionen
+		else if(what.getType()==Actiontype.HEAL_PERSON)
+		{
+			System.out.println(" HealPerson: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			start.reducePeople();
+			start.increaseHealedPeople();
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.REMOVE_DANGER)
+		{
+			System.out.println(" RemoveDanger: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			start.reduceDanger();
+			saved_danger++;
+			//ap kosten: 
+		}
+		else if(what.getType()==Actiontype.IDENTIFY)
+		{
+			System.out.println(" Identify: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+			start.scanInterest();
+			//ap kosten: 
+		}
+		//TODO: Einsatzleiter
+		//Wallaktionen
+		else if(what.getType()==Actiontype.OPEN_DOOR||what.getType()==Actiontype.CLOSE_DOOR||what.getType()==Actiontype.DAMAGE_WALL)
+		{
+			Wallblock wall=null;
+			if(start.getXb()<ziel.getXb())
+			{
+					wall=start.getSouth();					
+			}
+			else if(start.getXb()>ziel.getXb())
+			{
+					wall=start.getNorth();					
+			}
+			else if(start.getYb()<ziel.getYb())
+			{
+					wall=start.getEast();					
+			}
+			else if(start.getYb()>ziel.getYb())
+			{
+					wall=start.getWest();					
+			}
+			if(wall!=null)
+			{
+				if(what.getType()==Actiontype.OPEN_DOOR||what.getType()==Actiontype.CLOSE_DOOR)
+				{
+					wall.switch_Door();
+					System.out.println(" DoorSwitch: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+				}
+				else
+				{
+					this.buildingdamage+=wall.damage_Wall();
+					System.out.println(" DamageWall: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
+					
+				}
+			}
+			
+			
+			
+			
+			
+			
 
-			System.out.println("Gefahr");
-
+			System.out.println("Abbruch");
 		}
 		else if(what.getType()==Actiontype.CANCEL)
 		{
@@ -396,7 +583,7 @@ public class GameEngine implements IActionListener {
 	 */
 	private void removeVisorfield()
 	{
-		for(int i=0;i<=visorFill;i++)
+		for(int i=0;i<visorFill;i++)
 			AppInjector.zoneManager().remove(visorfield[i]);
 		visorFill=0;
 	}
@@ -404,92 +591,162 @@ public class GameEngine implements IActionListener {
 	
 	private void fillVisorfield() {
 
-		
-		int x,y,longside,shortside;
-		x=playerbase[activePlayer].getXb();
-		y=playerbase[activePlayer].getYb();
-		longside=(int)(this.block_size*0.7); //Laenge der Markierung
-		shortside= (int)(this.block_size*0.35);
-		float factor1=(float)0.15;
-		float factor2=(float)0.2;
-		
-		//Norden
-		Wallblock test=board[x][y].getNorth();
-		if(test==null||test.passage_Wall())
+		if(playerbase[this.activePlayer].getAp()>0||playerbase[this.activePlayer].getSp()>0)
 		{
-		
-			visorfield[0]=new VisorBlock( this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside,this);
-			AppInjector.zoneManager().add(visorfield[0]);			
-		}
-		else if(test.getWall()!=Walltype.BOARDEND)
-		{
+			int x,y,longside,shortside;
+			x=playerbase[activePlayer].getXb();
+			y=playerbase[activePlayer].getYb();
+			longside=(int)(this.block_size*0.7); //Laenge der Markierung
+			shortside= (int)(this.block_size*0.35);
+			float factor1=(float)0.15;
+			float factor2=(float)0.2;
+			visorFill=0;
+			//Norden
+			Wallblock test=board[x][y].getNorth();
+			if(test==null||test.passage_Wall())
+			{
 			
-			visorfield[0]=new VisorBlock( this.pic_path,2, board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+x*block_size-factor2*block_size), shortside,longside,this);
-			AppInjector.zoneManager().add(visorfield[0]);			
-		}
-		
-		//Osten
-		
-		test=board[x][y].getEast();
-		if(test==null||test.passage_Wall())
-		{
-		
-			visorfield[1]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
-			AppInjector.zoneManager().add(visorfield[1]);			
-		}
-		else if(test.getWall()!=Walltype.BOARDEND)
-		{
+				visorfield[visorFill]=new VisorBlock( this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
+			{
+				
+				visorfield[visorFill]=new VisorBlock( this.pic_path,2, board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+x*block_size-factor2*block_size), shortside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);		
+				visorFill++;	
+			}
 			
-			visorfield[1]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
-			AppInjector.zoneManager().add(visorfield[1]);			
-		}
-		
-		//Sueden
-		test=board[x][y].getSouth();
-		if(test==null||test.passage_Wall())
-		{
-		
-			visorfield[2]=new VisorBlock( this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside,this);
-			AppInjector.zoneManager().add(visorfield[2]);			
-		}
-		else if(test.getWall()!=Walltype.BOARDEND)
-		{
 			
-			visorfield[2]=new VisorBlock( this.pic_path,2, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size-factor2*block_size), shortside,longside,this);
-			AppInjector.zoneManager().add(visorfield[2]);			
-		}
-		
-		//Westen
-		test=board[x][y].getWest();
-		if(test==null||test.passage_Wall())
-		{
-		
-			visorfield[3]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
-			AppInjector.zoneManager().add(visorfield[3]);			
-		}
-		else if(test.getWall()!=Walltype.BOARDEND)
-		{
+			//Osten
 			
-			visorfield[3]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y-1], (float)(x_offset+y*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
-			AppInjector.zoneManager().add(visorfield[3]);			
-		}
-		
-		visorFill=3;
-		//eigenes Feld loeschbar
-		if(board[x][y].isFire()||board[x][y].isSmoke())			
-		{
-			visorFill++;
-			visorfield[4]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside,this);
-			AppInjector.zoneManager().add(visorfield[4]);
+			test=board[x][y].getEast();
+			if(test==null||test.passage_Wall())
+			{
 			
-		}
+				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
+			{
+				
+				visorfield[visorFill]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			
+			//Sueden
+			test=board[x][y].getSouth();
+			if(test==null||test.passage_Wall())
+			{
+			
+				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
+			{
+				
+				visorfield[visorFill]=new VisorBlock( this.pic_path,2, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size-factor2*block_size), shortside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			
+			//Westen
+			test=board[x][y].getWest();
+			if(test==null||test.passage_Wall())
+			{
+			
+				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);	
+				visorFill++;
+			}
+			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
+			{
+				
+				visorfield[visorFill]=new VisorBlock( this.pic_path,3, board[x][y],board[x][y-1], (float)(x_offset+y*block_size-factor2*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,shortside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+			}
+			
+			
+			//eigenes Feld anwaehlbar
+			if(board[x][y].isFire()||board[x][y].isSmoke()||(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER&&board[x][y].getPeople()>0)||(playerbase[activePlayer].getSpecialist()==SpecialistType.GEFAHRSTOFFSPEZIALIST&&board[x][y].getDanger()>0)||(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA&&board[x][y].isInterest()))			
+			{
+				//Einsatzleiter fehlt
+				
+				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside,this);
+				AppInjector.zoneManager().add(visorfield[visorFill]);
+				visorFill++;
+				
+			}
 		//TODO: weitere Aktionsmöglichkeiten abpruefen (aktuelles Feld, Einsatzleiter, Waermebildkamera)
 		
 		
-		
+		}
 	}
 	
-	
+	public void setNewInterest()
+	{
+		int randomvalue = rand.nextInt(8)+1;
+		int randomvaluered = rand.nextInt(6)+1;
+		if(this.difficulty==GameDifficulty.BEGINNER)
+		{
+			while(board[randomvaluered][randomvalue].isInterest())
+			{
+				randomvalue = rand.nextInt(8)+1;
+				randomvaluered = rand.nextInt(6)+1;
+			}
+			board[randomvaluered][randomvalue].setFire(false);
+			board[randomvaluered][randomvalue].setSmoke(false);
+			board[randomvaluered][randomvalue].setInterest(true);
+
+			
+			//Test, ob ein Feuerwehrmann auf dem neuen Einsatzmarker steht
+			boolean lucky=false;
+			for(int i=0;i<6;i++)
+			{
+				if(playerbase[i]!=null&&(playerbase[i].getXb()==randomvaluered&&playerbase[i].getYb()==randomvalue))
+				{
+					lucky=true;
+				}
+			}
+			if(lucky)
+			{
+				board[randomvaluered][randomvalue].scanInterest();
+			}
+		}
+		else //andere Schwierigkeitsgrade
+		{
+			boolean unlucky=false;
+			do
+			{
+				unlucky=false;
+				//solange neu wuerfeln, bis ein Feld ohne InterestMarker, ohne Feuer und ohne Rauch gefunden wurde
+				while(board[randomvaluered][randomvalue].isInterest()||board[randomvaluered][randomvalue].isFire()||board[randomvaluered][randomvalue].isSmoke())
+				{
+					randomvalue = rand.nextInt(8)+1;
+					randomvaluered = rand.nextInt(6)+1;
+				}
+				
+				//Marker darf nicht auf ein Feld mit Feuerwehrmann
+				
+				for(int i=0;i<6;i++)
+				{
+					if(playerbase[i]!=null&&(playerbase[i].getXb()==randomvaluered&&playerbase[i].getYb()==randomvalue))
+					{
+						unlucky=true;
+					}
+				}
+			}while(unlucky);
+			
+			board[randomvaluered][randomvalue].scanInterest();
+		}
+		interest_onboard++;
+		interestleft--;
+	}
 
 	/**
 	 * 
@@ -523,7 +780,7 @@ public class GameEngine implements IActionListener {
 		
 		
 		ff0=new Player(this);
-		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 1, 6);	
+		ff0.setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 4, 0, 0, 6);	
 		AppInjector.zoneManager().add(ff0);
 		ff1=new Player(this);
 		ff1.setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 4, 0, 4, 0);
@@ -1323,6 +1580,27 @@ public class GameEngine implements IActionListener {
 	 */
 	public void setActionTouched(boolean actionTouched) {
 		this.actionTouched = actionTouched;
+	}
+
+	/**
+	 * @param person_marker the person_marker to set
+	 */
+	public void setPerson_marker(int person_marker) {
+		this.person_marker = person_marker;
+	}
+
+	/**
+	 * @param false_alarm_marker the false_alarm_marker to set
+	 */
+	public void setFalse_alarm_marker(int false_alarm_marker) {
+		this.false_alarm_marker = false_alarm_marker;
+	}
+
+	/**
+	 * @return the currentPhaseState
+	 */
+	public PhaseStates getCurrentPhaseState() {
+		return currentPhaseState;
 	}
 
 	/* (non-Javadoc)

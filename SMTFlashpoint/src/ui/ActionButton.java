@@ -27,6 +27,7 @@ public class ActionButton extends Zone{
 	private Block start, ziel;
 	private PImage buttonImage;
 	private int apcost;
+	private int tsize;
 	public ActionButton(int x, int y, int width, int height,int apcost, Action type,Block start, Block ziel)
 	{
 		super(x,y,width,height);
@@ -35,6 +36,7 @@ public class ActionButton extends Zone{
 		this.start=start;
 		this.ziel=ziel;
 		buttonImage=Utility.getImage(type.getType().path);
+		tsize=(int)(AppInjector.engine().getBlock_size()/90.0*25);
 	
 		
 		
@@ -54,7 +56,10 @@ public class ActionButton extends Zone{
 			image(buttonImage,0,0,width,height);
 			//Kosten anpassen für Spezialklassen
 			//AppInjector.engine().getPlayerbase()[ AppInjector.engine().getActivePlayer()].getSpecialist()==SpecialistType.LOESCHSCHAUMSPEZIALIST
-			//text(apcost,0,0);
+			textAlign(CENTER);
+			textSize(tsize);
+			fill(255);
+			text(apcost,width/4,height/2+tsize/3);
 		}
 		
 

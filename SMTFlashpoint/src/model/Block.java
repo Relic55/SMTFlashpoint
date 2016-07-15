@@ -1,6 +1,9 @@
 package model;
 
+import java.util.Random;
+
 import controller.GameEngine;
+import controller.GameEngine.PhaseStates;
 import processing.core.PImage;
 import util.io.Utility;
 import vialab.SMT.SMT;
@@ -222,6 +225,70 @@ public class Block extends Zone{
 				//, east, south, west;
 		return test;
 	}
+	
+	public void scanInterest()
+	{
+		this.interest=false;
+		Random rand=new Random();
+		int pm=g.getPerson_marker();
+		int fam=g.getFalse_alarm_marker();
+		if(fam==0)
+		{
+			this.people++;
+			
+			g.setNewInterest();
+		}
+		else
+		{
+			
+			int randomvalue = rand.nextInt(pm+fam);
+			if(randomvalue<fam)		//Fehlalarme sind die ersten fam Ziffern --> Gleichverteilung der Werte
+			{
+						//TODO: Fehlalarm animieren
+				System.out.println("Fehlalarm" + xb + ":" +yb);
+				if(g.getCurrentPhaseState()==PhaseStates.STATE_END)
+					g.setNewInterest();	//Auf Schwierigkeitsgrad Beginner können Interestmarker auch auf Feuerwehrmännern spawnen --> bei Fehlalarm erneut setzen
+			}
+			else
+			{
+				System.out.println("Person gefunden" + xb + ":" +yb);
+				this.people++;
+			}
+			
+			
+			
+		}
+	}
+
+	
+	public void reducePeople()
+	{
+		this.people--;
+	}
+	
+	public void reduceHealedPeople()
+	{
+		this.healed_people--;
+	}
+	
+	public void reduceDanger()
+	{
+		this.danger--;
+	}
+	public void increasePeople()
+	{
+		this.people++;
+	}
+	
+	public void increaseHealedPeople()
+	{
+		this.healed_people++;
+	}
+	
+	public void increaseDanger()
+	{
+		this.danger++;
+	}	
 
 
 	public void setSmoke(boolean smoke) {

@@ -68,6 +68,7 @@ public class VisorBlock extends Zone{
 		if(!g.isVisorTouched())
 		{
 			System.out.println("Visor gedrueckt");
+			g.removePossibleActions();
 			if(type==1)
 				g.showPossibleActions(1, start,ziel, null);
 			else if(type==2)
