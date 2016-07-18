@@ -41,11 +41,7 @@ public class Playerzone extends Zone{
 		
 		this.pic_path=pic_path;
 		this.number=number;
-		if(number==0)
-		{
-			this.ff=g.getFf0();
-		}
-		else
+			//this.ff=g.getPlayerbase()[number]
 			this.ff=ff;		
 		specialistimage=Utility.getImage(pic_path+"/Spezialistenkarten_dummy.gif"); 
 		colorimage=Utility.getImage(pic_path+"/Farbkarte_schwarz.gif");

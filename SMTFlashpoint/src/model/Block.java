@@ -177,7 +177,57 @@ public class Block extends Zone{
 		this.ambulance = ambulance;
 	}
 	
-	public boolean checkneightbors_smoke(Integer x, Integer y, Block[][] board)
+	//Schaut, ob Nachbarn Feuer haben und eigenes Feld Rauch
+	public boolean checkneightbors_Fire(Integer x, Integer y)
+	{
+		boolean test=false;
+		if(smoke)
+		{
+
+			if(north==null||north.passage_Wall())
+			{
+				if(g.board[x-1][y].fire)
+				{
+					g.board[x][y].setSmoke(false);
+					g.board[x][y].setFire(true);
+					test=true;
+				}
+			}
+			if(east==null||east.passage_Wall())
+			{
+				if(g.board[x][y+1].fire)
+				{
+					g.board[x][y].setSmoke(false);
+					g.board[x][y].setFire(true);
+					test=true;
+				}
+			}
+			if(south==null||south.passage_Wall())
+			{
+				if(g.board[x+1][y].fire)
+				{
+					g.board[x][y].setSmoke(false);
+					g.board[x][y].setFire(true);
+					test=true;
+				}
+			}
+			if(west==null||west.passage_Wall())
+			{
+				if(g.board[x][y-1].fire)
+				{
+					g.board[x][y].setSmoke(false);
+					g.board[x][y].setFire(true);
+					test=true;
+				}
+			}
+		
+		}
+			
+				//, east, south, west;
+		return test;
+	}
+	//Schaut, ob Nachbarn Rauch haben und eigenes Feld Feuer
+	public boolean checkneightbors_Smoke(Integer x, Integer y)
 	{
 		boolean test=false;
 		if(fire)
@@ -185,37 +235,37 @@ public class Block extends Zone{
 
 			if(north==null||north.passage_Wall())
 			{
-				if(board[x-1][y].smoke)
+				if(g.board[x-1][y].smoke)
 				{
-					board[x-1][y].setSmoke(false);
-					board[x-1][y].setFire(true);
+					g.board[x-1][y].setSmoke(false);
+					g.board[x-1][y].setFire(true);
 					test=true;
 				}
 			}
 			if(east==null||east.passage_Wall())
 			{
-				if(board[x][y+1].smoke)
+				if(g.board[x][y+1].smoke)
 				{
-					board[x][y+1].setSmoke(false);
-					board[x][y+1].setFire(true);
+					g.board[x][y+1].setSmoke(false);
+					g.board[x][y+1].setFire(true);
 					test=true;
 				}
 			}
 			if(south==null||south.passage_Wall())
 			{
-				if(board[x+1][y].smoke)
+				if(g.board[x+1][y].smoke)
 				{
-					board[x+1][y].setSmoke(false);
-					board[x+1][y].setFire(true);
+					g.board[x+1][y].setSmoke(false);
+					g.board[x+1][y].setFire(true);
 					test=true;
 				}
 			}
 			if(west==null||west.passage_Wall())
 			{
-				if(board[x][y-1].smoke)
+				if(g.board[x][y-1].smoke)
 				{
-					board[x][y-1].setSmoke(false);
-					board[x][y-1].setFire(true);
+					g.board[x][y-1].setSmoke(false);
+					g.board[x][y-1].setFire(true);
 					test=true;
 				}
 			}

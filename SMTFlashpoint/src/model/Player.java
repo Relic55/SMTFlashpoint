@@ -20,6 +20,8 @@ public class Player extends Zone{
 	private Integer xb,yb, ap, sp, apgain, spgain; 
 	float xpos,ypos;
 	private GameEngine g;
+	private boolean noapcost=false; //keine Kosten zu Testzwecken
+	//TODO: entfernen
 	
 	
 	 public Player(GameEngine g)	 
@@ -29,7 +31,6 @@ public class Player extends Zone{
 
 	public Player(GameEngine g, SpecialistType specialist,PlayerColor playerColor )
 	{
-
 		this.g=g;
 		
 		this.playerColor=playerColor;
@@ -102,8 +103,9 @@ public class Player extends Zone{
 		}	
 
 	}
-	public void setplayer(SpecialistType specialist,PlayerColor playerColor,Integer ap,Integer sp,Integer xb ,Integer yb )
+	public void setplayer(SpecialistType specialist,PlayerColor playerColor,Integer ap,Integer xb ,Integer yb )
 	{
+		sp=0;
 		this.playerColor=playerColor;
 		int size=g.getBlock_size();
 		if(playerColor==playerColor.GREEN)
@@ -145,7 +147,6 @@ public class Player extends Zone{
 		}
 		this.specialist=specialist;
 		this.ap=ap;
-		this.sp=sp;
 		this.xb=xb;		
 		this.yb=yb;		
 		spgain=0;
@@ -193,7 +194,226 @@ public class Player extends Zone{
 	public void end_turn()
 	{
 		//Abfrage zur Bestätigung, wenn Rest AP vorhanden sind
+		sp=0;
 		
+	}
+	
+	
+	//Test, ob Aktion mit den verbliebenen Aktionspunkten moeglich ist
+	public boolean enoughPoints(Actiontype type)
+	{
+		if(this.noapcost)
+			return true;
+		//Einsatzleiter Sonderaktionen fehlen
+		if(type==Actiontype.MOVE||type==Actiontype.MOVE_WITH_HEALED_PERSON)
+		{
+			if(ap>0)
+				return true;
+			else if (this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&sp>0)
+				return true;
+		}	
+		else if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.TRANSPORT_DANGER_AND_HEALED||type==Actiontype.MOVE_CARRY_AND_HEALED)
+		{
+			if(ap>1)
+				return true;
+			else if (this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&(sp+ap)>1)
+				return true;
+		}
+		else if(type==Actiontype.EXTINQUISH_FIRE)
+		{
+			if(this.specialist==SpecialistType.RETTUNGSSANITAETER||this.specialist==SpecialistType.RETTUNGSSPEZIALIST)
+			{
+				if(ap>3)
+					return true;
+				else
+					return false;
+			}
+			
+			else if(ap>1)
+				return true;
+			else if (this.specialist==SpecialistType.LOESCHSCHAUMSPEZIALIST&&(sp+ap)>1)
+				return true;
+		}		
+		else if(type==Actiontype.EXTINQUISH_SMOKE||type==Actiontype.EXTINQUISH_STEP)
+		{
+			if(this.specialist==SpecialistType.RETTUNGSSANITAETER||this.specialist==SpecialistType.RETTUNGSSPEZIALIST)
+			{
+				if(ap>1)
+					return true;
+				else
+					return false;
+			}
+			
+			else if(ap>0)
+				return true;
+			else if (this.specialist==SpecialistType.LOESCHSCHAUMSPEZIALIST&&(sp+ap)>0)
+				return true;
+		}
+		else if(type==Actiontype.OPEN_DOOR||type==Actiontype.CLOSE_DOOR)
+		{
+			if(ap>0)
+				return true;
+		}
+		else if(type==Actiontype.DAMAGE_WALL)
+		{
+			if(ap>1)
+				return true;
+			else if(this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&ap>0)
+				return true;
+		}
+		else if(type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK)
+		{
+			if(ap>1)
+				return true;
+		}
+		else if(type==Actiontype.USE_FIRETRUCK)
+		{
+			if(ap>3)
+				return true;
+			else if(this.specialist==SpecialistType.FAHRZEUGMASCHINIST&&ap>1)
+				return true;
+		}
+		else if(type==Actiontype.HEAL_PERSON)
+		{
+			if(ap>0)
+				return true;
+		}
+		else if(type==Actiontype.IDENTIFY)
+		{
+			if(ap>0)
+				return true;
+		}
+		else if(type==Actiontype.REMOVE_DANGER)
+		{
+			if(ap>1)
+				return true;
+		}
+		else if(type==Actiontype.CONTROL_FIREFIGHTER)
+		{
+				return true;
+		}
+		else if(type==Actiontype.CANCEL)
+			return true;
+		
+		return false;
+	}
+	
+	//Aufsplitten in AP und SP Kosten
+	public void spendPoints(Actiontype type)
+	{
+		if(this.noapcost)
+			return;
+		//Einsatzleiter Sonderaktionen fehlen
+		if(type==Actiontype.MOVE||type==Actiontype.MOVE_WITH_HEALED_PERSON)
+		{
+			if (this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&sp>0)
+				this.spend_sp(1);
+			else if(ap>0)
+				this.spend_ap(1);
+			 
+		}	
+		else if(type==Actiontype.MOVE_TO_FIRE||type==Actiontype.MOVE_CARRY_PERSON||type==Actiontype.TRANSPORT_DANGER||type==Actiontype.TRANSPORT_DANGER_AND_HEALED||type==Actiontype.MOVE_CARRY_AND_HEALED)
+		{
+			if (this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&(sp+ap)>1)
+			{
+				if(sp>1)
+					this.spend_sp(2);
+				else if (sp>0)
+				{
+					this.spend_sp(1);
+					this.spend_ap(1);
+				}
+				else 
+					this.spend_ap(2);
+			}
+			else if(ap>1)
+				this.spend_ap(2);
+
+		}
+		else if(type==Actiontype.EXTINQUISH_FIRE)
+		{
+			if(this.specialist==SpecialistType.RETTUNGSSANITAETER||this.specialist==SpecialistType.RETTUNGSSPEZIALIST)
+			{
+				if(ap>3)
+					this.spend_ap(4);
+			}
+			else if (this.specialist==SpecialistType.LOESCHSCHAUMSPEZIALIST&&(sp+ap)>1)
+			{
+				if(sp>1)
+					this.spend_sp(2);
+				else if(sp>0)
+				{
+					this.spend_ap(1);
+					this.spend_sp(1);
+				}
+				else
+					this.spend_ap(2);
+				
+			}
+			else if(ap>1)
+				this.spend_ap(2);
+			
+		}		
+		else if(type==Actiontype.EXTINQUISH_SMOKE||type==Actiontype.EXTINQUISH_STEP)
+		{
+			if(this.specialist==SpecialistType.RETTUNGSSANITAETER||this.specialist==SpecialistType.RETTUNGSSPEZIALIST)
+			{
+				if(ap>1)
+					this.spend_ap(2);
+			}
+			else if (this.specialist==SpecialistType.LOESCHSCHAUMSPEZIALIST&&(sp+ap)>0)
+			{
+				if(sp>0)
+					this.spend_sp(1);
+				else
+					this.spend_ap(1);
+				
+			}
+			else if(ap>0)
+				this.spend_ap(1);
+			
+			
+		}
+		else if(type==Actiontype.OPEN_DOOR||type==Actiontype.CLOSE_DOOR)
+		{
+			if(ap>0)
+				this.spend_ap(1);
+		}
+		else if(type==Actiontype.DAMAGE_WALL)
+		{
+			if(this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&ap>0)
+				this.spend_ap(1);
+			else if(ap>1)
+				this.spend_ap(2);
+		}
+		else if(type==Actiontype.MOVE_AMBULANCE||type==Actiontype.MOVE_FIRETRUCK)
+		{
+			if(ap>1)
+				this.spend_ap(2);
+		}
+		else if(type==Actiontype.USE_FIRETRUCK)
+		{
+			if(this.specialist==SpecialistType.FAHRZEUGMASCHINIST&&ap>1)
+				this.spend_ap(2);
+			else if(ap>3)
+				this.spend_ap(4);
+		}
+		else if(type==Actiontype.HEAL_PERSON)
+		{
+			if(ap>0)
+				this.spend_ap(1);
+		}
+		else if(type==Actiontype.IDENTIFY)
+		{
+			if(ap>0)
+				this.spend_ap(1);
+		}
+		else if(type==Actiontype.REMOVE_DANGER)
+		{
+			if(ap>1)
+				this.spend_ap(2);
+		}
+
 	}
 	
 	public boolean spend_ap(Integer anz)
@@ -224,7 +444,7 @@ public class Player extends Zone{
 	{
 		SpecialistType new_specialist=SpecialistType.ALLESKOENNER;
 		//Klassenauswahl anzeigen und new_specialist zuweisen
-		this.setplayer(new_specialist,playerColor,ap-2,sp,xb ,yb );
+		this.setplayer(new_specialist,playerColor,ap-2,xb ,yb );
 		
 	}
 	
