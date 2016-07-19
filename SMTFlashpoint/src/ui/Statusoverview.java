@@ -56,7 +56,7 @@ public class Statusoverview extends Zone{
         fill(0);
         translate(x2,y1);
         rotate(PI);
-        text("Dmg: "+g.getBuildingdamage()+"/24",(float)(-size+ 0.15*size),(float)(-4*size+0.8*size));
+        text("Dmg: "+g.getBuildingdamage()+"/"+g.getMaxbuildingdamage(),(float)(-size+ 0.15*size),(float)(-4*size+0.8*size));
         text("Save: "+g.getSaved_person()+"/7", (float)(-size+ 0.15*size),(float)(-4*size+1.6*size));
         text("Dead: "+g.getDead_person()+"/4", (float)(-size+ 0.15*size),(float)(-4*size+2.4*size));
         text("Seat: "+g.getInactive_seats(), (float)(-size+ 0.15*size),(float)(-4*size+3.2*size));

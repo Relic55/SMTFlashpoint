@@ -20,7 +20,7 @@ public class Player extends Zone{
 	private Integer xb,yb, ap, sp, apgain, spgain; 
 	float xpos,ypos;
 	private GameEngine g;
-	private boolean noapcost=false; //keine Kosten zu Testzwecken
+	private boolean noapcost=true; //keine Kosten zu Testzwecken
 	//TODO: entfernen
 	
 	

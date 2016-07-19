@@ -27,6 +27,9 @@ public class Block extends Zone{
 	private boolean ambulance;
 	private String pic_path;
 	
+	private boolean firetruckplace=false;
+	private boolean ambulanceplace=false;
+	
 	private PImage fireimage;
 	private PImage smokeimage;
 	private PImage interestimage;
@@ -34,6 +37,12 @@ public class Block extends Zone{
 	private PImage seatimage;
 	private PImage closeddoorimage;
 	private PImage opendoorimage;
+	private PImage catimage;
+	private PImage healoverlayimage;
+	private PImage firetruckimage;
+	private PImage ambulanceimage;
+	
+	
 	
 	public Block(GameEngine g,String pic_path)
 	{
@@ -71,6 +80,10 @@ public class Block extends Zone{
 		seatimage=Utility.getImage(pic_path+"/Brandherd.gif");
 		closeddoorimage=Utility.getImage(pic_path+"/Marker_Tuer_geschlossen.gif");
 		opendoorimage=Utility.getImage(pic_path+"/Marker_Tuer_offen.gif");
+		catimage=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
+		healoverlayimage=Utility.getImage(pic_path+"/Marker_Person_geheilt.gif");
+		firetruckimage= Utility.getImage(pic_path+"/Feuerwehrwagen.gif");
+		ambulanceimage=Utility.getImage(pic_path+"/Krankenwagen.gif");
 	}
 	public void set_all(int xb, int yb, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{
@@ -91,6 +104,14 @@ public class Block extends Zone{
 		this.west=west;
 
 		//System.out.println(this.north+" "+this.east);
+	}
+	public void setAmbulanceplace()
+	{
+		this.ambulanceplace=true;
+	}
+	public void setFiretruckplace()
+	{
+		this.firetruckplace=true;
 	}
 
 	public Integer getDanger() {
@@ -296,6 +317,9 @@ public class Block extends Zone{
 			{
 						//TODO: Fehlalarm animieren
 				System.out.println("Fehlalarm" + xb + ":" +yb);
+				g.setFalse_alarm_marker(fam-1);
+				g.decreaseInterest_onboard();
+			
 				if(g.getCurrentPhaseState()==PhaseStates.STATE_END)
 					g.setNewInterest();	//Auf Schwierigkeitsgrad Beginner können Interestmarker auch auf Feuerwehrmännern spawnen --> bei Fehlalarm erneut setzen
 			}
@@ -487,18 +511,186 @@ public class Block extends Zone{
 			
 		}
 
-		if(interest)
+		if(this.xb==0&&ambulance&&g.board[0][yb+1].ambulance) //Krankenwagen oben
+		{
+			image(ambulanceimage,(float)(x_offset+(yb*size)+(0.4*size)),(float)(y_offset+xb*size+0.1*size) ,size*120/100,size*80/100);
+		}
+		else if(this.xb==7&&ambulance&&g.board[7][yb-1].ambulance) //Krankenwagen unten
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI);
+			image(ambulanceimage,(float)(0.4*size-size),(float)(0.1*size-size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		else if(this.yb==9&&ambulance&&g.board[xb+1][9].ambulance) //Krankenwagen rechts
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI/2);
+			image(ambulanceimage,(float)(0.4*size),(float)(0.05*size-size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		else if(this.yb==0&&ambulance&&g.board[xb-1][0].ambulance) //Krankenwagen links
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI/2*3);
+			image(ambulanceimage,(float)(0.4*size-size),(float)(0.05*size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		
+		
+		
+		if(this.xb==0&&firetruck&&g.board[0][yb+1].firetruck) //Feuerwehrwagen oben
+		{
+			image(firetruckimage,(float)(x_offset+(yb*size)+(0.4*size)),(float)(y_offset+xb*size+0.1*size) ,size*120/100,size*80/100);
+		}
+		else if(this.xb==7&&firetruck&&g.board[7][yb-1].firetruck) //Feuerwehrwagen unten
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI);
+			image(firetruckimage,(float)(0.4*size-size),(float)(0.1*size-size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		else if(this.yb==9&&firetruck&&g.board[xb+1][9].firetruck) //Feuerwehrwagen rechts
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI/2);
+			image(firetruckimage,(float)(0.4*size),(float)(0.05*size-size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		else if(this.yb==0&&firetruck&&g.board[xb-1][0].firetruck) //Feuerwehrwagen links
+		{
+			pushMatrix();
+			translate((float)(x_offset+(yb*size)),(float)(y_offset+xb*size));
+			rotate(PI/2*3);
+			image(firetruckimage,(float)(0.4*size-size),(float)(0.05*size) ,size*120/100,size*80/100);		
+			popMatrix();
+		}
+		
+		if(interest&&this.people==0&&this.healed_people==0)
 		{
 			image(interestimage,(float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
 			//fill(30,144,255);
 			//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.25*size), (size*30/100),(size*30/100) );
 					
 		}
-		if(seat)
+		if(!interest&&this.people>0&&this.healed_people==0)
+		{
+			image(catimage,(float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			if(people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(people, (float)(x_offset+(yb*size)+0.5*size), (float)(y_offset+xb*size+0.25*size));
+
+			}	
+		}
+		if(!interest&&this.people==0&&this.healed_people>0)
+		{
+			image(catimage,(float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(healoverlayimage,(float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			
+			if(healed_people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(healed_people, (float)(x_offset+(yb*size)+0.5*size), (float)(y_offset+xb*size+0.25*size));
+
+			}	
+		}
+		if(interest&&this.people>0&&this.healed_people==0)
+		{
+			image(interestimage,(float)(x_offset+(yb*size)+(0.2*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(catimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			if(people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(people, (float)(x_offset+(yb*size)+0.65*size), (float)(y_offset+xb*size+0.25*size));
+
+			}				
+		}
+		if(interest&&this.people==0&&this.healed_people>0)
+		{
+			image(interestimage,(float)(x_offset+(yb*size)+(0.2*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(catimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(healoverlayimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			if(healed_people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(healed_people, (float)(x_offset+(yb*size)+0.65*size), (float)(y_offset+xb*size+0.25*size));
+
+			}		
+		}
+		if(!interest&&this.people>0&&this.healed_people>0)
+		{
+			image(catimage,(float)(x_offset+(yb*size)+(0.2*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(catimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(healoverlayimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			if(people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(people, (float)(x_offset+(yb*size)+0.35*size), (float)(y_offset+xb*size+0.25*size));
+
+			}	
+			if(healed_people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(healed_people, (float)(x_offset+(yb*size)+0.65*size), (float)(y_offset+xb*size+0.25*size));
+
+			}
+		}
+		if(interest&&this.people>0&&this.healed_people>0)
+		{
+			image(catimage,(float)(x_offset+(yb*size)+(0.2*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(catimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			image(healoverlayimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.1*size) ,size*30/100,size*30/100);
+			if(people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(people, (float)(x_offset+(yb*size)+0.35*size), (float)(y_offset+xb*size+0.25*size));
+
+			}	
+			if(healed_people>1)
+			{
+
+				textAlign(CENTER);
+				fill(1);
+				textSize((int)(size/90.0*18));
+				text(healed_people, (float)(x_offset+(yb*size)+0.65*size), (float)(y_offset+xb*size+0.25*size));
+
+			}
+			image(interestimage,(float)(x_offset+(yb*size)+(0.2*size)),(float)(y_offset+xb*size+0.4*size) ,size*30/100,size*30/100);
+			
+			if(seat)
+				image(seatimage,(float)(x_offset+(yb*size)+(0.5*size)),(float)(y_offset+xb*size+0.4*size) ,size*30/100,size*30/100);
+			
+		}
+		else if(seat)
 		{
 			image(seatimage,(float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.4*size) ,size*30/100,size*30/100);
-			//fill(255,20,147);
-			//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*30/100),(size*30/100) );			
 		}
 		if(danger>0)
 		{
@@ -539,5 +731,21 @@ public class Block extends Zone{
 	 */
 	public int getYb() {
 		return yb;
+	}
+
+
+	/**
+	 * @return the firetruckplace
+	 */
+	public boolean isFiretruckplace() {
+		return firetruckplace;
+	}
+
+
+	/**
+	 * @return the ambulanceplace
+	 */
+	public boolean isAmbulanceplace() {
+		return ambulanceplace;
 	}
 }

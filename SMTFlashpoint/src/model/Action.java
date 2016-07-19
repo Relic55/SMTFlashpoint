@@ -142,6 +142,12 @@ public class Action extends Zone { //
 					return true;
 
 			}
+			else if(type==Actiontype.EXTINQUISH_SMOKE)
+			{
+				if(current_block.isSmoke())
+					return true;
+
+			}
 			
 			//control_firefighter
 			else if(type==Actiontype.HEAL_PERSON)

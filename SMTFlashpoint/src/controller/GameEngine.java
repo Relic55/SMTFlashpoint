@@ -46,6 +46,7 @@ import processing.data.JSONObject;
 import ui.ActionButton;
 import ui.Background;
 import ui.EndTurnButton;
+import ui.EndingScreen;
 import ui.Playerzone;
 import ui.Statusoverview;
 import ui.VisorBlock;
@@ -73,16 +74,15 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int vertical_blocks = 8;
 	private int block_size;
 	private int horizontal_blocks = 10;
-	private int x_offset;
-	private int y_offset;
+	private int x_offset;			//Verschiebung des Spielbretts in X Richtung
+	private int y_offset;			//Verschiebung des Spielbretts in X Richtung
 	
-	//private Properties prop;
 	public String pic_path="./pictures";
 	public String json_path="./jsonfiles";
-	private Integer mapnumber;
+	private Integer mapnumber;				//falls weitere Maps eingebunden werden
 	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
 
-	private Playerzone ffz0=null,ffz1=null,ffz2=null,ffz3=null,ffz4=null,ffz5=null;
+	
 	private Statusoverview stat;
 	
 	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groß.gif");
@@ -90,6 +90,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private Background background;
 	//background.draw();
 	
+	
+	//TODO: ursprüngliche Panelgrößen entfernen
 	private int panel_width;
 	private int panel_height;
 	private int board_width;
@@ -102,6 +104,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int playercount;			//Anzahl aktiver Spieler
 	private int saved_person=0;			//Anzahl geretteter Personen
 	private int dead_person=0;			//Anzahl verstorbener Personen
+	private int saved_person_to_win=7;
+	private int dead_person_to_lose=4;
 	private int buildingdamage=0;		
 	private int maxbuildingdamage=24;
 	private int person_marker=10;			//Anzahl Personen im Spiel insgesamt
@@ -111,10 +115,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int active_seats;			//aktive Brandherde
 	private int inactive_seats;			//weitere Brandherde
 	private int interest_onboard=0;		//Anzahl Einsatzmarker auf dem Spielfeld
+	private boolean hittedseat=false; 	//Brandherd getroffen bei true, neuer Brandherd muss gesetzt werden
 	private Random rand;				//Objekt fuer Zufallszahlen
 	
 	private GameDifficulty difficulty;
-	public boolean didwewin=false;
 	public boolean GameActive=true;
 	
 	
@@ -122,7 +126,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int visorFill=0;
 	//0=N, 1=O, 2=S, 3=W, 4=eigenes Feld
 	
-	
+	EndingScreen ending=null;
 	private Player active_firefighter;
 	
 	private int actionnumber=21;
@@ -189,10 +193,17 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			playerbase[i]=null;
 			etbbase[i]=null;
 		}
+		playercount=0;			//Anzahl aktiver Spieler
+		buildingdamage=0;		
+		person_marker=10;			//Anzahl Personen im Spiel insgesamt
+		false_alarm_marker=5;		//Anzahl falscher Alarme insgesamt
+		saved_danger=0;
+		interest_onboard=0;		
 		saved_person=0;
 		dead_person=0;
 		buildingdamage=0;	
 		interestleft=person_marker+false_alarm_marker;
+		ending=null;
 		//initActions();
 		init_measures();
 		init_board();
@@ -395,17 +406,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ab= new ActionButton(xposition,yposition,actionsize,actionsize,2, Actionfield[i],start,ziel);		
 			else
 				ab= new ActionButton(xposition,yposition,actionsize,actionsize,Actionfield[i].getApcost(), Actionfield[i],start,ziel);
-			/*
-			 * if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
-					ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
-			else if(i==19&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
-				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),1, Actionfield[i],start,ziel);
-			else if(i==12&&(playerbase[activePlayer].getSpecialist()==SpecialistType.FAHRZEUGMASCHINIST))
-				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),2, Actionfield[i],start,ziel);		
-			else
-				ab= new ActionButton(x+=100,y,(int)(block_size*0.9),(int)(block_size*0.9),Actionfield[i].getApcost(), Actionfield[i],start,ziel);
-			
-			 */
 			factor++;
 			
 			actionButtons.add(ab);
@@ -413,21 +413,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			AppInjector.zoneManager().add(ab);
 		}
 	}
-
-		
-//		shownActions[0]=new ActionButton(200,200,200,200, Actionfield[0],start,ziel,this);
-//		AppInjector.zoneManager().add(shownActions[0]);
-//		shownActions[0].addListener(this);
-//		//shownActions[0].removeFromParent();
-//		
-//		
-//		shownActions[1]=new ActionButton(100,100,200,200, Actionfield[20],start,ziel,this);
-//		AppInjector.zoneManager().add(shownActions[1]);
-//		shownActions[1].addListener(this);
-//		
-//		shownActions[2]=new ActionButton(300,300,200,200, Actionfield[5],start,ziel,this);
-//		AppInjector.zoneManager().add(shownActions[2]);
-//		shownActions[2].addListener(this);		
 		
 		
 	}
@@ -773,7 +758,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			{
 				unlucky=false;
 				//solange neu wuerfeln, bis ein Feld ohne InterestMarker, ohne Feuer und ohne Rauch gefunden wurde
-				while(board[randomvaluered][randomvalue].isInterest()||board[randomvaluered][randomvalue].isFire()||board[randomvaluered][randomvalue].isSmoke())
+				while(board[randomvaluered][randomvalue].isInterest()||board[randomvaluered][randomvalue].isFire()||board[randomvaluered][randomvalue].isSmoke()||board[randomvaluered][randomvalue].getHealed_people()>0||board[randomvaluered][randomvalue].getPeople()>0)
 				{
 					randomvalue = rand.nextInt(8)+1;
 					randomvaluered = rand.nextInt(6)+1;
@@ -790,7 +775,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				}
 			}while(unlucky);
 			
-			board[randomvaluered][randomvalue].scanInterest();
+			board[randomvaluered][randomvalue].setInterest(true);
 		}
 		interest_onboard++;
 		interestleft--;
@@ -828,7 +813,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		
 		
 		playerbase[0]=new Player(this);
-		playerbase[0].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.GREEN, 0, 0, 6);	
+		playerbase[0].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 0, 0, 6);	
 		AppInjector.zoneManager().add(playerbase[0]);
 		playerbase[1]=new Player(this);
 		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 4, 0);
@@ -840,7 +825,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[3].setplayer(SpecialistType.FAHRZEUGMASCHINIST, PlayerColor.YELLOW, 0, 7, 0);
 		AppInjector.zoneManager().add(playerbase[3]);
 		playerbase[4]=new Player(this);
-		playerbase[4].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.BLUE, 0, 7, 7);
+		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 7, 7);
 		AppInjector.zoneManager().add(playerbase[4]);
 		playerbase[5]=new Player(this);
 		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
@@ -882,6 +867,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		AppInjector.zoneManager().add(etbbase[5]);
 		etbbase[5].addButtonListener(this);
 		
+		
+		
 		activePlayer=0;
 		playerbase[0].start_turn();
 
@@ -899,6 +886,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	public void buttonClicked(ButtonEvent e) {
 		String command =e.getActionCommand();
 		System.out.println(command);
+		if(this.actionTouched||this.visorTouched)
+			return;
 		//TODO: Abfrage, ob wirklich beenden
 		if(command=="player0_turnend"&&activePlayer==0)
 		{			
@@ -927,6 +916,62 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		
 		
 	}
+	public void checkWinLoseConditions()
+	{
+		if(this.saved_person>=this.saved_person_to_win)
+		{
+			//Win
+			ending=new EndingScreen(0,0,AppInjector.application().displayWidth,AppInjector.application().displayHeight,1, this.pic_path);
+			AppInjector.zoneManager().add(ending);
+			currentGameState=GameStates.STATE_FINISHED;
+			removeVisorfield();
+			for(int i=0;i<6;i++)
+			{
+				AppInjector.zoneManager().remove(playerbase[i]);
+				AppInjector.zoneManager().remove(playerzonebase[i]);
+				AppInjector.zoneManager().remove( etbbase[i]);
+			}
+
+				
+
+		}
+		else if(this.dead_person>=this.dead_person_to_lose)
+		{
+			//Niederlage durch zuviele Leute gestorben
+			ending=new EndingScreen(0,0,AppInjector.application().displayWidth,AppInjector.application().displayHeight,2, this.pic_path);
+			AppInjector.zoneManager().add(ending);
+			currentGameState=GameStates.STATE_FINISHED;
+			removeVisorfield();
+			for(int i=0;i<6;i++)
+			{
+				AppInjector.zoneManager().remove(playerbase[i]);
+				AppInjector.zoneManager().remove(playerzonebase[i]);
+				AppInjector.zoneManager().remove( etbbase[i]);
+			}
+
+		}
+		else if(this.buildingdamage>=this.maxbuildingdamage)
+		{
+			//Niederlage durch eingestürtzes Gebäude
+			ending=new EndingScreen(0,0,AppInjector.application().displayWidth,AppInjector.application().displayHeight,3, this.pic_path);
+			AppInjector.zoneManager().add(ending);
+			currentGameState=GameStates.STATE_FINISHED;
+			removeVisorfield();
+			for(int i=0;i<6;i++)
+			{
+				AppInjector.zoneManager().remove(playerbase[i]);
+				AppInjector.zoneManager().remove(playerzonebase[i]);
+				AppInjector.zoneManager().remove( etbbase[i]);
+			}
+			
+			
+			           
+			                         
+               
+		}
+		//TODO: Button für Spiel neustarten
+
+	}
 	
 	public void nextPlayer()
 	{
@@ -938,6 +983,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		extendFire();
 		
 		this.currentPhaseState=PhaseStates.STATE_END;
+		checkAfterExtend();
+		checkWinLoseConditions();
+		if(currentGameState!=GameStates.STATE_FINISHED)
+		{
 		this.activePlayer++;
 		while(playerbase[activePlayer%6]==null)
 			this.activePlayer++;
@@ -946,53 +995,288 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[activePlayer].start_turn();
 		removeVisorfield();
 		fillVisorfield();
+		}
 	}
+
 	/**
 	 * 
 	 */
-	//TODO: Feuer, Explosionsauswirkungen checken
-	//TODO: andere Schwierigkeitsgrade einbinden
+	public void fireFighterUnderFire(int number)
+	{
+		//TODO: Feuerwehrmann ausserhalb neu platzieren
+		if(this.difficulty==GameDifficulty.BEGINNER)
+		{
+			int difference=100; //Maximale Distanz kann 80 sein
+			int newdifference=0;
+			int boarderx=0,boardery=0; //welcher Spot ist am naechsten
+			//Krankenwagenspots suchen
+			for(int i=1; i<this.horizontal_blocks-1;i++)
+			{
+				if(board[0][i].isAmbulanceplace()&&board[0][i+1].isAmbulanceplace()) //oben
+				{
+					newdifference= playerbase[number].getXb()+ Math.abs(playerbase[number].getYb()-i-1);
+					//System.out.println("Differenz oben: " + newdifference);
+					if(newdifference<difference)
+					{
+						difference=newdifference;
+						boarderx=0;
+						boardery=i+1;
+					}
+				}
+				else if(board[vertical_blocks-1][i].isAmbulanceplace()&&board[vertical_blocks-1][i-1].isAmbulanceplace())//unten
+				{
+					newdifference= vertical_blocks-1-playerbase[number].getXb()+ Math.abs(playerbase[number].getYb()-i+1);
+					//System.out.println("Differenz unten: " + newdifference);
+					if(newdifference<difference)
+					{
+						difference=newdifference;
+						boarderx=vertical_blocks-1;
+						boardery=i-1;
+					}
+				}
+			}
+			for(int i=1; i<this.vertical_blocks-1;i++)
+			{				
+				if(board[i][0].isAmbulanceplace()&&board[i-1][0].isAmbulanceplace())//links
+				{
+					newdifference= playerbase[number].getYb()+  Math.abs(playerbase[number].getXb()-i+1);
+					//System.out.println("Differenz links: " + newdifference);
+					if(newdifference<difference)
+					{
+						difference=newdifference;
+						boarderx=i-1;
+						boardery=0;
+					}
+				}
+				else if(board[i][horizontal_blocks-1].isAmbulanceplace()&&board[i+1][horizontal_blocks-1].isAmbulanceplace())//rechts
+				{
+					newdifference= horizontal_blocks-1-playerbase[number].getYb()+  Math.abs(playerbase[number].getXb()-i-1);
+					//System.out.println("Differenz rechts: " + newdifference);
+					if(newdifference<difference)
+					{
+						difference=newdifference;
+						boarderx=i+1;
+						boardery=horizontal_blocks-1;
+					}
+				}
+			}
+			//Feuerwehrmann neue Position zuweisen
+			playerbase[number].setXb(boarderx);
+			playerbase[number].setYb(boardery);
+		}
+		else
+		{
+			//Krankenwagen suchen
+			for(int i=1; i<this.horizontal_blocks;i++)
+			{
+				if(board[0][i].isAmbulance()&&board[0][i+1].isAmbulance()) //oben
+				{
+					playerbase[number].setXb(0);
+					playerbase[number].setYb(i+1);
+					return;
+				}
+				else if(board[vertical_blocks-1][i].isAmbulance()&&board[vertical_blocks-1][i-1].isAmbulance())//unten
+				{
+					playerbase[number].setXb(vertical_blocks-1);
+					playerbase[number].setYb(i-1);
+					return;
+				}
+			}
+			for(int i=1; i<this.vertical_blocks;i++)
+			{
+				if(board[i][0].isAmbulance()&&board[i-1][0].isAmbulance())//links
+				{
+					playerbase[number].setXb(i-1);
+					playerbase[number].setYb(0);
+					return;
+				}
+				else if(board[i][horizontal_blocks-1].isAmbulance()&&board[i+1][horizontal_blocks-1].isAmbulance())//rechts
+				{
+					playerbase[number].setXb(i+1);
+					playerbase[number].setYb(horizontal_blocks-1);
+					return;
+				}
+			}
+		}
+	}
+	//TODO: nach Feuer ausbreiten Auswirkungen auf Personen-/Interestmarker und Feuerwehrleute testen
+	public void checkAfterExtend()
+	{
+		//Testen, ob die Feuerwehrmänner im Feuer stehen
+		
+		for(int i=0;i<6;i++)
+		{
+			if(playerbase[i]!=null)
+			{
+				if(board[playerbase[i].getXb()][playerbase[i].getYb()].isFire())
+					fireFighterUnderFire(i);
+			}
+		}
+		
+		
+		for(int i=0;i<vertical_blocks;i++)
+			for(int j=0;j<horizontal_blocks;j++)
+			{
+				if(board[i][j].isFire())
+				{
+					if(board[i][j].isInterest())
+						board[i][j].scanInterest();
+					while(board[i][j].getPeople()>0)   //Leute sterben
+					{
+						board[i][j].reducePeople();
+						dead_person++;
+						person_marker--;
+						interest_onboard--;
+					}
+					while(board[i][j].getHealed_people()>0) //verarztete Leute sterben
+					{
+						board[i][j].reduceHealedPeople();
+						dead_person++;
+						interest_onboard--;
+						person_marker--;
+					}
+					
+				}
+				
+				
+				
+			}
+		
+		while (interest_onboard<3)
+		{
+			setNewInterest();
+			interestleft--;
+		}
+		
+		
+		/*
+		saved_person=0;			//Anzahl geretteter Personen
+		private int dead_person=0;
+		
+		person_marker=10;			//Anzahl Personen im Spiel insgesamt
+		private int false_alarm_marker=5;		//Anzahl falscher Alarme insgesamt
+		private int saved_danger=0;
+		private int interestleft;
+		
+		//Prüfen, ob Gebäude zusammenbricht
+		buildingdamage=0;		
+		private int maxbuildingdamage=24;
+		*/
+	}
+	
+	
 	//Feuer ausbreiten
 	public void extendFire()
 	{
-		
+		boolean seatonspot=false;		//true, wenn auf aktuellem Feld ein Brandherd ist (muss gemerkt werden, da bei Gefahrenstoffexplosion ein neuer Brandherd entstehen kann)
 		int randomvalue = rand.nextInt(8)+1;
 		int randomvaluered = rand.nextInt(6)+1;
+		System.out.println("Zielfeld: "+ randomvaluered + ": " + randomvalue );
 		if(!board[randomvaluered][randomvalue].isFire()&&!board[randomvaluered][randomvalue].isSmoke())
 		{
 			board[randomvaluered][randomvalue].setSmoke(true);
+			System.out.println("neuer Rauchmarker auf: "+ randomvaluered + ": " + randomvalue );
 		}
 		else if(board[randomvaluered][randomvalue].isSmoke())
 		{
 			board[randomvaluered][randomvalue].setSmoke(false);
 			board[randomvaluered][randomvalue].setFire(true);
+			System.out.println("neuer Feuermarker auf: "+ randomvaluered + ": " + randomvalue );
 		}
 		else if(board[randomvaluered][randomvalue].isFire())
 		{
-			explosion(randomvaluered,randomvalue);
-
-			
+			explosion(randomvaluered,randomvalue);	
+			System.out.println("Explosion auf: "+ randomvaluered + ": " + randomvalue );
 		}
-		boolean smokesearch=true,test;
-		//[vertical_blocks][horizontal_blocks]
-		while(smokesearch)
+		if(board[randomvaluered][randomvalue].isSeat())
 		{
-			smokesearch=false;
-			for(int i=0;i<vertical_blocks;i++)
-				for(int j=0;j<horizontal_blocks;j++)
-				{
-					if(board[i][j].isSmoke())
+			seatonspot=true;
+		}
+
+		
+		boolean smokesearch=true,test;
+		boolean dangersearch=true;
+		//[vertical_blocks][horizontal_blocks]
+		while(dangersearch)
+		{
+			while(smokesearch)
+			{
+				smokesearch=false;
+				for(int i=0;i<vertical_blocks;i++)
+					for(int j=0;j<horizontal_blocks;j++)
 					{
-						System.out.println("Rauch gefunden: " + i+ " :" +j);
-						test=board[i][j].checkneightbors_Fire(i,j);
-						if(test)
+						if(board[i][j].isSmoke())
 						{
-							
-							System.out.println("Rauch neben Feuer gefunden: " + i+ " :" +j);
-							smokesearch=true;
+							test=board[i][j].checkneightbors_Fire(i,j);
+							if(test)
+							{
+								smokesearch=true;
+								System.out.println("Rauch auf Feuer gedreht beim Durchsuchen auf: "+ i + ": " + j );
+							}
 						}
 					}
+			}
+			if(this.difficulty==GameDifficulty.BEGINNER)
+				dangersearch=false;
+			else
+			{
+				dangersearch=false;
+				for(int i=0;i<vertical_blocks;i++)
+					for(int j=0;j<horizontal_blocks;j++)
+					{
+						if(board[i][j].getDanger()>0&&board[i][j].isFire())   //Feuer und Gefahrstoff -> Explosion
+						{
+							dangersearch=true;
+							while(board[i][j].getDanger()>0)
+							{
+								System.out.println("Gefahrexplosion an " + i +" "+ j);
+								explosion(i,j);
+								board[i][j].reduceDanger();
+							}
+							if(this.inactive_seats>0)
+							{
+								board[i][j].setSeat(true);
+								this.inactive_seats--;
+								System.out.println("neuer Brandherd auf  " + i +" "+ j);
+								
+							}
+							
+						}
+					}
+			}
+				
+		}
+		//Feuer ausserhalb des Gebäudes entfernen
+		for(int i=0;i<vertical_blocks;i++)
+		{
+			board[i][0].setFire(false);
+			board[i][horizontal_blocks-1].setFire(false);
+		}
+			
+		for(int j=0;j<horizontal_blocks;j++)
+		{
+			board[0][j].setFire(false);
+			board[vertical_blocks-1][j].setFire(false);
+		}
+
+		if(seatonspot)
+		{
+			System.out.println("Brandherd bei "+ randomvaluered+" "+randomvalue+" erwischt" );
+			hittedseat=true;
+			this.extendFire();
+		}
+		else
+		{
+			if(hittedseat)		//wurde das aktuelle extend durch ein vorheriges Brandherd Auflodern ausgeloest?
+			{
+				hittedseat=false;
+				if(this.inactive_seats>0)
+				{
+					board[randomvaluered][randomvalue].setSeat(true);
+					inactive_seats--;
+					System.out.println("neuer Brandherd nach Auflodern auf  " + randomvaluered +" "+ randomvalue);
 				}
+			}
 		}
 	}
 
@@ -1227,6 +1511,18 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			
 		}	
 			
+		//Feuer ausserhalb des Gebäudes entfernen
+		for(int i=0;i<vertical_blocks;i++)
+		{
+			board[i][0].setFire(false);
+			board[i][horizontal_blocks-1].setFire(false);
+		}
+			
+		for(int j=0;j<horizontal_blocks;j++)
+		{
+			board[0][j].setFire(false);
+			board[vertical_blocks-1][j].setFire(false);
+		}
 		//TODO: Feuerwerhmaenner/Fahrzeuge auf Spielbrett stellen und Startspieler bestimmen
 			
 		
@@ -1499,6 +1795,32 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
     		}    		
     		
     	}
+    	JSONArray jsonambulancespots = jsonObject.getJSONArray("Ambulancespots");
+    	
+    	for (int i=0;i<jsonambulancespots.size();i++) 
+    	{    	
+    		JSONObject ambulancespot = jsonambulancespots.getJSONObject(i);
+    		x1=ambulancespot.getInt("x1");
+    		x2=ambulancespot.getInt("x2");
+    		y1=ambulancespot.getInt("y1");
+    		y2=ambulancespot.getInt("y2");
+    		board[x1][y1].setAmbulanceplace();
+    		board[x2][y2].setAmbulanceplace();
+    		//System.out.println("Ambulancespot: " + x1 +" "+ y1 + "und"+ x2 +" "+ y2);
+    	}
+    	JSONArray jsonfiretruckspots = jsonObject.getJSONArray("Firetruckspots");
+    	
+    	for (int i=0;i<jsonfiretruckspots.size();i++) 
+    	{    	
+    		JSONObject firetruckspot = jsonfiretruckspots.getJSONObject(i);
+    		x1=firetruckspot.getInt("x1");
+    		x2=firetruckspot.getInt("x2");
+    		y1=firetruckspot.getInt("y1");
+    		y2=firetruckspot.getInt("y2");
+    		board[x1][y1].setFiretruckplace();
+    		board[x2][y2].setFiretruckplace();
+    		//System.out.println("Firetruckspot: " + x1 +" "+ y1 + "und"+ x2 +" "+ y2);
+    	}
     	
     }
 	
@@ -1512,13 +1834,44 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	
 	private void init_player() {
 		
-		//alle Spielfiguren nacheinander aufs Spielbrett setzen
+		//TODO: alle Spielfiguren nacheinander aufs Spielbrett setzen
 		
+		
+		//Fahrzeuge aufs Spielbrett setzen, vorerst Dummy; später nur auf entsprechende Spots setzen ermöglichen
+		board[0][5].setAmbulance(true);	//oben
+		board[0][6].setAmbulance(true);
+		/*
+		board[3][9].setAmbulance(true); //rechts
+		board[4][9].setAmbulance(true);
+		board[7][3].setAmbulance(true); //unten
+		board[7][4].setAmbulance(true);
+		board[3][0].setAmbulance(true);	//links
+		board[4][0].setAmbulance(true);
+		*/
+		
+		board[0][7].setFiretruck(true); //oben
+		board[0][8].setFiretruck(true);
+		/*
+		board[5][9].setFiretruck(true); //rechts
+		board[6][9].setFiretruck(true);
+		board[7][1].setFiretruck(true); //unten
+		board[7][2].setFiretruck(true);
+		board[1][0].setFiretruck(true); //links
+		board[2][0].setFiretruck(true);
+		*/
 		
 	}
 
 	//Getter und Setter:
 	
+	public void increaseInterest_onboard()
+	{
+		interest_onboard++;
+	}
+	public void decreaseInterest_onboard()
+	{
+		interest_onboard--;
+	}
 	
 	public GameStates getCurrentGameState() {
 		return currentGameState;
@@ -1723,6 +2076,34 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	 */
 	public PhaseStates getCurrentPhaseState() {
 		return currentPhaseState;
+	}
+
+	/**
+	 * @return the saved_person_to_win
+	 */
+	public int getSaved_person_to_win() {
+		return saved_person_to_win;
+	}
+
+	/**
+	 * @param saved_person_to_win the saved_person_to_win to set
+	 */
+	public void setSaved_person_to_win(int saved_person_to_win) {
+		this.saved_person_to_win = saved_person_to_win;
+	}
+
+	/**
+	 * @return the dead_person_to_lose
+	 */
+	public int getDead_person_to_lose() {
+		return dead_person_to_lose;
+	}
+
+	/**
+	 * @param dead_person_to_lose the dead_person_to_lose to set
+	 */
+	public void setDead_person_to_lose(int dead_person_to_lose) {
+		this.dead_person_to_lose = dead_person_to_lose;
 	}
 
 
