@@ -98,6 +98,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int board_height;
 	
 	private int activePlayer;
+	private boolean canYouDriveWithMe[]=new boolean[6];
+	private boolean wannaDriveWithMe[]=new boolean[6];
+	
 	public Player[] playerbase=new Player[6];
 	private Playerzone[] playerzonebase=new Playerzone[6];
 	private EndTurnButton[] etbbase=new EndTurnButton[6];
@@ -122,7 +125,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	public boolean GameActive=true;
 	
 	
-	private VisorBlock[] visorfield=new VisorBlock[15];
+	private VisorBlock[] visorfield=new VisorBlock[32];		//Bei Positionswahl müssen bis zu 32 Visor angezeigt werden
 	private int visorFill=0;
 	//0=N, 1=O, 2=S, 3=W, 4=eigenes Feld
 	
@@ -138,6 +141,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 
 	private boolean visorTouched=false;
 	private boolean actionTouched=false;
+	private boolean waiting=false;
 	
 	private GameStates currentGameState;
 	private PhaseStates currentPhaseState;
@@ -192,7 +196,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			playerzonebase[i]=null;
 			playerbase[i]=null;
 			etbbase[i]=null;
+			canYouDriveWithMe[i]=false;
+			wannaDriveWithMe[i]=false;
 		}
+		
+
 		playercount=0;			//Anzahl aktiver Spieler
 		buildingdamage=0;		
 		person_marker=10;			//Anzahl Personen im Spiel insgesamt
@@ -204,6 +212,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		buildingdamage=0;	
 		interestleft=person_marker+false_alarm_marker;
 		ending=null;
+		visorTouched=false;
+		actionTouched=false;
+		waiting=false;
 		//initActions();
 		init_measures();
 		init_board();
@@ -464,8 +475,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ziel.increasePeople();
 				if(ziel.isInterest())
 					ziel.scanInterest();
-				//TODO: Abfrage, ob gerettet
-				//ap kosten: 
+				//Test, ob Personen gerettet wurde
+				if(!ziel.isInside_Block())
+				{
+					this.checkSavedPeople(ziel);
+				}
+				
 			}
 			else if(what.getType()==Actiontype.MOVE_WITH_HEALED_PERSON)
 			{
@@ -476,8 +491,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
 					ziel.scanInterest();
-				// Abfrage, ob gerettet
-				//ap kosten: 
+				if(!ziel.isInside_Block())
+				{
+					this.checkSavedPeople(ziel);
+				}
+				 
 			}	
 			else if(what.getType()==Actiontype.MOVE_CARRY_AND_HEALED)
 			{
@@ -490,8 +508,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
 					ziel.scanInterest();
-				// Abfrage, ob gerettet
-				//ap kosten: 
+				if(!ziel.isInside_Block())
+				{
+					this.checkSavedPeople(ziel);
+				}
 			}
 			else if(what.getType()==Actiontype.TRANSPORT_DANGER)
 			{
@@ -502,8 +522,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ziel.increaseDanger();
 				if(ziel.isInterest())
 					ziel.scanInterest();
-				// Abfrage, ob gerettet
-				//ap kosten: 
+				if(!ziel.isInside_Block())
+				{
+					this.checkSavedPeople(ziel);
+				}
 			}
 			else if(what.getType()==Actiontype.TRANSPORT_DANGER_AND_HEALED)
 			{
@@ -516,8 +538,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
 					ziel.scanInterest();
-				// Abfrage, ob gerettet
-				//ap kosten: 
+				if(!ziel.isInside_Block())
+				{
+					this.checkSavedPeople(ziel);
+				}
 			}
 			else if(what.getType()==Actiontype.EXTINQUISH_FIRE)
 			{
@@ -560,6 +584,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				//ap kosten: 
 			}
 			//TODO: Einsatzleiter
+
+			//TODO: Wagenaktionen, inkl checkSavedPeople(Block ziel) bei Ambulance Move
 			//Wallaktionen
 			else if(what.getType()==Actiontype.OPEN_DOOR||what.getType()==Actiontype.CLOSE_DOOR||what.getType()==Actiontype.DAMAGE_WALL)
 			{
@@ -603,26 +629,317 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			}
 			playerbase[this.activePlayer].spendPoints(what.getType());
 		}
-		this.visorTouched=false;
-		this.actionTouched=false;
+		if(what.getType()!=Actiontype.MOVE_AMBULANCE&&what.getType()!=Actiontype.MOVE_FIRETRUCK)
+		{
+			this.visorTouched=false;
+			this.actionTouched=false;
+			removeVisorfield();
+			fillVisorfield();
+		}
+		
+		
+		if(what.getType()==Actiontype.MOVE_AMBULANCE)
+		{
+			this.visorTouched=false;
+			this.actionTouched=false;
+			removeVisorfield();
+			fillVisorfieldplace(what.getType(), start);
+			//TODO: Abfrage, ob jmd mitfahren will
+			
+			System.out.println("Krankenwagen bewegen");
+		}
+		else if(what.getType()==Actiontype.MOVE_FIRETRUCK)
+		{
+			this.visorTouched=false;
+			this.actionTouched=false;
+			removeVisorfield();
+			fillVisorfieldplace(what.getType(), start);
+			//TODO: Abfrage, ob jmd mitfahren will
+			System.out.println("Feuerwehrwagen bewegen");
+		}
+		
+		
+		
+		
+		
+		
+		
+
+	}
+	
+	public void canYouRide(int car, Block start, Block ziel) //4= Ambulanz, 5=Feuerwehr
+	{
+		boolean forward=true;
+		int xb,yb;
+		for(int i=0;i<6;i++)
+		{
+			//kann jemand mitfahren
+			if(playerbase[i]!=null)
+			{
+				xb=playerbase[i].getXb();
+				yb=playerbase[i].getYb();
+				if(car==4&&board[xb][yb].isAmbulance())
+				{
+					canYouDriveWithMe[i]=true;	
+					forward=false;  //kann nicht direkt weitergehen, erst muss abgefragt werden
+				}
+				if(car==5&&board[xb][yb].isFiretruck())
+				{
+					canYouDriveWithMe[i]=true;	
+					forward=false;  //kann nicht direkt weitergehen, erst muss abgefragt werden
+				}
+			}
+		}
+		
+		if(forward)
+			placesomething(car, start, ziel);
+		else
+		{
+			waiting=true;
+			//Spieler suchen, der mitfahren kann, und diesen einen Button anbieten
+			if(canYouDriveWithMe[0]=true)
+			{
+				//button anlegen, der canYouDriveWithMe feld übergeben bekommt und danach alle abfragt
+			}
+		}
+		
+		canYouDriveWithMe[0]=true;
+		
+		
+		wannaDriveWithMe[0]=true;
+		
+		
+		
+		
+	}
+	
+	
+//	public void wannaRide(int car, Block start, Block ziel)  //Nach Fahrt abfragen, ob die Leute mitwollen
+//	{
+//		for(int i=0;i<6;i++)
+//		{
+//			mitnahme[i]=false;fdsf
+//		}
+//	}
+//	
+	
+	/**
+	 * 
+	 */
+	public void placesomething(int type, Block start, Block ziel)
+	{
+		waiting=false;
+		removeVisorfield();
+		if(type==4) //Krankenwagen umsetzen
+		{
+			//alte Position entfernen:
+			for(int i=1;i<this.vertical_blocks-1;i++)
+			{
+				board[i][0].setAmbulance(false);
+				board[i][this.horizontal_blocks-1].setAmbulance(false);
+			}
+			for(int i=1;i<this.horizontal_blocks-1;i++)
+			{
+				board[0][i].setAmbulance(false);
+				board[this.vertical_blocks-1][i].setAmbulance(false);
+			}
+			//neue Position setzen
+			ziel.setAmbulance(true);
+			//passendes Nachbarfeld finden
+			int x=ziel.getXb();
+			int y=ziel.getYb();
+			int newx=0,newy=0; //Zielkoordinaten, zum abprüfen ob dort Menschen sind und zum Mitnehmen der Feuerwehrleute
+			if(x==0)
+			{
+				board[0][y+1].setAmbulance(true);
+				newx=0;
+				newy=y+1;
+			}
+			else if(x==this.vertical_blocks-1)
+			{
+				board[this.vertical_blocks-1][y-1].setAmbulance(true);
+				newx=this.vertical_blocks-1;
+				newy=y-1;
+			}
+			else if(y==0)
+			{
+				board[x-1][0].setAmbulance(true);
+				newx=x-1;
+				newy=0;
+			}
+			else if(y==this.horizontal_blocks-1)
+			{
+				board[x+1][this.horizontal_blocks-1].setAmbulance(true);
+				newx=x+1;
+				newy=this.horizontal_blocks-1;
+			}
+			checkSavedPeople(ziel);
+			checkSavedPeople(board[newx][newy]);
+			
+		}
+		if(type==5) //Feuerwehrwagen umsetzen
+		{
+			//alte Position entfernen:
+			for(int i=1;i<this.vertical_blocks-1;i++)
+			{
+				board[i][0].setFiretruck(false);
+				board[i][this.horizontal_blocks-1].setFiretruck(false);
+			}
+			for(int i=1;i<this.horizontal_blocks-1;i++)
+			{
+				board[0][i].setFiretruck(false);
+				board[this.vertical_blocks-1][i].setFiretruck(false);
+			}
+			//neue Position setzen
+			ziel.setFiretruck(true);
+			//passendes Nachbarfeld finden
+			int x=ziel.getXb();
+			int y=ziel.getYb();
+			int newx=0,newy=0; //Zielkoordinaten, zum mitnehmen der Feuerwehrleute
+			if(x==0)
+			{
+				board[0][y+1].setFiretruck(true);
+				newx=0;
+				newy=y+1;
+
+			}
+			else if(x==this.vertical_blocks-1)
+			{
+				board[this.vertical_blocks-1][y-1].setFiretruck(true);
+				newx=this.vertical_blocks-1;
+				newy=y-1;
+
+			}
+			else if(y==0)
+			{
+				board[x-1][0].setFiretruck(true);
+				newx=x-1;
+				newy=0;
+
+			}
+			else if(y==this.horizontal_blocks-1)
+			{
+				board[x+1][this.horizontal_blocks-1].setFiretruck(true);
+				newx=x+1;
+				newy=this.horizontal_blocks-1;
+
+			}
+			//Leute umsetzen
+			
+			
+		}
+		
+		
+		
 		removeVisorfield();
 		fillVisorfield();
 	}
 	
 	
-	
-	/**
-	 * 
-	 */
-	private void removeVisorfield()
+	public void removeVisorfield()
 	{
 		for(int i=0;i<visorFill;i++)
 			AppInjector.zoneManager().remove(visorfield[i]);
 		visorFill=0;
 	}
 	
+	private void fillVisorfieldplace(Actiontype type, Block block)
+	{
+		if(type==Actiontype.MOVE_AMBULANCE) //Krankenwagen bewegen --> 2 neue Zielfelder (kann nur auf benachbarte AmbulanzFelder gezogen werden)
+		{
+			int x=block.getXb();
+			int y=block.getYb();
+			int longside=(int)(this.block_size*0.7);
+			float factor1=(float)0.15;
+			if(x==0||x==this.vertical_blocks-1) //Krankenwagen steht oben/unten --> links und rechts suchen
+			{
+				for(int i=1;i<this.vertical_blocks-1;i++)
+				{
+					//links
+					if(board[i-1][0].isAmbulanceplace()&&board[i][0].isAmbulanceplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,4,block,board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					//rechts
+					if(board[i+1][this.horizontal_blocks-1].isAmbulanceplace()&&board[i][this.horizontal_blocks-1].isAmbulanceplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,4,block,board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+				}
+			}
+			else if(y==0||y==this.horizontal_blocks-1) //Krankenwagen steht links/rechts --> oben und unten suchen
+			{
+				for(int i=1;i<this.horizontal_blocks-1;i++)
+				{
+					if(board[0][i].isAmbulanceplace()&&board[0][i+1].isAmbulanceplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,4,block,board[0][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					if(board[this.vertical_blocks-1][i].isAmbulanceplace()&&board[this.vertical_blocks-1][i-1].isAmbulanceplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,4,block,board[this.vertical_blocks-1][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+				}
+			}
+		}
+		
+		if(type==Actiontype.MOVE_FIRETRUCK) //Feuerwehrwagen bewegen --> 2 neue Zielfelder (kann nur auf benachbarte FeuerwehrFelder gezogen werden)
+		{
+			int x=block.getXb();
+			int y=block.getYb();
+			int longside=(int)(this.block_size*0.7);
+			float factor1=(float)0.15;
+			if(x==0||x==this.vertical_blocks-1) //Feuerwehrwagen steht oben/unten --> links und rechts suchen
+			{
+				for(int i=1;i<this.vertical_blocks-1;i++)
+				{
+					//links
+					if(board[i-1][0].isFiretruckplace()&&board[i][0].isFiretruckplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,5,block,board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					//rechts
+					if(board[i+1][this.horizontal_blocks-1].isFiretruckplace()&&board[i][this.horizontal_blocks-1].isFiretruckplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,5,block,board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+				}
+			}
+			else if(y==0||y==this.horizontal_blocks-1) //Feuerwehrwagen steht links/rechts --> oben und unten suchen
+			{
+				for(int i=1;i<this.horizontal_blocks-1;i++)
+				{
+					if(board[0][i].isFiretruckplace()&&board[0][i+1].isFiretruckplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,5,block,board[0][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					if(board[this.vertical_blocks-1][i].isFiretruckplace()&&board[this.vertical_blocks-1][i-1].isFiretruckplace())
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,5,block,board[this.vertical_blocks-1][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+				}
+			}
+		}
+	}
 	
-	private void fillVisorfield() {
+	
+	public void fillVisorfield() {
 
 		if(playerbase[this.activePlayer].getAp()>0||playerbase[this.activePlayer].getSp()>0)
 		{
@@ -706,7 +1023,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			
 			
 			//eigenes Feld anwaehlbar
-			if(board[x][y].isFire()||board[x][y].isSmoke()||(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER&&board[x][y].getPeople()>0)||(playerbase[activePlayer].getSpecialist()==SpecialistType.GEFAHRSTOFFSPEZIALIST&&board[x][y].getDanger()>0)||(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA&&board[x][y].isInterest()))			
+			if(board[x][y].isFiretruck()||board[x][y].isFire()||board[x][y].isSmoke()||(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER&&board[x][y].getPeople()>0)||(playerbase[activePlayer].getSpecialist()==SpecialistType.GEFAHRSTOFFSPEZIALIST&&board[x][y].getDanger()>0))			
 			{
 				//Einsatzleiter fehlt
 				
@@ -715,6 +1032,53 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorFill++;
 				
 			}
+			
+			//Specialist mit Wärmekamera global suchen
+			if(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+			{
+				for(int i=1; i<this.vertical_blocks-1;i++)
+					for(int j=1; j<this.horizontal_blocks-1;j++)
+					{
+						if(board[i][j].isInterest())
+						{
+							visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][j],board[i][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+							AppInjector.zoneManager().add(visorfield[visorFill]);
+							visorFill++;
+						}
+					}	
+			}
+			
+			//Krankenwagen suchen
+			for(int i=0; i<this.vertical_blocks;i++) 
+			{
+				if(board[i][0].isAmbulance()) //links
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				if(board[i][this.horizontal_blocks-1].isAmbulance()) //rechts
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}
+			for(int j=0; j<this.horizontal_blocks;j++)
+			{
+				if(board[0][j].isAmbulance()) //oben
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[0][j],board[0][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				if(board[this.vertical_blocks-1][j].isAmbulance()) //unten
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[this.vertical_blocks-1][j],board[this.vertical_blocks-1][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}	
 		//TODO: weitere Aktionsmöglichkeiten abpruefen (aktuelles Feld, Einsatzleiter, Waermebildkamera)
 		
 		
@@ -743,6 +1107,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			{
 				if(playerbase[i]!=null&&(playerbase[i].getXb()==randomvaluered&&playerbase[i].getYb()==randomvalue))
 				{
+					System.out.println(playerbase[i].getPlayerColor()+ " steht auf neuem Interest");
 					lucky=true;
 				}
 			}
@@ -800,7 +1165,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
 		playercount=6;
-		difficulty= GameDifficulty.HERO;
+		difficulty= GameDifficulty.RECRUT;
 		/*   bis auf Spiel starten gedrueckt wird
 		while(currentGameState==GameStates.STATE_START)
 		{
@@ -816,20 +1181,21 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[0].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 0, 0, 6);	
 		AppInjector.zoneManager().add(playerbase[0]);
 		playerbase[1]=new Player(this);
-		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 4, 0);
+		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 3, 0);
 		AppInjector.zoneManager().add(playerbase[1]);
 		playerbase[2]=new Player(this);
-		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 0, 3);
+		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 3, 0);
 		AppInjector.zoneManager().add(playerbase[2]);
 		playerbase[3]=new Player(this);
-		playerbase[3].setplayer(SpecialistType.FAHRZEUGMASCHINIST, PlayerColor.YELLOW, 0, 7, 0);
+		playerbase[3].setplayer(SpecialistType.ALLESKOENNER, PlayerColor.YELLOW, 0, 7, 3);
 		AppInjector.zoneManager().add(playerbase[3]);
 		playerbase[4]=new Player(this);
-		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 7, 7);
+		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 4, 9);
 		AppInjector.zoneManager().add(playerbase[4]);
-		playerbase[5]=new Player(this);
-		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
-		AppInjector.zoneManager().add(playerbase[5]);
+		
+//		playerbase[5]=new Player(this);
+//		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
+//		AppInjector.zoneManager().add(playerbase[5]);
 		
 		//Playerzones
 		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
@@ -844,8 +1210,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		AppInjector.zoneManager().add(playerzonebase[3]);
 		playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[4]);
-		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[5]);
+		
+//		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+//		AppInjector.zoneManager().add(playerzonebase[5]);
 		
 		
 		etbbase[0]=new EndTurnButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
@@ -863,10 +1230,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
 		AppInjector.zoneManager().add(etbbase[4]);	
 		etbbase[4].addButtonListener(this);
-		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[5]);
-		etbbase[5].addButtonListener(this);
-		
+//		
+//		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
+//		AppInjector.zoneManager().add(etbbase[5]);
+//		etbbase[5].addButtonListener(this);
+//		
 		
 		
 		activePlayer=0;
@@ -889,27 +1257,27 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		if(this.actionTouched||this.visorTouched)
 			return;
 		//TODO: Abfrage, ob wirklich beenden
-		if(command=="player0_turnend"&&activePlayer==0)
+		if(command=="player0_turnend"&&activePlayer==0&&!waiting)
 		{			
 			nextPlayer();		
 		}
-		else if(command=="player1_turnend"&&activePlayer==1)
+		else if(command=="player1_turnend"&&activePlayer==1&&!waiting)
 		{
 			nextPlayer();		
 		}
-		else if(command=="player2_turnend"&&activePlayer==2)
+		else if(command=="player2_turnend"&&activePlayer==2&&!waiting)
 		{			
 			nextPlayer();		
 		}
-		else if(command=="player3_turnend"&&activePlayer==3)
+		else if(command=="player3_turnend"&&activePlayer==3&&!waiting)
 		{
 			nextPlayer();		
 		}
-		else if(command=="player4_turnend"&&activePlayer==4)
+		else if(command=="player4_turnend"&&activePlayer==4&&!waiting)
 		{			
 			nextPlayer();		
 		}
-		else if(command=="player5_turnend"&&activePlayer==5)
+		else if(command=="player5_turnend"&&activePlayer==5&&!waiting)
 		{
 			nextPlayer();		
 		}
@@ -979,7 +1347,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 
 		this.currentPhaseState=PhaseStates.STATE_FIRE;
 
-
+		
 		extendFire();
 		
 		this.currentPhaseState=PhaseStates.STATE_END;
@@ -998,9 +1366,59 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		}
 	}
 
-	/**
-	 * 
-	 */
+	public void checkSavedPeople(Block ziel)
+	{
+		//Personen und Gefahrenstoffe abprüfen, ob gerettet
+		
+		if(this.difficulty==GameDifficulty.BEGINNER) //Keine Gefahrenstoffe, alle Personen ausserhalb des Gebäudes sind gerettet
+		{
+			if(!ziel.isInside_Block())
+			{
+				while(ziel.getHealed_people()>0)
+				{
+					this.saved_person++;
+					this.interest_onboard--;
+					ziel.reduceHealedPeople();
+					person_marker--;
+				}				
+				while(ziel.getPeople()>0)
+				{
+					this.saved_person++;
+					this.interest_onboard--;
+					ziel.reducePeople();
+					person_marker--;
+				}
+			}
+		}
+		else
+		{
+			//Gefahrenstoffe ausserhalb des Gebäudes sind sicher
+			while(ziel.getDanger()>0)
+			{
+				this.saved_danger++;
+				ziel.reduceDanger();
+			}
+			//Personen müssen zum Krankenwagen getragen werden
+			if(ziel.isAmbulance())
+			{
+				while(ziel.getHealed_people()>0)
+				{
+					this.saved_person++;
+					this.interest_onboard--;
+					ziel.reduceHealedPeople();
+					person_marker--;
+				}				
+				while(ziel.getPeople()>0)
+				{
+					this.saved_person++;
+					this.interest_onboard--;
+					ziel.reducePeople();
+					person_marker--;
+				}
+			}
+
+		}
+	}
 	public void fireFighterUnderFire(int number)
 	{
 		//TODO: Feuerwehrmann ausserhalb neu platzieren
@@ -1325,6 +1743,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			board[2][4].setInterest(true);
 			board[5][1].setInterest(true);
 			board[5][8].setInterest(true);
+			interest_onboard=3;
 			
 			
 		}
@@ -1838,16 +2257,18 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		
 		
 		//Fahrzeuge aufs Spielbrett setzen, vorerst Dummy; später nur auf entsprechende Spots setzen ermöglichen
+		/*
 		board[0][5].setAmbulance(true);	//oben
 		board[0][6].setAmbulance(true);
-		/*
+		
 		board[3][9].setAmbulance(true); //rechts
 		board[4][9].setAmbulance(true);
 		board[7][3].setAmbulance(true); //unten
 		board[7][4].setAmbulance(true);
+		*/
 		board[3][0].setAmbulance(true);	//links
 		board[4][0].setAmbulance(true);
-		*/
+		
 		
 		board[0][7].setFiretruck(true); //oben
 		board[0][8].setFiretruck(true);

@@ -307,7 +307,7 @@ public class Block extends Zone{
 		{
 			this.people++;
 			
-			g.setNewInterest();
+			//g.setNewInterest();
 		}
 		else
 		{
@@ -319,9 +319,6 @@ public class Block extends Zone{
 				System.out.println("Fehlalarm" + xb + ":" +yb);
 				g.setFalse_alarm_marker(fam-1);
 				g.decreaseInterest_onboard();
-			
-				if(g.getCurrentPhaseState()==PhaseStates.STATE_END)
-					g.setNewInterest();	//Auf Schwierigkeitsgrad Beginner können Interestmarker auch auf Feuerwehrmännern spawnen --> bei Fehlalarm erneut setzen
 			}
 			else
 			{

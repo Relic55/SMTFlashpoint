@@ -26,9 +26,9 @@ public enum Actiontype {
 	IDENTIFY("./pictures/AktionScannen.png"),					//Waermebildkamera
 	CONTROL_FIREFIGHTER("./pictures/AktionKommandieren.png"), //Einsatzleiter
 	//Fahrzeuge
-	MOVE_AMBULANCE("./pictures/AktionNichts.png"), 
-	MOVE_FIRETRUCK("./pictures/AktionNichts.png"), 
-	USE_FIRETRUCK("./pictures/AktionNichts.png"), 	 
+	MOVE_AMBULANCE("./pictures/AktionFahren.png"), 
+	MOVE_FIRETRUCK("./pictures/AktionFahren.png"), 
+	USE_FIRETRUCK("./pictures/AktionWasserwerfer.png"), 	 
 	//Walloperationen
 	OPEN_DOOR("./pictures/AktionTuerWechseln.png"), 
 	CLOSE_DOOR("./pictures/AktionTuerWechseln.png"),

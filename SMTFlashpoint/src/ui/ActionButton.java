@@ -54,8 +54,6 @@ public class ActionButton extends Zone{
 		if(AppInjector.engine().isVisorTouched())
 		{
 			image(buttonImage,0,0,width,height);
-			//Kosten anpassen für Spezialklassen
-			//AppInjector.engine().getPlayerbase()[ AppInjector.engine().getActivePlayer()].getSpecialist()==SpecialistType.LOESCHSCHAUMSPEZIALIST
 			textAlign(CENTER);
 			textSize(tsize);
 			fill(255);

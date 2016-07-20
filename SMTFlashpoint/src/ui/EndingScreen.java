@@ -21,6 +21,10 @@ public class EndingScreen extends Zone {
 		super(x,y,1600,900);
 		System.out.println("Breite: " + width + " Hoehe: "+ height);
 		//super(x,y,width,height);
+		this.x=x;
+		this.y=y;
+		this.width=width;
+		this.height=height;
 		if(ending==1)
 		{
 			screenimage=Utility.getImage(pic_path+"/Gewonnen.gif");
@@ -41,21 +45,21 @@ public class EndingScreen extends Zone {
 	@Override
 	public void draw()
 	{
-//		image(screenimage,x,y,width,height);
-		image(screenimage,x,y,1600,900);
+		image(screenimage,x,y,width,height);
+//		image(screenimage,x,y,1600,900);
 		//textAlign(CENTER);
-		textSize(900/12);
+//		textSize(900/12);
 		
-		//textSize(height/12);
+		textSize(height/12);
 		fill(0,255,255);
 		//textStroke (0,0,0);
-		//text(screentext,width/10,height/10);
-		text(screentext,1600/10,900/5);
+		text(screentext,width/10,height/3);
+//		text(screentext,1600/10,900/5);
 	}
 	@Override
 	public void touch()
 	{
-		System.out.print("touched");
+		
 	}
 	
 
