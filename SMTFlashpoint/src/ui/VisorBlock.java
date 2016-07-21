@@ -47,12 +47,13 @@ public class VisorBlock extends Zone{
 		x_offset=g.getX_offset();
 		y_offset=g.getY_offset();
 		this.type=type; //1= Block, 2=horizontaler Wall, 3=vertikaler Wall
+		
 	}
 	
 	@Override
 	public void draw()
 	{	
-		if(!g.isVisorTouched())
+		if(!g.isVisorTouched()&&g.isVisorshown())
 			image(visorimage, (float)0,(float)0,(float)(this.width),(float)(this.height));
 
 		

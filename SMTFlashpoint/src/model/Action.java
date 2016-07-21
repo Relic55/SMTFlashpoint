@@ -119,7 +119,12 @@ public class Action extends Zone { //
 				}			
 				if(next_block.isSmoke())
 					return true;
-			}			
+			}	
+			else if(type==Actiontype.MOVE_AMBULANCE)
+			{
+				if(next_block.isAmbulance())
+					return true;
+			}
 		}
 		
 		

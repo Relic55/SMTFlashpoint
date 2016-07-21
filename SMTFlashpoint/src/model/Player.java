@@ -442,9 +442,15 @@ public class Player extends Zone{
 	
 	public void switch_Specialist()
 	{
-		SpecialistType new_specialist=SpecialistType.ALLESKOENNER;
+		SpecialistType new_specialist=SpecialistType.DUMMY;
 		//Klassenauswahl anzeigen und new_specialist zuweisen
-		this.setplayer(new_specialist,playerColor,ap-2,xb ,yb );
+		//Position in GameEngine festlegen--> Feuerwehrwagen suchen
+		int lastap=ap;
+		this.setplayer(new_specialist,playerColor,ap,xb ,yb );
+		this.start_turn();  //SP bekommen
+		ap=lastap-2;
+		
+		
 		
 	}
 	

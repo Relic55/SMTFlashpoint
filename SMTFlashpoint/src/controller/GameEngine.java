@@ -44,7 +44,9 @@ import processing.core.PVector;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 import ui.ActionButton;
+import ui.ActiveMarker;
 import ui.Background;
+import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
 import ui.Playerzone;
@@ -98,12 +100,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private int board_height;
 	
 	private int activePlayer;
-	private boolean canYouDriveWithMe[]=new boolean[6];
-	private boolean wannaDriveWithMe[]=new boolean[6];
+
 	
-	public Player[] playerbase=new Player[6];
-	private Playerzone[] playerzonebase=new Playerzone[6];
-	private EndTurnButton[] etbbase=new EndTurnButton[6];
+	public Player[] playerbase=new Player[6];								//Feld der Spieler
+	private Playerzone[] playerzonebase=new Playerzone[6];					//Feld der Spielerzonen
+	private EndTurnButton[] etbbase=new EndTurnButton[6];					//Feld für die jeweiligen Runde Beenden Buttons
+	private ActiveMarker[] activemarkerfield=new ActiveMarker[6];			//Feld für die Anzeige, wer grade aktiv ist, gleichzeitig Schalter für Visor
 	private int playercount;			//Anzahl aktiver Spieler
 	private int saved_person=0;			//Anzahl geretteter Personen
 	private int dead_person=0;			//Anzahl verstorbener Personen
@@ -140,8 +142,15 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	ArrayList<ActionButton> actionButtons = new ArrayList<ActionButton>();
 
 	private boolean visorTouched=false;
+	private boolean visorshown=true;
 	private boolean actionTouched=false;
 	private boolean waiting=false;
+	private int buttoncount=0;
+	private Block cargoal=null;
+	private int carride=4;
+	private DriveButton[] driveButtonField=new DriveButton[2];
+	private boolean canYouDriveWithMe[]=new boolean[6];
+	private boolean wannaDriveWithMe[]=new boolean[6];
 	
 	private GameStates currentGameState;
 	private PhaseStates currentPhaseState;
@@ -192,10 +201,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		currentGameState=GameStates.STATE_START;
 		currentPhaseState=PhaseStates.STATE_PLAYER;
 		for(int i=0;i<6;i++)
-		{
-			playerzonebase[i]=null;
+		{		
 			playerbase[i]=null;
+			playerzonebase[i]=null;
 			etbbase[i]=null;
+			activemarkerfield[i]=null;
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
 		}
@@ -215,6 +225,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		visorTouched=false;
 		actionTouched=false;
 		waiting=false;
+		buttoncount=0;
+		cargoal=null;
+		carride=4;
+		driveButtonField[0]=null;
+		driveButtonField[1]=null;
 		//initActions();
 		init_measures();
 		init_board();
@@ -670,6 +685,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	public void canYouRide(int car, Block start, Block ziel) //4= Ambulanz, 5=Feuerwehr
 	{
 		boolean forward=true;
+		carride=car;
 		int xb,yb;
 		for(int i=0;i<6;i++)
 		{
@@ -685,43 +701,217 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				}
 				if(car==5&&board[xb][yb].isFiretruck())
 				{
-					canYouDriveWithMe[i]=true;	
-					forward=false;  //kann nicht direkt weitergehen, erst muss abgefragt werden
+					if(i!=activePlayer)//aktueller Spieler muss mitfahren
+					{
+						canYouDriveWithMe[i]=true;	
+						forward=false;  //kann nicht direkt weitergehen, erst muss abgefragt werden
+					}
+					else
+						wannaDriveWithMe[i]=true;
 				}
 			}
 		}
-		
+		buttoncount=0;
 		if(forward)
 			placesomething(car, start, ziel);
 		else
 		{
+			
+			cargoal=ziel;
 			waiting=true;
-			//Spieler suchen, der mitfahren kann, und diesen einen Button anbieten
-			if(canYouDriveWithMe[0]=true)
+			int startindex=-1; //ersten Button merken
+			//Anzahl der Abfragen in buttoncount festhalten
+			for(int i=0;i<6;i++)
 			{
-				//button anlegen, der canYouDriveWithMe feld übergeben bekommt und danach alle abfragt
+				if(playerbase[i]!=null&&canYouDriveWithMe[i]==true)
+				{
+					buttoncount++;
+					if(startindex==-1)
+						startindex=i;
+				}
 			}
+			nextRideButton(startindex);
+		}		
+		//canYouDriveWithMe[0]=true;		
+//		wannaDriveWithMe[0]=true;		
+	}
+
+	
+	public void nextRideButton(int i)
+	{
+		//2 neue Buttons anlegen zur Abfrage, ob der Spieler mitfahren will
+		if(driveButtonField[0]!=null&&driveButtonField[1]!=null)
+		{
+		AppInjector.zoneManager().remove(driveButtonField[0]);
+		AppInjector.zoneManager().remove(driveButtonField[1]);
+		}
+		String ride="mitfahren";
+		String noride=" nicht\nmitfahren";
+		if(i==0)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset-2.5*this.block_size),(int)(y_offset+5.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset-0.5*this.block_size),(int)(y_offset+5.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+		else if(i==1)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset-0.5*block_size),(int)(y_offset+2.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset-0.5*block_size),(int)(y_offset+4.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+		else if(i==2)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset+0.5*this.block_size),(int)(y_offset+2.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset-1.5*this.block_size),(int)(y_offset+2.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+		else if(i==3)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset+12.5*this.block_size),(int)(y_offset+2.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset+10.5*this.block_size),(int)(y_offset+2.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+		else if(i==4)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset+10.5*block_size),(int)(y_offset+5.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset+10.5*block_size),(int)(y_offset+3.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+		else if(i==5)
+		{
+		driveButtonField[0]=new DriveButton((int)(x_offset+9.5*this.block_size),(int)(y_offset+5.5*block_size),block_size, block_size/2,ride,i , playerbase[i].getPlayerColor(),this);
+		driveButtonField[1]=new DriveButton((int)(x_offset+11.5*this.block_size),(int)(y_offset+5.5*block_size),block_size, block_size/2,noride,i , playerbase[i].getPlayerColor(),this);					
+		AppInjector.zoneManager().add(driveButtonField[0]);
+		driveButtonField[0].addButtonListener(this);
+		AppInjector.zoneManager().add(driveButtonField[1]);
+		driveButtonField[1].addButtonListener(this);
+		}
+	}
+	
+	public void nextPress(String command)
+	{
+		//wird ausgelöst, wenn jmd auf Mitfahren/Nicht mitfahren drückt
+		AppInjector.zoneManager().remove(driveButtonField[0]);
+		AppInjector.zoneManager().remove(driveButtonField[1]);
+		int number=0;
+		//commands abprüfen und entsprechend das Feldelement auf true oder false setzen, number auf die Spielernummer setzen
+		if(command=="player0_ride")
+		{
+			wannaDriveWithMe[0]=true;
+			number=0;
+		}
+		else if(command=="player0_noride")
+		{
+			wannaDriveWithMe[0]=false;
+			number=0;
+		}
+		else if(command=="player1_ride")
+		{
+			wannaDriveWithMe[1]=true;
+			number=1;
+		}
+		else if(command=="player1_noride")
+		{
+			wannaDriveWithMe[1]=false;
+			number=1;
+		}
+		else if(command=="player2_ride")
+		{
+			wannaDriveWithMe[2]=true;
+			number=2;
+		}
+		else if(command=="player2_noride")
+		{
+			wannaDriveWithMe[2]=false;
+			number=2;
+		}
+		else if(command=="player3_ride")
+		{
+			wannaDriveWithMe[3]=true;
+			number=3;
+		}
+		else if(command=="player3_noride")
+		{
+			wannaDriveWithMe[3]=false;
+			number=3;
+		}
+		else if(command=="player4_ride")
+		{
+			wannaDriveWithMe[4]=true;
+			number=4;
+		}
+		else if(command=="player4_noride")
+		{
+			wannaDriveWithMe[4]=false;
+			number=4;
+		}
+		else if(command=="player5_ride")
+		{
+			wannaDriveWithMe[5]=true;
+			number=5;
+		}
+		else if(command=="player5_noride")
+		{
+			wannaDriveWithMe[5]=false;
+			number=5;
+		}
+		 
+		number++;
+		buttoncount--;
+		if(buttoncount>0) //nächste Nummer ermitteln
+		{
+			while(number<6&&canYouDriveWithMe[number]==false)
+			{
+				number++;
+			}
+			
 		}
 		
-		canYouDriveWithMe[0]=true;
 		
 		
-		wannaDriveWithMe[0]=true;
-		
-		
-		
+		if(buttoncount==0)
+		{
+			letsRide();
+		}
+		else
+			nextRideButton(number);
 		
 	}
 	
 	
-//	public void wannaRide(int car, Block start, Block ziel)  //Nach Fahrt abfragen, ob die Leute mitwollen
-//	{
-//		for(int i=0;i<6;i++)
-//		{
-//			mitnahme[i]=false;fdsf
-//		}
-//	}
-//	
+	public void letsRide()  //Nach Fahrt abfragen, ob die Leute mitwollen
+	{
+		AppInjector.zoneManager().remove(driveButtonField[0]);
+		AppInjector.zoneManager().remove(driveButtonField[1]);
+		for(int i=0;i<6;i++)
+		{
+			if(wannaDriveWithMe[i])
+			{
+				playerbase[i].setXb(cargoal.getXb()); 
+				playerbase[i].setYb(cargoal.getYb());
+			}
+			canYouDriveWithMe[i]=false;
+			wannaDriveWithMe[i]=false;
+		}
+		placesomething(carride, cargoal, cargoal);
+		this.waiting=false;
+	}
+	
 	
 	/**
 	 * 
@@ -951,6 +1141,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			float factor1=(float)0.15;
 			float factor2=(float)0.2;
 			visorFill=0;
+			boolean ambulanceInRange=false;
 			//Norden
 			Wallblock test=board[x][y].getNorth();
 			if(test==null||test.passage_Wall())
@@ -959,6 +1150,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorfield[visorFill]=new VisorBlock( this.pic_path,1,board[x][y],board[x-1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x-1)*block_size+factor1*block_size), longside,longside,this);
 				AppInjector.zoneManager().add(visorfield[visorFill]);
 				visorFill++;
+				if(board[x-1][y].isAmbulance())
+					ambulanceInRange=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -978,6 +1171,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y+1], (float)(x_offset+(y+1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
 				AppInjector.zoneManager().add(visorfield[visorFill]);
 				visorFill++;
+				if(board[x][y+1].isAmbulance())
+					ambulanceInRange=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -995,6 +1190,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x+1][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x+1)*block_size+factor1*block_size), longside,longside,this);
 				AppInjector.zoneManager().add(visorfield[visorFill]);
 				visorFill++;
+				if(board[x+1][y].isAmbulance())
+					ambulanceInRange=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -1012,6 +1209,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y-1], (float)(x_offset+(y-1)*block_size+factor1*block_size), (float)(y_offset+x*block_size+factor1*block_size), longside,longside,this);
 				AppInjector.zoneManager().add(visorfield[visorFill]);	
 				visorFill++;
+				if(board[x][y-1].isAmbulance())
+					ambulanceInRange=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -1030,6 +1229,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 				visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[x][y],board[x][y], (float)(x_offset+y*block_size+factor1*block_size), (float)(y_offset+(x)*block_size+factor1*block_size), longside,longside,this);
 				AppInjector.zoneManager().add(visorfield[visorFill]);
 				visorFill++;
+				if(board[x][y].isAmbulance())
+					ambulanceInRange=true;
 				
 			}
 			
@@ -1048,37 +1249,40 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 					}	
 			}
 			
-			//Krankenwagen suchen
-			for(int i=0; i<this.vertical_blocks;i++) 
+			if(!ambulanceInRange)
 			{
-				if(board[i][0].isAmbulance()) //links
+				//Krankenwagen suchen
+				for(int i=1; i<this.vertical_blocks-1;i++) 
 				{
-					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
-					AppInjector.zoneManager().add(visorfield[visorFill]);
-					visorFill++;
+					if(board[i][0].isAmbulance()&&board[i-1][0].isAmbulance()) //links
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					if(board[i][this.horizontal_blocks-1].isAmbulance()&&board[i+1][this.horizontal_blocks-1].isAmbulance()) //rechts
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
 				}
-				if(board[i][this.horizontal_blocks-1].isAmbulance()) //rechts
+				for(int j=1; j<this.horizontal_blocks-1;j++)
 				{
-					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
-					AppInjector.zoneManager().add(visorfield[visorFill]);
-					visorFill++;
-				}
+					if(board[0][j].isAmbulance()&&board[0][j+1].isAmbulance()) //oben
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[0][j],board[0][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+					if(board[this.vertical_blocks-1][j].isAmbulance()&&board[this.vertical_blocks-1][j-1].isAmbulance()) //unten
+					{
+						visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[this.vertical_blocks-1][j],board[this.vertical_blocks-1][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+						AppInjector.zoneManager().add(visorfield[visorFill]);
+						visorFill++;
+					}
+				}	
 			}
-			for(int j=0; j<this.horizontal_blocks;j++)
-			{
-				if(board[0][j].isAmbulance()) //oben
-				{
-					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[0][j],board[0][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
-					AppInjector.zoneManager().add(visorfield[visorFill]);
-					visorFill++;
-				}
-				if(board[this.vertical_blocks-1][j].isAmbulance()) //unten
-				{
-					visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[this.vertical_blocks-1][j],board[this.vertical_blocks-1][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
-					AppInjector.zoneManager().add(visorfield[visorFill]);
-					visorFill++;
-				}
-			}	
 		//TODO: weitere Aktionsmöglichkeiten abpruefen (aktuelles Feld, Einsatzleiter, Waermebildkamera)
 		
 		
@@ -1165,7 +1369,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
 		//Testwerte:
 		playercount=6;
-		difficulty= GameDifficulty.RECRUT;
+		difficulty= GameDifficulty.HERO;
 		/*   bis auf Spiel starten gedrueckt wird
 		while(currentGameState==GameStates.STATE_START)
 		{
@@ -1175,74 +1379,88 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 
 		//testwerte
 		
+		//Spieler, Spielerzonen,Runde Beenden Button, Aktivmarker anlegen
 		
-		
+		//Spieler
 		playerbase[0]=new Player(this);
 		playerbase[0].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 0, 0, 6);	
 		AppInjector.zoneManager().add(playerbase[0]);
-		playerbase[1]=new Player(this);
-		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 3, 0);
-		AppInjector.zoneManager().add(playerbase[1]);
-		playerbase[2]=new Player(this);
-		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 3, 0);
-		AppInjector.zoneManager().add(playerbase[2]);
-		playerbase[3]=new Player(this);
-		playerbase[3].setplayer(SpecialistType.ALLESKOENNER, PlayerColor.YELLOW, 0, 7, 3);
-		AppInjector.zoneManager().add(playerbase[3]);
-		playerbase[4]=new Player(this);
-		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 4, 9);
-		AppInjector.zoneManager().add(playerbase[4]);
-		
-//		playerbase[5]=new Player(this);
-//		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
-//		AppInjector.zoneManager().add(playerbase[5]);
-		
-		//Playerzones
-		//ffz0=new Playerzone(pic_path,ff0, this, 0,  x_offset-2*block_size, (int)(y_offset+6.5*block_size), 2*block_size, (int) 2.5*block_size);
-		
+		//Spielerzone
 		playerzonebase[0]=new Playerzone(pic_path,playerbase[0], this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));		
 		AppInjector.zoneManager().add(playerzonebase[0]);	
-		playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[1]);
-		playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[2]);
-		playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[3]);
-		playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[4]);
-		
-//		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
-//		AppInjector.zoneManager().add(playerzonebase[5]);
-		
-		
+		//Runde Beenden Button
 		etbbase[0]=new EndTurnButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
 		AppInjector.zoneManager().add(etbbase[0]);
 		etbbase[0].addButtonListener(this);
-		etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[1]);
-		etbbase[1].addButtonListener(this);
-		etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[2]);
-		etbbase[2].addButtonListener(this);
-		etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[3]);
-		etbbase[3].addButtonListener(this);
-		etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[4]);	
-		etbbase[4].addButtonListener(this);
-//		
-//		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
-//		AppInjector.zoneManager().add(etbbase[5]);
-//		etbbase[5].addButtonListener(this);
-//		
-		
-		
-		activePlayer=0;
-		playerbase[0].start_turn();
+		//Aktivmarker
+		activemarkerfield[0]= new ActiveMarker((x_offset-2*block_size),(int)(y_offset+7*block_size),block_size,block_size,0,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[0]);
 
 		
 		
+		playerbase[1]=new Player(this);
+		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 3, 0);
+		AppInjector.zoneManager().add(playerbase[1]);
+		playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(playerzonebase[1]);
+		etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
+		AppInjector.zoneManager().add(etbbase[1]);
+		etbbase[1].addButtonListener(this);
+		activemarkerfield[1]= new ActiveMarker((int)(x_offset-2*block_size),(int)(y_offset+3*block_size),block_size,block_size,1,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[1]);
 		
+		
+		playerbase[2]=new Player(this);
+		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 3, 0);
+		AppInjector.zoneManager().add(playerbase[2]);
+		playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(playerzonebase[2]);
+		etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
+		AppInjector.zoneManager().add(etbbase[2]);
+		etbbase[2].addButtonListener(this);
+		activemarkerfield[2]= new ActiveMarker((x_offset),(int)(y_offset+block_size),block_size,block_size,2,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[2]);
+		
+		playerbase[3]=new Player(this);
+		playerbase[3].setplayer(SpecialistType.ALLESKOENNER, PlayerColor.YELLOW, 0, 7, 3);
+		AppInjector.zoneManager().add(playerbase[3]);
+		playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(playerzonebase[3]);
+		etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
+		AppInjector.zoneManager().add(etbbase[3]);
+		etbbase[3].addButtonListener(this);
+		activemarkerfield[3]= new ActiveMarker((x_offset+12*block_size),(int)(y_offset+block_size),block_size,block_size,3,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[3]);
+		
+		playerbase[4]=new Player(this);
+		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 4, 9);
+		AppInjector.zoneManager().add(playerbase[4]);
+		playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(playerzonebase[4]);
+		etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
+		AppInjector.zoneManager().add(etbbase[4]);	
+		etbbase[4].addButtonListener(this);
+		activemarkerfield[4]= new ActiveMarker((int)(x_offset+12*block_size),(int)(y_offset+5*block_size),block_size,block_size,4,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[4]);
+		
+		playerbase[5]=new Player(this);
+		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
+		AppInjector.zoneManager().add(playerbase[5]);
+		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+		AppInjector.zoneManager().add(playerzonebase[5]);		
+		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
+		AppInjector.zoneManager().add(etbbase[5]);
+		etbbase[5].addButtonListener(this);
+		activemarkerfield[5]= new ActiveMarker((x_offset+10*block_size),(int)(y_offset+7*block_size),block_size,block_size,5,pic_path,this);
+		AppInjector.zoneManager().add(activemarkerfield[5]);
+		
+		
+		
+		//Startspieler ermitteln		
+		activePlayer=0;
+		while(playerbase[activePlayer]==null)
+			activePlayer++;
+		playerbase[activePlayer].start_turn();
 		
 		currentGameState=GameStates.STATE_STARTBOARD;
 		
@@ -1257,6 +1475,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		if(this.actionTouched||this.visorTouched)
 			return;
 		//TODO: Abfrage, ob wirklich beenden
+		//TODO: Wenn Spieler auf Feuer steht, nicht beenden lassen
 		if(command=="player0_turnend"&&activePlayer==0&&!waiting)
 		{			
 			nextPlayer();		
@@ -1281,6 +1500,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		{
 			nextPlayer();		
 		}
+		else if(command=="player0_ride"||command=="player0_noride"||command=="player1_ride"||command=="player1_noride"||command=="player2_ride"||command=="player2_noride"||command=="player3_ride"||command=="player3_noride"||command=="player4_ride"||command=="player4_noride"||command=="player5_ride"||command=="player5_noride"	)
+		{
+			nextPress(command);
+		}
+
 		
 		
 	}
@@ -1295,9 +1519,14 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			removeVisorfield();
 			for(int i=0;i<6;i++)
 			{
-				AppInjector.zoneManager().remove(playerbase[i]);
-				AppInjector.zoneManager().remove(playerzonebase[i]);
-				AppInjector.zoneManager().remove( etbbase[i]);
+				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
+				{
+					AppInjector.zoneManager().remove(playerbase[i]);
+					AppInjector.zoneManager().remove(playerzonebase[i]);
+					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove(activemarkerfield[i]);
+				}
+				
 			}
 
 				
@@ -2525,6 +2754,20 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	 */
 	public void setDead_person_to_lose(int dead_person_to_lose) {
 		this.dead_person_to_lose = dead_person_to_lose;
+	}
+
+	/**
+	 * @return the visorshown
+	 */
+	public boolean isVisorshown() {
+		return visorshown;
+	}
+
+	/**
+	 * @param visorshown the visorshown to set
+	 */
+	public void setVisorshown(boolean visorshown) {
+		this.visorshown = visorshown;
 	}
 
 
