@@ -46,6 +46,7 @@ import processing.data.JSONObject;
 import ui.ActionButton;
 import ui.ActiveMarker;
 import ui.Background;
+import ui.BlockVisual;
 import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
@@ -83,6 +84,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	public String json_path="./jsonfiles";
 	private Integer mapnumber;				//falls weitere Maps eingebunden werden
 	public Block[][] board =new Block[vertical_blocks][horizontal_blocks];
+	public BlockVisual[][] boardvisual =new BlockVisual[vertical_blocks][horizontal_blocks];
 
 	
 	private Statusoverview stat;
@@ -2379,6 +2381,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			  {
 			      board[i][j]= new Block(this, pic_path); 
 			      AppInjector.zoneManager().add(board[i][j]);
+			      boardvisual[i][j]= new BlockVisual(this, pic_path,board[i][j]); 
+			      AppInjector.zoneManager().add(boardvisual[i][j]);
 			      }
 			}
 	}	
