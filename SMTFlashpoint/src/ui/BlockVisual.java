@@ -318,5 +318,9 @@ public class BlockVisual extends Zone{
 		return;
 	
 	}
-
+	@Override
+	public void touch()
+	{
+		
+	}
 }

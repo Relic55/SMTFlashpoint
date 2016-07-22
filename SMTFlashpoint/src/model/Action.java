@@ -221,5 +221,15 @@ public class Action extends Zone { //
 		return type;
 	}
 
+	@Override
+	public void draw()
+	{
+		
+	}
+	@Override
+	public void touch()
+	{
+		
+	}
 	
 }

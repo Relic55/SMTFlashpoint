@@ -37,12 +37,27 @@ public class ActionButton extends Zone{
 		this.type=type;
 		this.start=start;
 		this.ziel=ziel;
+		int activeplayer=AppInjector.engine().getActivePlayer();
+		
 		buttonImage=Utility.getImage(type.getType().path);
 		tsize=(int)(AppInjector.engine().getBlock_size()/90.0*25);
 		if(type.getType()==Actiontype.HEAL_PERSON) //weiss auf weissem Hintergrund eher ungünstig
 			textcolor=0;
 		else
 			textcolor=255;
+		if(AppInjector.engine().isPlayedOnTable()) //nur ausrichten, wenn auf einem Tisch gespielt
+		{
+			if(activeplayer==1)
+				rotateAbout(PI/2,width/2,width/2 );
+			else if(activeplayer>1&&activeplayer<4)
+			{
+				rotateAbout(PI, width/2,width/2);
+			}
+			else if(activeplayer==4)
+			{
+				rotateAbout((float)(PI*1.5), width/2,width/2);
+			}
+		}
 	
 		
 		

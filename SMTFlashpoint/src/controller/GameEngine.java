@@ -74,7 +74,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	
 	//Beginn Flashpoint Umsetzung
 	
-	
+	private boolean playedOnTable=true; //auf false setzen, wenn an einem stehenden/hängenden Bildschirm gespielt wird
+	//wirkt sich aktuell nur auf die Ausrichtung der Aktionsauswahl aus
 	private int vertical_blocks = 8;
 	private int block_size;
 	private int horizontal_blocks = 10;
@@ -205,18 +206,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		init_statusoverview();
 		//bei Neustart des Spiels wird init_Gamestart erneut aufgerufen
 		init_Gamestart();		
-		init_choosing();	
 		
-
-		
-		init_beginningfire();
-		
-		currentGameState=GameStates.STATE_POSITION;
-		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
-		init_player();
-		currentGameState=GameStates.STATE_INGAME;
-		
-		fillVisorfield();		
 	}
 	private void init_Gamestart()
 	{
@@ -257,8 +247,164 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		driveButtonField[1]=null;
 		rand = new Random();
 		init_blocks(json_path+"/block_start_json.json");
+		
+		
+		
+		init_choosing();	
+		
+
 	}
 
+	private void init_choosing() {
+		
+		// TODO Auto-generated method stub
+		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
+		//Testwerte:
+		playercount=6;
+		difficulty= GameDifficulty.HERO;
+		// bis auf Spiel starten gedrueckt wird
+		//testwerte
+		
+		//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
+		setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
+		setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
+		setPlayer(2,SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED);
+		setPlayer(3,SpecialistType.ALLESKOENNER, PlayerColor.YELLOW);
+		setPlayer(4,SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE);
+		setPlayer(5,SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE);
+
+	
+		//Startspieler ermitteln		
+		activePlayer=0;
+		while(playerbase[activePlayer]==null)
+			activePlayer++;
+		playerbase[activePlayer].start_turn();
+		
+		currentGameState=GameStates.STATE_STARTBOARD;
+		
+		
+
+		
+		init_beginningfire();
+		
+		currentGameState=GameStates.STATE_POSITION;
+		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
+		init_player();
+		currentGameState=GameStates.STATE_INGAME;
+		
+		fillVisorfield();
+		
+	}
+	public void setPlayer(int number, SpecialistType stype, PlayerColor pcolor)
+	{
+		
+		//Spieler, Spielerzonen,Runde Beenden Button, Aktivmarker anlegen
+		
+		//Positionen noch Testwerte		
+		
+		if(number==0) //Spieler  unten links
+		{
+			//Spieler
+			playerbase[0]=new Player(this);
+			playerbase[0].setplayer(stype, pcolor, 0, 0, 6);	
+			AppInjector.zoneManager().add(playerbase[0]);
+			//Spielervisualisierung
+			playervisualbase[0]=new PlayerVisual(this, playerbase[0],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[0]);
+			//Runde Beenden Button
+			etbbase[0]=new EndTurnButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[0]);
+			etbbase[0].addButtonListener(this);
+			//Aktivmarker
+			activemarkerfield[0]= new ActiveMarker((x_offset-3*block_size),(int)(y_offset+7*block_size),block_size,block_size,0,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[0]);
+			//Spielerzone
+			playerzonebase[0]=new Playerzone(pic_path,playerbase[0], this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));		
+			AppInjector.zoneManager().add(playerzonebase[0]);	
+
+		}
+		else if(number==1) //Spieler links
+		{
+			playerbase[1]=new Player(this);
+			playerbase[1].setplayer(stype, pcolor, 0, 3, 0);
+			AppInjector.zoneManager().add(playerbase[1]);
+			playervisualbase[1]=new PlayerVisual(this, playerbase[1],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[1]);
+			etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[1]);
+			etbbase[1].addButtonListener(this);
+			activemarkerfield[1]= new ActiveMarker((int)(x_offset-2*block_size),(int)(y_offset+2*block_size),block_size,block_size,1,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[1]);
+			playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
+			AppInjector.zoneManager().add(playerzonebase[1]);			
+
+		}
+		else if(number==2)//Spieler  oben links
+		{
+			playerbase[2]=new Player(this);
+			playerbase[2].setplayer(stype, pcolor,0, 3, 0);
+			AppInjector.zoneManager().add(playerbase[2]);
+			playervisualbase[2]=new PlayerVisual(this, playerbase[2],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[2]);
+			etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[2]);
+			etbbase[2].addButtonListener(this);
+			activemarkerfield[2]= new ActiveMarker((x_offset-2*block_size),(int)(y_offset+block_size),block_size,block_size,2,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[2]);
+			playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+			AppInjector.zoneManager().add(playerzonebase[2]);
+
+		}
+		else if(number==3)//Spieler  oben rechts
+		{
+			playerbase[3]=new Player(this);
+			playerbase[3].setplayer(stype, pcolor, 0, 7, 3);
+			AppInjector.zoneManager().add(playerbase[3]);
+			playervisualbase[3]=new PlayerVisual(this, playerbase[3],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[3]);
+			etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[3]);
+			etbbase[3].addButtonListener(this);
+			activemarkerfield[3]= new ActiveMarker((x_offset+13*block_size),(int)(y_offset+block_size),block_size,block_size,3,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[3]);
+			playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
+			AppInjector.zoneManager().add(playerzonebase[3]);
+
+		}
+		else if(number==4)//Spieler  rechts
+		{
+			playerbase[4]=new Player(this);
+			playerbase[4].setplayer(stype, pcolor, 0, 4, 9);
+			AppInjector.zoneManager().add(playerbase[4]);
+			playervisualbase[4]=new PlayerVisual(this, playerbase[4],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[4]);
+			etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[4]);	
+			etbbase[4].addButtonListener(this);
+			activemarkerfield[4]= new ActiveMarker((int)(x_offset+12*block_size),(int)(y_offset+6*block_size),block_size,block_size,4,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[4]);
+			playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
+			AppInjector.zoneManager().add(playerzonebase[4]);
+
+		}
+		else if(number==5)//Spieler  unten rechts
+		{
+			playerbase[5]=new Player(this);
+			playerbase[5].setplayer(stype, pcolor,  0, 5, 9);
+			AppInjector.zoneManager().add(playerbase[5]);
+			playervisualbase[5]=new PlayerVisual(this, playerbase[5],pic_path);
+			AppInjector.zoneManager().add(playervisualbase[5]);
+			etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
+			AppInjector.zoneManager().add(etbbase[5]);
+			etbbase[5].addButtonListener(this);
+			activemarkerfield[5]= new ActiveMarker((x_offset+12*block_size),(int)(y_offset+7*block_size),block_size,block_size,5,pic_path,this);
+			AppInjector.zoneManager().add(activemarkerfield[5]);
+			playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
+			AppInjector.zoneManager().add(playerzonebase[5]);		
+
+		}
+	}
+	
 	private void init_actionfield() {
 		// TODO Auto-generated method stub
 		// Actiontype.values()
@@ -391,10 +537,22 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	float midpointx=	(float)(x_offset+ziel.getYb()*this.block_size+0.5*block_size);
 	float midpointy=	(float)(y_offset+ziel.getXb()*this.block_size+0.5*block_size);
 	int xposition,yposition;
+	double circleswitch=-90*(Math.PI/180); //Verschiebung, damit die erste Option immer von Spielerposition aus oben erscheint
+	if(playedOnTable) //nur ausrichten, wenn an einem Tisch gespielt wird
+	{
+		if(activePlayer==1)
+			circleswitch=0;
+		else if(activePlayer==2||activePlayer==3)
+			circleswitch=90*(Math.PI/180);
+		else if(activePlayer==4)
+			circleswitch=+180*(Math.PI/180);
+	}
+	
+	
 	for (int i=0;i<possibleactions.length;i++) {
 		if (possibleactions[i]) {
-			xposition=(int)((midpointx+block_size*Math.cos(winkel*factor-90*(Math.PI/180)))-0.5*block_size);
-			yposition=(int)((midpointy+block_size*Math.sin(winkel*factor-90*(Math.PI/180)))-0.5*block_size);
+			xposition=(int)((midpointx+block_size*Math.cos(winkel*factor+circleswitch))-0.5*block_size);
+			yposition=(int)((midpointy+block_size*Math.sin(winkel*factor+circleswitch))-0.5*block_size);
 			ActionButton ab;
 			if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
 				ab= new ActionButton(xposition,yposition,actionsize,actionsize,Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
@@ -1335,121 +1493,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	/**
 	 * 
 	 */
-	private void init_choosing() {
-	
-		// TODO Auto-generated method stub
-		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
-		//Testwerte:
-		playercount=6;
-		difficulty= GameDifficulty.HERO;
-		/*   bis auf Spiel starten gedrueckt wird
-		while(currentGameState==GameStates.STATE_START)
-		{
-			
-		}
-		*/
 
-		//testwerte
-		
-		//Spieler, Spielerzonen,Runde Beenden Button, Aktivmarker anlegen
-		
-		//Spieler
-		playerbase[0]=new Player(this);
-		playerbase[0].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 0, 0, 6);	
-		AppInjector.zoneManager().add(playerbase[0]);
-		//Spielervisualisierung
-		playervisualbase[0]=new PlayerVisual(this, playerbase[0],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[0]);
-		//Spielerzone
-		playerzonebase[0]=new Playerzone(pic_path,playerbase[0], this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));		
-		AppInjector.zoneManager().add(playerzonebase[0]);	
-		//Runde Beenden Button
-		etbbase[0]=new EndTurnButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[0]);
-		etbbase[0].addButtonListener(this);
-		//Aktivmarker
-		activemarkerfield[0]= new ActiveMarker((x_offset-2*block_size),(int)(y_offset+7*block_size),block_size,block_size,0,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[0]);
-
-		
-		
-		playerbase[1]=new Player(this);
-		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 3, 0);
-		AppInjector.zoneManager().add(playerbase[1]);
-		playervisualbase[1]=new PlayerVisual(this, playerbase[1],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[1]);
-		playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[1]);
-		etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[1]);
-		etbbase[1].addButtonListener(this);
-		activemarkerfield[1]= new ActiveMarker((int)(x_offset-2*block_size),(int)(y_offset+3*block_size),block_size,block_size,1,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[1]);
-		
-		
-		playerbase[2]=new Player(this);
-		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 3, 0);
-		AppInjector.zoneManager().add(playerbase[2]);
-		playervisualbase[2]=new PlayerVisual(this, playerbase[2],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[2]);
-		playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[2]);
-		etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[2]);
-		etbbase[2].addButtonListener(this);
-		activemarkerfield[2]= new ActiveMarker((x_offset),(int)(y_offset+block_size),block_size,block_size,2,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[2]);
-		
-		playerbase[3]=new Player(this);
-		playerbase[3].setplayer(SpecialistType.ALLESKOENNER, PlayerColor.YELLOW, 0, 7, 3);
-		AppInjector.zoneManager().add(playerbase[3]);
-		playervisualbase[3]=new PlayerVisual(this, playerbase[3],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[3]);
-		playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[3]);
-		etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[3]);
-		etbbase[3].addButtonListener(this);
-		activemarkerfield[3]= new ActiveMarker((x_offset+12*block_size),(int)(y_offset+block_size),block_size,block_size,3,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[3]);
-		
-		playerbase[4]=new Player(this);
-		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 4, 9);
-		AppInjector.zoneManager().add(playerbase[4]);
-		playervisualbase[4]=new PlayerVisual(this, playerbase[4],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[4]);
-		playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[4]);
-		etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[4]);	
-		etbbase[4].addButtonListener(this);
-		activemarkerfield[4]= new ActiveMarker((int)(x_offset+12*block_size),(int)(y_offset+5*block_size),block_size,block_size,4,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[4]);
-		
-		playerbase[5]=new Player(this);
-		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
-		AppInjector.zoneManager().add(playerbase[5]);
-		playervisualbase[5]=new PlayerVisual(this, playerbase[5],pic_path);
-		AppInjector.zoneManager().add(playervisualbase[5]);
-		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
-		AppInjector.zoneManager().add(playerzonebase[5]);		
-		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
-		AppInjector.zoneManager().add(etbbase[5]);
-		etbbase[5].addButtonListener(this);
-		activemarkerfield[5]= new ActiveMarker((x_offset+10*block_size),(int)(y_offset+7*block_size),block_size,block_size,5,pic_path,this);
-		AppInjector.zoneManager().add(activemarkerfield[5]);
-		
-		
-		
-		//Startspieler ermitteln		
-		activePlayer=0;
-		while(playerbase[activePlayer]==null)
-			activePlayer++;
-		playerbase[activePlayer].start_turn();
-		
-		currentGameState=GameStates.STATE_STARTBOARD;
-		
-	}
 	/* (non-Javadoc)
 	 * @see vialab.SMT.event.ButtonZoneListener#buttonClicked(vialab.SMT.event.ButtonEvent)
 	 */
@@ -2756,6 +2800,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	 */
 	public void setVisorshown(boolean visorshown) {
 		this.visorshown = visorshown;
+	}
+	/**
+	 * @return the playedOnTable
+	 */
+	public boolean isPlayedOnTable() {
+		return playedOnTable;
 	}
 
 
