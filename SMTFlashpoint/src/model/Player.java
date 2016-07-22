@@ -456,16 +456,17 @@ public class Player extends Zone{
 	
 	@Override
 	public void draw() {
+		/*
 		if(xb==100||yb==100)
 			return;
 		int size=g.getBlock_size();
 		//noStroke();
 
 		fill(fillColor);
-        //rect(x,y,this.width,this.height);
-        //ellipse(g.getX_offset()+(xb*size)+((float)0.5*size),g.getY_offset()+yb*size+((float)0.5*size), (size*80/100),(size*80/100) );
-        ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
+              ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
 		//image(picture,x,y,width,height);
+		 
+		 */
 	}
 	@Override
 	public void touch() {

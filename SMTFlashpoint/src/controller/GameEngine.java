@@ -50,6 +50,7 @@ import ui.BlockVisual;
 import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
+import ui.PlayerVisual;
 import ui.Playerzone;
 import ui.Statusoverview;
 import ui.VisorBlock;
@@ -105,6 +106,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 
 	
 	public Player[] playerbase=new Player[6];								//Feld der Spieler
+	public PlayerVisual[] playervisualbase=new PlayerVisual[6];
 	private Playerzone[] playerzonebase=new Playerzone[6];					//Feld der Spielerzonen
 	private EndTurnButton[] etbbase=new EndTurnButton[6];					//Feld für die jeweiligen Runde Beenden Buttons
 	private ActiveMarker[] activemarkerfield=new ActiveMarker[6];			//Feld für die Anzeige, wer grade aktiv ist, gleichzeitig Schalter für Visor
@@ -207,6 +209,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			playerbase[i]=null;
 			playerzonebase[i]=null;
 			etbbase[i]=null;
+			playervisualbase[i]=null;
 			activemarkerfield[i]=null;
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
@@ -1387,6 +1390,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[0]=new Player(this);
 		playerbase[0].setplayer(SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN, 0, 0, 6);	
 		AppInjector.zoneManager().add(playerbase[0]);
+		//Spielervisualisierung
+		playervisualbase[0]=new PlayerVisual(this, playerbase[0],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[0]);
 		//Spielerzone
 		playerzonebase[0]=new Playerzone(pic_path,playerbase[0], this, 0,  (x_offset/2)-block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));		
 		AppInjector.zoneManager().add(playerzonebase[0]);	
@@ -1403,6 +1409,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[1]=new Player(this);
 		playerbase[1].setplayer(SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE, 0, 3, 0);
 		AppInjector.zoneManager().add(playerbase[1]);
+		playervisualbase[1]=new PlayerVisual(this, playerbase[1],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[1]);
 		playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[1]);
 		etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
@@ -1415,6 +1423,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[2]=new Player(this);
 		playerbase[2].setplayer(SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED,0, 3, 0);
 		AppInjector.zoneManager().add(playerbase[2]);
+		playervisualbase[2]=new PlayerVisual(this, playerbase[2],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[2]);
 		playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[2]);
 		etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
@@ -1426,6 +1436,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[3]=new Player(this);
 		playerbase[3].setplayer(SpecialistType.ALLESKOENNER, PlayerColor.YELLOW, 0, 7, 3);
 		AppInjector.zoneManager().add(playerbase[3]);
+		playervisualbase[3]=new PlayerVisual(this, playerbase[3],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[3]);
 		playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[3]);
 		etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
@@ -1437,6 +1449,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[4]=new Player(this);
 		playerbase[4].setplayer(SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE, 0, 4, 9);
 		AppInjector.zoneManager().add(playerbase[4]);
+		playervisualbase[4]=new PlayerVisual(this, playerbase[4],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[4]);
 		playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[4]);
 		etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
@@ -1448,6 +1462,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		playerbase[5]=new Player(this);
 		playerbase[5].setplayer(SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE,  0, 5, 9);
 		AppInjector.zoneManager().add(playerbase[5]);
+		playervisualbase[5]=new PlayerVisual(this, playerbase[5],pic_path);
+		AppInjector.zoneManager().add(playervisualbase[5]);
 		playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
 		AppInjector.zoneManager().add(playerzonebase[5]);		
 		etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
@@ -1527,6 +1543,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
 					AppInjector.zoneManager().remove(activemarkerfield[i]);
+					AppInjector.zoneManager().remove(playervisualbase[i]);
 				}
 				
 			}
@@ -2379,7 +2396,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		for (int i=0;i<vertical_blocks;i++) {
 			  for (int j=0;j<horizontal_blocks;j++) 
 			  {
-			      board[i][j]= new Block(this, pic_path); 
+			      board[i][j]= new Block(this); 
 			      AppInjector.zoneManager().add(board[i][j]);
 			      boardvisual[i][j]= new BlockVisual(this, pic_path,board[i][j]); 
 			      AppInjector.zoneManager().add(boardvisual[i][j]);

@@ -25,39 +25,40 @@ public class Block extends Zone{
 	private Wallblock north, east, south, west;
 	private boolean firetruck;
 	private boolean ambulance;
-	private String pic_path;
+	
 	
 	private boolean firetruckplace=false;
 	private boolean ambulanceplace=false;
 	
-	private PImage fireimage;
-	private PImage smokeimage;
-	private PImage interestimage;
-	private PImage dangerimage;
-	private PImage seatimage;
-	private PImage closeddoorimage;
-	private PImage opendoorimage;
-	private PImage catimage;
-	private PImage healoverlayimage;
-	private PImage firetruckimage;
-	private PImage ambulanceimage;
+//	private String pic_path;
+//	private PImage fireimage;
+//	private PImage smokeimage;
+//	private PImage interestimage;
+//	private PImage dangerimage;
+//	private PImage seatimage;
+//	private PImage closeddoorimage;
+//	private PImage opendoorimage;
+//	private PImage catimage;
+//	private PImage healoverlayimage;
+//	private PImage firetruckimage;
+//	private PImage ambulanceimage;
 	
 	
 	
-	public Block(GameEngine g,String pic_path)
+	public Block(GameEngine g)
 	{
 		
-		this(g, pic_path,false, false, false,0,false,false,0,0,null, null, null, null);
+		this(g,false, false, false,0,false,false,0,0,null, null, null, null);
 		
 	}
 	
 	
-	public Block(GameEngine g,String pic_path, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
+	public Block(GameEngine g, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{
 		this.g=g;
 		this.x=0;
 		this.y=0;
-		this.pic_path=pic_path;
+//		this.pic_path=pic_path;
 		this.inside_Block=inside_Block;
 		this.smoke=smoke;
 		this.fire=fire;
@@ -73,17 +74,17 @@ public class Block extends Zone{
 		size=g.getBlock_size();
 		x_offset=g.getX_offset();
 		y_offset=g.getY_offset();
-		fireimage=Utility.getImage(pic_path+"/Feuer.gif");
-		smokeimage=Utility.getImage(pic_path+"/Rauch.gif") ;
-		interestimage=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
-		dangerimage=Utility.getImage(pic_path+"/Marker_Gefahrenstoff.gif");
-		seatimage=Utility.getImage(pic_path+"/Brandherd.gif");
-		closeddoorimage=Utility.getImage(pic_path+"/Marker_Tuer_geschlossen.gif");
-		opendoorimage=Utility.getImage(pic_path+"/Marker_Tuer_offen.gif");
-		catimage=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
-		healoverlayimage=Utility.getImage(pic_path+"/Marker_Person_geheilt.gif");
-		firetruckimage= Utility.getImage(pic_path+"/Feuerwehrwagen.gif");
-		ambulanceimage=Utility.getImage(pic_path+"/Krankenwagen.gif");
+//		fireimage=Utility.getImage(pic_path+"/Feuer.gif");
+//		smokeimage=Utility.getImage(pic_path+"/Rauch.gif") ;
+//		interestimage=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
+//		dangerimage=Utility.getImage(pic_path+"/Marker_Gefahrenstoff.gif");
+//		seatimage=Utility.getImage(pic_path+"/Brandherd.gif");
+//		closeddoorimage=Utility.getImage(pic_path+"/Marker_Tuer_geschlossen.gif");
+//		opendoorimage=Utility.getImage(pic_path+"/Marker_Tuer_offen.gif");
+//		catimage=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
+//		healoverlayimage=Utility.getImage(pic_path+"/Marker_Person_geheilt.gif");
+//		firetruckimage= Utility.getImage(pic_path+"/Feuerwehrwagen.gif");
+//		ambulanceimage=Utility.getImage(pic_path+"/Krankenwagen.gif");
 	}
 	public void set_all(int xb, int yb, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{
@@ -427,44 +428,33 @@ public class Block extends Zone{
 	@Override
 	public void draw()
 	{
+		/*
 		if (fire)
 		{
 			
 			image(fireimage,(float)(x_offset+yb*size+0.2*size),(float)(y_offset+xb*size+0.2*size),size*60/100,size*60/100);
-			//fill(100,0,0);
-			//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
 		}
 		if (smoke)
-		{
-			
+		{	
 			image(smokeimage,(float)(x_offset+yb*size+0.2*size),(float)(y_offset+xb*size+0.2*size),size*60/100,size*60/100);
-			//fill(102,102,102);
-			//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.5*size), (size*60/100),(size*60/100) );
-		}	
-		
+		}			
 		if(east!=null)//vertikal
 		{
 			if(east.getWall()==Walltype.DOORCLOSED)
 			{	
 				image(closeddoorimage, (float)(x_offset+(yb*size)+0.8*size),(float)(y_offset+(xb*size)+0.4*size), (size*40/100),(size*40/100) );
-				//fill(80,80,80);
-				//ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
 			}
 			else if(east.getWall()==Walltype.DOOROPEN)
 			{	
 				image(opendoorimage, (float)(x_offset+(yb*size)+0.8*size),(float)(y_offset+(xb*size)+0.4*size), (size*40/100),(size*40/100) );
-				//fill(150,150,150);
-				//ellipse((float)(x_offset+(yb*size)+size),(float)(y_offset+(xb*size)+0.5*size), (size*40/100),(size*40/100) );
 			}
 			else if(east.getWall()==Walltype.WALLDAMAGED)
-			{
-				
+			{			
 				fill(43,43,43);
 				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.3*size),(size*15/100),(size*15/100));
 			}
 			else if(east.getWall()==Walltype.WALLDESTROYED)
-			{
-				
+			{			
 				fill(43,43,43);
 				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.3*size),(size*15/100),(size*15/100));
 				rect((float)(x_offset+(yb*size)+0.9*size),(float)(y_offset+(xb*size)+0.6*size),(size*15/100),(size*15/100));
@@ -479,9 +469,6 @@ public class Block extends Zone{
 				translate((float)(x_offset+(yb*size)+0.2*size),(float)(y_offset+(xb*size)+1*size));
 				rotate(PI/2);
 				image(closeddoorimage, (float)-0.15*size,(float)-0.4*size, (size*40/100),(size*40/100) );
-				//fill(80,80,80);
-				//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
-				
 				popMatrix();
 			}
 			else if(south.getWall()==Walltype.DOOROPEN)
@@ -490,8 +477,6 @@ public class Block extends Zone{
 				translate((float)(x_offset+(yb*size)+0.2*size),(float)(y_offset+(xb*size)+1*size));
 				rotate(PI/2);
 				image(opendoorimage, (float)-0.15*size,(float)-0.4*size, (size*40/100),(size*40/100) );
-				//fill(150,150,150);
-				//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+(xb*size)+size), (size*40/100),(size*40/100) );
 				popMatrix();
 			}
 			else if(south.getWall()==Walltype.WALLDAMAGED)
@@ -692,8 +677,6 @@ public class Block extends Zone{
 		if(danger>0)
 		{
 			image(dangerimage, (float)(x_offset+(yb*size)+(0.35*size)),(float)(y_offset+xb*size+0.65*size) ,size*30/100,size*30/100);
-			//fill(69,139,0);
-			//ellipse((float)(x_offset+(yb*size)+0.5*size),(float)(y_offset+xb*size+0.75*size), (size*30/100),(size*30/100) );			
 			if(danger>1)
 			{
 
@@ -707,7 +690,7 @@ public class Block extends Zone{
 
 		
 		return;
-	
+	*/
 	}
 	@Override
 	public void touch() {
