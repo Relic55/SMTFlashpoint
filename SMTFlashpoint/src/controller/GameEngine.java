@@ -198,7 +198,29 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	
 	
 	public GameEngine() {
-		levelMap = new HashMap<Integer, Level>();
+		//die 4 folgenden Methoden müssen nur einmal aufgerufen werden und bleiben auch bei einem Neustart ingame gleich
+		init_measures();
+		init_board();
+		init_actionfield();
+		init_statusoverview();
+		//bei Neustart des Spiels wird init_Gamestart erneut aufgerufen
+		init_Gamestart();		
+		init_choosing();	
+		
+
+		
+		init_beginningfire();
+		
+		currentGameState=GameStates.STATE_POSITION;
+		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
+		init_player();
+		currentGameState=GameStates.STATE_INGAME;
+		
+		fillVisorfield();		
+	}
+	private void init_Gamestart()
+	{
+		//levelMap = new HashMap<Integer, Level>();
 		resources = loadResources();
 		currentLevel = 1;
 
@@ -214,8 +236,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
 		}
-		
-
 		playercount=0;			//Anzahl aktiver Spieler
 		buildingdamage=0;		
 		person_marker=10;			//Anzahl Personen im Spiel insgesamt
@@ -235,63 +255,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		carride=4;
 		driveButtonField[0]=null;
 		driveButtonField[1]=null;
-		//initActions();
-		init_measures();
-		init_board();
-		init_actionfield();
-		init_blocks(json_path+"/block_start_json.json");
-		//init_choosing mit menu und auswahl versehen
-
-		
-		init_statusoverview();
-		
-		init_choosing();
-		
-
 		rand = new Random();
-		init_beginningfire();
-		
-		currentGameState=GameStates.STATE_POSITION;
-		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
-		init_player();
-		currentGameState=GameStates.STATE_INGAME;
-		
-		fillVisorfield();
-		
-		
-		/*
-		while(currentGameState!=GameStates.STATE_FINISHED)
-		{
-			//eigentlicher Spielablauf
-		
-			if(this.saved_person>6)
-			{
-				//
-				currentGameState=GameStates.STATE_FINISHED;
-				didwewin=true;
-			}
-			else if(this.dead_person>3||this.buildingdamage>this.maxbuildingdamage)
-				currentGameState=GameStates.STATE_FINISHED;
-		}
-	
-		
-		if(didwewin)
-		{
-			//Textausgabe gewonnen --> Zone erstellen
-		}
-		else
-		{
-			//Textausgabe verloren --> Zone
-		}
-		*/
-	
-		
-		
+		init_blocks(json_path+"/block_start_json.json");
 	}
-	
-	/**
-	 * 
-	 */
+
 	private void init_actionfield() {
 		// TODO Auto-generated method stub
 		// Actiontype.values()

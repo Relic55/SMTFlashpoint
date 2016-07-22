@@ -16,9 +16,9 @@ public class Player extends Zone{
 	
 	private SpecialistType specialist;
 	private PlayerColor playerColor;
-	int fillColor;
+	//private int fillColor;
 	private Integer xb,yb, ap, sp, apgain, spgain; 
-	float xpos,ypos;
+	//float xpos,ypos;
 	private GameEngine g;
 	private boolean noapcost=false; //keine Kosten zu Testzwecken
 	//TODO: entfernen
@@ -35,44 +35,6 @@ public class Player extends Zone{
 		
 		this.playerColor=playerColor;
 		//fillColor = new Color(100,100,100);
-		int size=g.getBlock_size();
-		if(playerColor==playerColor.GREEN)
-		{
-			xpos=size/6;
-			ypos=size/6;
-			fillColor= 0xFF006400;
-		}
-		else if(playerColor==playerColor.BLUE)
-		{			
-			xpos=size/6*5;
-			ypos=size/6*3;
-			fillColor= 0xFF0000CD;
-		}
-		
-		else if(playerColor==playerColor.RED)
-		{
-			xpos=size/6;
-			ypos=size/6*5;	
-			fillColor= 0xFF8B0000;
-		}
-		else if(playerColor==playerColor.ORANGE)
-		{
-			xpos=size/6*5;
-			ypos=size/6*5;
-			fillColor= 0xFFFF8C00;
-		}
-		else if(playerColor==playerColor.WHITE)
-		{
-			xpos=size/6;
-			ypos=size/6*3;
-			fillColor= 0xFFFFFAF0;
-		}
-		else if(playerColor==playerColor.YELLOW)
-		{
-			xpos=size/6*5;
-			ypos=size/6;
-			fillColor= 0xFFFFFF00;
-		}
 		ap=0;
 		sp=0;
 		xb=100;		//Startwert für ausserhalb des Feldes
@@ -107,44 +69,6 @@ public class Player extends Zone{
 	{
 		sp=0;
 		this.playerColor=playerColor;
-		int size=g.getBlock_size();
-		if(playerColor==playerColor.GREEN)
-		{
-			xpos=size/6;
-			ypos=size/6;
-			fillColor= 0xFF006400;
-		}
-		else if(playerColor==playerColor.BLUE)
-		{			
-			xpos=size/6*5;
-			ypos=size/6*3;
-			fillColor= 0xFF0000CD;
-		}
-		
-		else if(playerColor==playerColor.RED)
-		{
-			xpos=size/6;
-			ypos=size/6*5;
-			fillColor= 0xFF8B0000;
-		}
-		else if(playerColor==playerColor.ORANGE)
-		{
-			xpos=size/6*5;
-			ypos=size/6*5;
-			fillColor= 0xFFFF8C00;
-		}
-		else if(playerColor==playerColor.WHITE)
-		{
-			xpos=size/6;
-			ypos=size/6*3;
-			fillColor= 	0xFFFFFAF0;
-		}
-		else if(playerColor==playerColor.YELLOW)
-		{
-			xpos=size/6*5;
-			ypos=size/6;
-			fillColor= 0xFFFFFF00;
-		}
 		this.specialist=specialist;
 		this.ap=ap;
 		this.xb=xb;		
