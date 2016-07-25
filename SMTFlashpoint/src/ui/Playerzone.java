@@ -149,6 +149,7 @@ public class Playerzone extends Zone{
         fill(1);
         textSize((int)(size/90.0*22));
         text("AP: "+ff.getAp() , (float)(1.25*size),(float) (1*size));
+        if(ff.getSpecialist()==SpecialistType.EINSATZLEITER||ff.getSpecialist()==SpecialistType.LOESCHSCHAUMSPEZIALIST||ff.getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST)
         text("SP: "+ff.getSp() , (float)(1.25*size),(float) (1.2*size));
 
 		

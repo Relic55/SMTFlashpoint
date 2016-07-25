@@ -58,7 +58,7 @@ public class Player extends Zone{
 			{
 				spgain=2;
 			}
-			else if(specialist==SpecialistType.LOESCHSCHAUMSPEZIALIST||specialist==SpecialistType.RETTUNGSSPEZIALIST)
+			else if(specialist==SpecialistType.RETTUNGSSPEZIALIST)
 			{
 				spgain=3;
 			}			

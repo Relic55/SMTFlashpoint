@@ -74,7 +74,7 @@ public class EndTurnButton  extends ButtonZone{
 			this.color=0xFFdadada;
 
 		this.setMoveable(false);
-
+		this.setVisible(false);
 			
 	}
 	

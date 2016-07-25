@@ -18,7 +18,7 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+//import java.util.stream.Stream;
 
 import vialab.SMT.*;
 import vialab.SMT.event.ButtonEvent;
@@ -29,6 +29,7 @@ import java.util.Random; //Zufallszahlen
 import controller.GameEngine.PhaseStates;
 import controller.listener.IActionListener;
 import controller.listener.ILevelListener;
+import controller.listener.ISwitchListener;
 import model.Actiontype;
 import model.Action;
 import model.Block;
@@ -47,12 +48,16 @@ import ui.ActionButton;
 import ui.ActiveMarker;
 import ui.Background;
 import ui.BlockVisual;
+import ui.ColorSelection;
 import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
 import ui.PlayerVisual;
 import ui.Playerzone;
+import ui.SpecialistSelection;
+import ui.SpecialistText;
 import ui.Statusoverview;
+import ui.SwitchButton;
 import ui.VisorBlock;
 import util.Constants;
 import util.io.Utility;
@@ -70,11 +75,12 @@ import util.AppInjector;
  *          <LI>[storz][28.07.2015] Created</LI>
  */
 //public class GameEngine implements IStencilListener, ILevelListener {
-public class GameEngine implements IActionListener, ButtonZoneListener {
+public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchListener {
 	
 	//Beginn Flashpoint Umsetzung
 	
 	private boolean playedOnTable=true; //auf false setzen, wenn an einem stehenden/hängenden Bildschirm gespielt wird
+	private boolean directstart=false;  //Zum Testen ohne Charakterauswahl
 	//wirkt sich aktuell nur auf die Ausrichtung der Aktionsauswahl aus
 	private int vertical_blocks = 8;
 	private int block_size;
@@ -152,10 +158,24 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private boolean waiting=false;
 	private int buttoncount=0;
 	private Block cargoal=null;
+	private Block ffgoal=null;
 	private int carride=4;
 	private DriveButton[] driveButtonField=new DriveButton[2];
 	private boolean canYouDriveWithMe[]=new boolean[6];
 	private boolean wannaDriveWithMe[]=new boolean[6];
+	
+	//Felder für die Wahl der Spezialisten, Farbe, Schwierigkeitsgrad zu Beginn
+	private SpecialistSelection[] speciSelectionField=new SpecialistSelection[6];
+	private ColorSelection[] colorSelectionField= new ColorSelection[6];
+	private SwitchButton[] switchButtonField= new SwitchButton[32]; //weiter und vorher, jeweils 4 mal pro Spieler und 8 mal in der Mitte für den Schwierigkeitsgrad
+	private SpecialistText[] speciTextField=new SpecialistText[6];
+	
+	//Felder, um zu merken, wer welchen Spezialisten und welche Farbe gewählt hat
+	private SpecialistType[] chosenSpecialistField=new SpecialistType[6];
+	private PlayerColor[] chosenColorField=new PlayerColor[6];
+	private SpecialistType[] specialistField=new SpecialistType[9]; //alle möglichen Spezialisten + NONE
+	private PlayerColor[] ColorField=new PlayerColor[7]; //alle möglichen Farben + default
+	
 	
 	private GameStates currentGameState;
 	private PhaseStates currentPhaseState;
@@ -199,11 +219,13 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	
 	
 	public GameEngine() {
-		//die 4 folgenden Methoden müssen nur einmal aufgerufen werden und bleiben auch bei einem Neustart ingame gleich
+		//die 3 folgenden Methoden müssen nur einmal aufgerufen werden und bleiben auch bei einem Neustart ingame gleich
 		init_measures();
-		init_board();
 		init_actionfield();
-		init_statusoverview();
+		init_board();
+		
+		
+		
 		//bei Neustart des Spiels wird init_Gamestart erneut aufgerufen
 		init_Gamestart();		
 		
@@ -211,11 +233,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	private void init_Gamestart()
 	{
 		//levelMap = new HashMap<Integer, Level>();
-		resources = loadResources();
+//		resources = loadResources();
 		currentLevel = 1;
 
 		currentGameState=GameStates.STATE_START;
 		currentPhaseState=PhaseStates.STATE_PLAYER;
+
 		for(int i=0;i<6;i++)
 		{		
 			playerbase[i]=null;
@@ -225,6 +248,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			activemarkerfield[i]=null;
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
+			chosenSpecialistField[i]=null;
+			chosenColorField[i]=null;
 		}
 		playercount=0;			//Anzahl aktiver Spieler
 		buildingdamage=0;		
@@ -249,11 +274,272 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		init_blocks(json_path+"/block_start_json.json");
 		
 		
-		
-		init_choosing();	
+		if(!directstart)
+			init_choosingsetup();
+		else
+			this.init_choosing();
+			
 		
 
 	}
+	
+	public void switchButtonPressed(int playerNumber, int option, int direction)
+	{
+		if(option==1)
+		{
+			int actualPlayerSpecialist=0;
+			if(chosenSpecialistField[playerNumber]==SpecialistType.RETTUNGSSANITAETER)
+				actualPlayerSpecialist=1;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.EINSATZLEITER)
+				actualPlayerSpecialist=2;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+				actualPlayerSpecialist=3;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.LOESCHSCHAUMSPEZIALIST)
+				actualPlayerSpecialist=4;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.GEFAHRSTOFFSPEZIALIST)
+				actualPlayerSpecialist=5;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.ALLESKOENNER)
+				actualPlayerSpecialist=6;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.RETTUNGSSPEZIALIST)
+				actualPlayerSpecialist=7;
+			else if(chosenSpecialistField[playerNumber]==SpecialistType.FAHRZEUGMASCHINIST)
+				actualPlayerSpecialist=8;
+			
+			int nextSpecialist=0;
+			if(direction==1)
+				nextSpecialist=(actualPlayerSpecialist+1)%9;
+			else
+				nextSpecialist=(actualPlayerSpecialist-1+9)%9;	
+			
+			if(nextSpecialist==0)
+			{
+				speciSelectionField[playerNumber].setSpecialistSelect(SpecialistType.NONE, true);
+				chosenSpecialistField[playerNumber]=SpecialistType.NONE;
+			
+			}
+			else
+			{
+				boolean used=false;
+				for(int i=0;i<6;i++)
+				{
+					if(specialistField[nextSpecialist]==chosenSpecialistField[(actualPlayerSpecialist+i)%6])
+						used=true;
+					
+				}
+				if(!used)
+				{
+					speciSelectionField[playerNumber].setSpecialistSelect(specialistField[nextSpecialist], true);
+					chosenSpecialistField[playerNumber]=specialistField[nextSpecialist];					
+				}
+				else	
+				{
+					speciSelectionField[playerNumber].setSpecialistSelect(specialistField[nextSpecialist], false);
+					chosenSpecialistField[playerNumber]=specialistField[nextSpecialist];					
+				}
+				
+			}
+		}
+		else if(option==2)// Farbe ändern
+		{
+			int actualPlayerColor=0; //default
+			if(chosenColorField[playerNumber]==PlayerColor.RED)
+				actualPlayerColor=1;
+			else if(chosenColorField[playerNumber]==PlayerColor.BLUE)
+				actualPlayerColor=2;
+			else if(chosenColorField[playerNumber]==PlayerColor.WHITE)
+				actualPlayerColor=3;
+			else if(chosenColorField[playerNumber]==PlayerColor.GREEN)
+				actualPlayerColor=4;
+			else if(chosenColorField[playerNumber]==PlayerColor.YELLOW)
+				actualPlayerColor=5;
+			else if(chosenColorField[playerNumber]==PlayerColor.ORANGE)
+				actualPlayerColor=6;
+				
+		
+			for(int j=1;j<7;j++)
+			{
+				int nextColor=0;
+				if(direction==1)
+					nextColor=(actualPlayerColor+j)%7; //nach "rechts" gehen
+				else
+					nextColor=(actualPlayerColor-j+7)%7; //nach "links" gehen
+				if(nextColor==0)
+				{
+					colorSelectionField[playerNumber].changeColorSelection(PlayerColor.DEFAULT);
+					chosenColorField[playerNumber]=PlayerColor.DEFAULT;
+					j=10;
+				}
+				else
+				{
+					boolean used=false;
+					for(int i=0;i<6;i++)
+					{
+						if(ColorField[nextColor]==chosenColorField[(actualPlayerColor+i)%6])
+							used=true;
+						
+					}
+					if(!used)
+					{
+						colorSelectionField[playerNumber].changeColorSelection(ColorField[nextColor]);
+						chosenColorField[playerNumber]=ColorField[nextColor];
+						j=10;
+					}
+				}
+			}
+			
+
+			
+			
+			
+			
+		}
+//		chosenSpecialistField[playerNumber]=null;
+//		chosenColorField[playerNumber]=null;
+	}
+	
+	
+	
+	public void init_choosingsetup()
+	{
+		this.speciSelectionField[0]=new SpecialistSelection(x_offset-block_size,y_offset +block_size*13/2,block_size*2,block_size*5/2, pic_path, 0);
+		AppInjector.zoneManager().add(speciSelectionField[0]);
+		colorSelectionField[0]= new ColorSelection(x_offset+block_size*2,y_offset +block_size*13/2,block_size*2,block_size,pic_path,0);
+		AppInjector.zoneManager().add(colorSelectionField[0]);
+		speciTextField[0]=new SpecialistText(x_offset+block_size*3/2 , y_offset +block_size*15/2,block_size*3, block_size*3/2,0,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[0]);
+				
+		//nächster Spezialist
+		switchButtonField[0]= new SwitchButton(x_offset+block_size,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,0,1,1);
+		AppInjector.zoneManager().add(switchButtonField[0]);
+		switchButtonField[0].addListener(this);
+		switchButtonField[1]= new SwitchButton(x_offset-block_size,y_offset +block_size*8,block_size/2,block_size/2,pic_path,0,1,2);
+		AppInjector.zoneManager().add(switchButtonField[1]);
+		switchButtonField[1].addListener(this);
+		switchButtonField[2]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,0,2,1);
+		AppInjector.zoneManager().add(switchButtonField[2]);
+		switchButtonField[2].addListener(this);
+		switchButtonField[3]= new SwitchButton(x_offset+block_size*2,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,0,2,2);
+		AppInjector.zoneManager().add(switchButtonField[3]);
+		switchButtonField[3].addListener(this);
+		
+		
+		
+		this.speciSelectionField[1]=new SpecialistSelection(x_offset-block_size*3/2,y_offset +block_size*3/2,block_size*2,block_size*5/2, pic_path, 1);
+		AppInjector.zoneManager().add(speciSelectionField[1]);
+		colorSelectionField[1]= new ColorSelection(x_offset-block_size*3/2,y_offset +block_size*9/2,block_size*2,block_size,pic_path,1);
+		AppInjector.zoneManager().add(colorSelectionField[1]);
+		speciTextField[1]=new SpecialistText(x_offset-block_size*5/2 , y_offset +block_size*4,block_size*3, block_size*3/2,1,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[1]);
+				
+		switchButtonField[4]= new SwitchButton(x_offset-block_size*5/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,1,1);
+		AppInjector.zoneManager().add(switchButtonField[4]);
+		switchButtonField[4].addListener(this);
+		switchButtonField[5]= new SwitchButton(x_offset-block_size*3,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,1,1,2);
+		AppInjector.zoneManager().add(switchButtonField[5]);
+		switchButtonField[5].addListener(this);
+		switchButtonField[6]= new SwitchButton(x_offset-block_size*7/4,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,1,2,1);
+		AppInjector.zoneManager().add(switchButtonField[6]);
+		switchButtonField[6].addListener(this);
+		switchButtonField[7]= new SwitchButton(x_offset-block_size*9/4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,2,2);
+		AppInjector.zoneManager().add(switchButtonField[7]);
+		switchButtonField[7].addListener(this);
+		
+		
+		
+		
+		this.speciSelectionField[2]=new SpecialistSelection(x_offset+block_size*4,y_offset +block_size*3/2,block_size*2,block_size*5/2, pic_path, 2);
+		AppInjector.zoneManager().add(speciSelectionField[2]);
+		colorSelectionField[2]= new ColorSelection(x_offset+block_size,y_offset +block_size*3/2,block_size*2,block_size,pic_path,2);
+		AppInjector.zoneManager().add(colorSelectionField[2]);
+		speciTextField[2]=new SpecialistText(x_offset+block_size*3/2 , y_offset +block_size/2,block_size*3, block_size*3/2,2,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[2]);
+		
+		switchButtonField[8]= new SwitchButton(x_offset+block_size*2,y_offset +block_size/2,block_size/2,block_size/2,pic_path,2,1,1);
+		AppInjector.zoneManager().add(switchButtonField[8]);
+		switchButtonField[8].addListener(this);
+		switchButtonField[9]= new SwitchButton(x_offset+block_size*4,y_offset,block_size/2,block_size/2,pic_path,2,1,2);
+		AppInjector.zoneManager().add(switchButtonField[9]);
+		switchButtonField[9].addListener(this);
+		switchButtonField[10]= new SwitchButton(x_offset-block_size,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,2,2,1);
+		AppInjector.zoneManager().add(switchButtonField[10]);
+		switchButtonField[10].addListener(this);
+		switchButtonField[11]= new SwitchButton(x_offset+block_size,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,2,2,2);
+		AppInjector.zoneManager().add(switchButtonField[11]);
+		switchButtonField[11].addListener(this);
+		
+		
+		
+		this.speciSelectionField[3]=new SpecialistSelection(x_offset+block_size*11,y_offset +block_size*3/2,block_size*2,block_size*5/2, pic_path, 3);
+		AppInjector.zoneManager().add(speciSelectionField[3]);
+		colorSelectionField[3]= new ColorSelection(x_offset+block_size*8,y_offset +block_size*3/2,block_size*2,block_size,pic_path,3);
+		AppInjector.zoneManager().add(colorSelectionField[3]);
+		speciTextField[3]=new SpecialistText(x_offset+block_size*17/2 , y_offset +block_size/2,block_size*3, block_size*3/2,3,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[3]);
+		
+		switchButtonField[12]= new SwitchButton(x_offset+block_size*9,y_offset +block_size/2,block_size/2,block_size/2,pic_path,3,1,1);
+		AppInjector.zoneManager().add(switchButtonField[12]);
+		switchButtonField[12].addListener(this);
+		switchButtonField[13]= new SwitchButton(x_offset+block_size*11,y_offset,block_size/2,block_size/2,pic_path,3,1,2);
+		AppInjector.zoneManager().add(switchButtonField[13]);
+		switchButtonField[13].addListener(this);
+		switchButtonField[14]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,3,2,1);
+		AppInjector.zoneManager().add(switchButtonField[14]);
+		switchButtonField[14].addListener(this);
+		switchButtonField[15]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,3,2,2);
+		AppInjector.zoneManager().add(switchButtonField[15]);
+		switchButtonField[15].addListener(this);
+		
+		
+		
+		this.speciSelectionField[4]=new SpecialistSelection(x_offset+block_size*23/2,y_offset +block_size*13/2,block_size*2,block_size*5/2, pic_path, 4);
+		AppInjector.zoneManager().add(speciSelectionField[4]);
+		colorSelectionField[4]= new ColorSelection(x_offset+block_size*23/2,y_offset +block_size*7/2,block_size*2,block_size,pic_path,4);
+		AppInjector.zoneManager().add(colorSelectionField[4]);
+		speciTextField[4]=new SpecialistText(x_offset+block_size*25/2 , y_offset +block_size*4,block_size*3, block_size*3/2,4,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[4]);
+		
+		switchButtonField[16]= new SwitchButton(x_offset+block_size*25/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,1,1);
+		AppInjector.zoneManager().add(switchButtonField[16]);
+		switchButtonField[16].addListener(this);
+		switchButtonField[17]= new SwitchButton(x_offset+block_size*13,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,4,1,2);
+		AppInjector.zoneManager().add(switchButtonField[17]);
+		switchButtonField[17].addListener(this);
+		switchButtonField[18]= new SwitchButton(x_offset+block_size*47/4,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,4,2,1);
+		AppInjector.zoneManager().add(switchButtonField[18]);
+		switchButtonField[18].addListener(this);
+		switchButtonField[19]= new SwitchButton(x_offset+block_size*49/4,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,2,2);
+		AppInjector.zoneManager().add(switchButtonField[19]);
+		switchButtonField[19].addListener(this);
+		
+		
+		
+		
+		this.speciSelectionField[5]=new SpecialistSelection(x_offset+block_size*6,y_offset +block_size*13/2,block_size*2,block_size*5/2, pic_path, 5);
+		AppInjector.zoneManager().add(speciSelectionField[5]);
+		colorSelectionField[5]= new ColorSelection(x_offset+block_size*9,y_offset +block_size*13/2,block_size*2,block_size,pic_path,5);
+		AppInjector.zoneManager().add(colorSelectionField[5]);
+		speciTextField[5]=new SpecialistText(x_offset+block_size*17/2 , y_offset +block_size*15/2,block_size*3, block_size*3/2,5,SpecialistType.NONE,block_size );
+		AppInjector.zoneManager().add(speciTextField[5]);
+		
+		switchButtonField[20]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,5,1,1);
+		AppInjector.zoneManager().add(switchButtonField[20]);
+		switchButtonField[20].addListener(this);
+		switchButtonField[21]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*8,block_size/2,block_size/2,pic_path,5,1,2);
+		AppInjector.zoneManager().add(switchButtonField[21]);
+		switchButtonField[21].addListener(this);
+		switchButtonField[22]= new SwitchButton(x_offset+block_size*11,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,5,2,1);
+		AppInjector.zoneManager().add(switchButtonField[22]);
+		switchButtonField[22].addListener(this);
+		switchButtonField[23]= new SwitchButton(x_offset+block_size*9,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,5,2,2);
+		AppInjector.zoneManager().add(switchButtonField[23]);
+		switchButtonField[23].addListener(this);
+		
+		
+	//	init_choosing();
+	}
+	
+	
+	
 
 	private void init_choosing() {
 		
@@ -265,21 +551,28 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		// bis auf Spiel starten gedrueckt wird
 		//testwerte
 		
-		//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
-		setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
-		setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
-		setPlayer(2,SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED);
-		setPlayer(3,SpecialistType.ALLESKOENNER, PlayerColor.YELLOW);
-		setPlayer(4,SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE);
-		setPlayer(5,SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE);
-
+			playercount=6;
+			difficulty= GameDifficulty.HERO;
+			//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
+			setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
+			setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
+			setPlayer(2,SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED);
+			setPlayer(3,SpecialistType.ALLESKOENNER, PlayerColor.YELLOW);
+			setPlayer(4,SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE);
+			setPlayer(5,SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE);
+			startGame();
+		
+	}
 	
+	public void startGame()
+	{
+		init_statusoverview();
 		//Startspieler ermitteln		
 		activePlayer=0;
 		while(playerbase[activePlayer]==null)
 			activePlayer++;
 		playerbase[activePlayer].start_turn();
-		
+		etbbase[activePlayer].setVisible(true); //Runde beenden Button einblenden
 		currentGameState=GameStates.STATE_STARTBOARD;
 		
 		
@@ -293,8 +586,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		currentGameState=GameStates.STATE_INGAME;
 		
 		fillVisorfield();
-		
 	}
+	
 	public void setPlayer(int number, SpecialistType stype, PlayerColor pcolor)
 	{
 		
@@ -846,8 +1139,17 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			placesomething(car, start, ziel);
 		else
 		{
-			
+			int xbz=ziel.getXb();
+			int ybz=ziel.getYb();
 			cargoal=ziel;
+			if(xbz==0)
+				ffgoal=board[xbz][ybz+1];
+			else if (xbz==this.vertical_blocks-1)
+				ffgoal=board[xbz][ybz-1];
+			else if(ybz==0)
+				ffgoal=board[xbz-1][ybz];
+			else
+				ffgoal=board[xbz+1][ybz];
 			waiting=true;
 			int startindex=-1; //ersten Button merken
 			//Anzahl der Abfragen in buttoncount festhalten
@@ -872,8 +1174,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		//2 neue Buttons anlegen zur Abfrage, ob der Spieler mitfahren will
 		if(driveButtonField[0]!=null&&driveButtonField[1]!=null)
 		{
-		AppInjector.zoneManager().remove(driveButtonField[0]);
-		AppInjector.zoneManager().remove(driveButtonField[1]);
+			AppInjector.zoneManager().remove(driveButtonField[1]);
+			AppInjector.zoneManager().remove(driveButtonField[0]);
 		}
 		String ride="mitfahren";
 		String noride=" nicht\nmitfahren";
@@ -1032,8 +1334,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		{
 			if(wannaDriveWithMe[i])
 			{
-				playerbase[i].setXb(cargoal.getXb()); 
-				playerbase[i].setYb(cargoal.getYb());
+				playerbase[i].setXb(ffgoal.getXb()); 
+				playerbase[i].setYb(ffgoal.getYb());
 			}
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
@@ -1603,6 +1905,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	public void nextPlayer()
 	{
 		playerbase[activePlayer].end_turn();
+		etbbase[activePlayer].setVisible(false); //Runde beenden Button ausblenden
+
 
 		this.currentPhaseState=PhaseStates.STATE_FIRE;
 
@@ -1620,6 +1924,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 		this.activePlayer%=6;
 		this.currentPhaseState=PhaseStates.STATE_PLAYER;
 		playerbase[activePlayer].start_turn();
+		etbbase[activePlayer].setVisible(true); //Runde beenden Button einblenden
 		removeVisorfield();
 		fillVisorfield();
 		}
@@ -2358,26 +2663,26 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 	 * 
 	 * @return The loaded resources in an ArrayList<>
 	 */
-	private ArrayList<Object> loadResources() {
-		
-		  Path path = Paths.get(Constants.RESOURCE_URI); // loads the images for a card
-		  
-		  ArrayList<Object> cards = new ArrayList<Object>();
-		  try {
-	            Stream<String> lines = Files.lines(path);
-	            lines.forEach(s -> {
-	            	if (!s.startsWith("#")) { //ignore comment
-	            		String[] parts = s.split(",");
-//	        			cards.add(new CardContent(parts[0],parts[1],parts[2]));
-	            		resources.add(new Object());
-	            	}
-	            	});
-	            lines.close();
-	        } catch (IOException ex) {
-
-	        }
-		return cards;
-	}
+//	private ArrayList<Object> loadResources() {
+//		
+//		  Path path = Paths.get(Constants.RESOURCE_URI); // loads the images for a card
+//		  
+//		  ArrayList<Object> cards = new ArrayList<Object>();
+//		  try {
+//	            Stream<String> lines = Files.lines(path);
+//	            lines.forEach(s -> {
+//	            	if (!s.startsWith("#")) { //ignore comment
+//	            		String[] parts = s.split(",");
+////	        			cards.add(new CardContent(parts[0],parts[1],parts[2]));
+//	            		resources.add(new Object());
+//	            	}
+//	            	});
+//	            lines.close();
+//	        } catch (IOException ex) {
+//
+//	        }
+//		return cards;
+//	}
 	
 
 	
@@ -2413,6 +2718,23 @@ public class GameEngine implements IActionListener, ButtonZoneListener {
 			      AppInjector.zoneManager().add(boardvisual[i][j]);
 			      }
 			}
+		specialistField[0]=SpecialistType.NONE;		
+		specialistField[1]=SpecialistType.RETTUNGSSANITAETER;
+		specialistField[2]=SpecialistType.EINSATZLEITER;
+		specialistField[3]=SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA;				
+		specialistField[4]=SpecialistType.LOESCHSCHAUMSPEZIALIST;
+		specialistField[5]=SpecialistType.GEFAHRSTOFFSPEZIALIST;
+		specialistField[6]=SpecialistType.ALLESKOENNER;
+		specialistField[7]=SpecialistType.RETTUNGSSPEZIALIST;
+		specialistField[8]=SpecialistType.FAHRZEUGMASCHINIST;
+		
+		ColorField[0]=PlayerColor.DEFAULT;
+		ColorField[1]=PlayerColor.RED;
+		ColorField[2]=PlayerColor.BLUE;
+		ColorField[3]=PlayerColor.WHITE;
+		ColorField[4]=PlayerColor.GREEN;
+		ColorField[5]=PlayerColor.YELLOW;
+		ColorField[6]=PlayerColor.ORANGE;
 	}	
 
 	//json
