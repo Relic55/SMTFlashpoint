@@ -13,11 +13,12 @@ import vialab.SMT.Zone;
  *
  */
 public class ActiveMarker extends Zone{
-	int x,y,width,height,playernumber;
-	PImage activeMarkerimage;
-	PImage switchimage;
-	String pic_path;
-	GameEngine g;
+	private int x,y,width,height,playernumber;
+	private PImage activeMarkerimage;
+	private PImage switchimage;
+	private String pic_path;
+	private GameEngine g;
+	private int timer;
 	
 	public ActiveMarker(int x, int y, int width, int height, int playerNumber,String pic_path,GameEngine g)
 	{
@@ -43,6 +44,7 @@ public class ActiveMarker extends Zone{
 		this.playernumber=playerNumber;
 		activeMarkerimage=Utility.getImage(this.pic_path+"/AktiverSpieler.png");
 		switchimage=Utility.getImage(this.pic_path+"/VisierAusblenden.gif");
+		timer=0;
 		
 	}
 	@Override
@@ -54,16 +56,18 @@ public class ActiveMarker extends Zone{
 				image(switchimage, (float)0,(float)0,(float)(this.width),(float)(this.height));
 			else
 				image(activeMarkerimage, (float)0,(float)0,(float)(this.width),(float)(this.height));
-			
+			if(timer>0)
+				timer--;
 		}
 	}
 	@Override
 	public void touch()
 	{
-		if(playernumber==g.getActivePlayer())
+		if(playernumber==g.getActivePlayer()&&timer<1)
 		{
 			rst(false,false,false,false);
 			g.setVisorshown(!g.isVisorshown());
+			timer=30;
 		}
 	}
 

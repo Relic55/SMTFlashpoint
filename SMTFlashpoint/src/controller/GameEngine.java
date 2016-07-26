@@ -49,13 +49,17 @@ import ui.ActiveMarker;
 import ui.Background;
 import ui.BlockVisual;
 import ui.ColorSelection;
+import ui.DifficultySelection;
+import ui.DifficultyText;
 import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
+import ui.NewGameButton;
 import ui.PlayerVisual;
 import ui.Playerzone;
 import ui.SpecialistSelection;
 import ui.SpecialistText;
+import ui.StartGameButton;
 import ui.Statusoverview;
 import ui.SwitchButton;
 import ui.VisorBlock;
@@ -176,6 +180,13 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	private SpecialistType[] specialistField=new SpecialistType[9]; //alle möglichen Spezialisten + NONE
 	private PlayerColor[] ColorField=new PlayerColor[7]; //alle möglichen Farben + default
 	
+	private DifficultySelection diffSelected; //Speicherung und Anzeige der aktuell gewählten Schwierigkeit
+	private DifficultyText diffText; //Beschreibung des Schwierigkeitsgrades
+	private StartGameButton sbutton;
+	private NewGameButton ngbutton; //Wird nach Spielende angezeigt für Neustart
+	
+	
+	
 	
 	private GameStates currentGameState;
 	private PhaseStates currentPhaseState;
@@ -230,10 +241,24 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		init_Gamestart();		
 		
 	}
-	private void init_Gamestart()
+	public void init_Gamestart()
 	{
 		//levelMap = new HashMap<Integer, Level>();
 //		resources = loadResources();
+		
+		//Ending Screen und Neues Spiel Button entfernen, nötig bei weiteren Spielen
+		if(ngbutton!=null)
+		{
+			AppInjector.zoneManager().remove(ngbutton);
+			ngbutton=null;
+		}
+		if(ending!=null)
+		{
+			AppInjector.zoneManager().remove(ending);
+			ending=null;
+		}
+		
+		
 		currentLevel = 1;
 
 		currentGameState=GameStates.STATE_START;
@@ -277,7 +302,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		if(!directstart)
 			init_choosingsetup();
 		else
+		{
+			init_statusoverview();
 			this.init_choosing();
+			
+		}
 			
 		
 
@@ -287,6 +316,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	{
 		if(option==1)
 		{
+			SpecialistType oldSpec=chosenSpecialistField[playerNumber];
+			boolean oldchosen=speciSelectionField[playerNumber].isChosable();
 			int actualPlayerSpecialist=0;
 			if(chosenSpecialistField[playerNumber]==SpecialistType.RETTUNGSSANITAETER)
 				actualPlayerSpecialist=1;
@@ -306,16 +337,17 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				actualPlayerSpecialist=8;
 			
 			int nextSpecialist=0;
+			
 			if(direction==1)
 				nextSpecialist=(actualPlayerSpecialist+1)%9;
 			else
 				nextSpecialist=(actualPlayerSpecialist-1+9)%9;	
 			
-			if(nextSpecialist==0)
+			if(nextSpecialist==0) //Ausgangslage/ nicht mitspielen erreicht
 			{
 				speciSelectionField[playerNumber].setSpecialistSelect(SpecialistType.NONE, true);
 				chosenSpecialistField[playerNumber]=SpecialistType.NONE;
-			
+				speciTextField[playerNumber].setSpecialist(SpecialistType.NONE);		
 			}
 			else
 			{
@@ -336,8 +368,24 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					speciSelectionField[playerNumber].setSpecialistSelect(specialistField[nextSpecialist], false);
 					chosenSpecialistField[playerNumber]=specialistField[nextSpecialist];					
 				}
+				speciTextField[playerNumber].setSpecialist(specialistField[nextSpecialist]);
 				
 			}
+			sbutton.setPossible(checkIfStartPossible()); //überprüfen, ob Spiel startbar ist
+			//überprüfen, ob der freigewordene Spezialist bei einem anderen Spieler ausgewählt ist ("bereits gewählt")
+			
+			if(oldchosen)//nur nötig, wenn der vorherige Spezialist verfügbar war
+			{
+				for(int i=0;i<6;i++)
+				{
+					if(playerNumber!=i&&chosenSpecialistField[i]==oldSpec)
+					{
+						speciSelectionField[i].setSpecialistSelect(oldSpec, true);
+						i=7;
+					}
+				}
+			}
+			
 		}
 		else if(option==2)// Farbe ändern
 		{
@@ -387,20 +435,176 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				}
 			}
 			
-
-			
-			
-			
-			
 		}
-//		chosenSpecialistField[playerNumber]=null;
-//		chosenColorField[playerNumber]=null;
+		else if(option==3)// Schwierigkeitsgrad ändern
+		{
+			GameDifficulty diff= diffSelected.getGameDifficulty();
+			if(direction==1)//mächsthöherer Schwierigkeitsgrad
+			{
+				if(diff==GameDifficulty.BEGINNER)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.RECRUT);
+					diffText.changeDifficultyText(GameDifficulty.RECRUT);
+				}
+				else if(diff==GameDifficulty.RECRUT)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.VETERAN);
+					diffText.changeDifficultyText(GameDifficulty.VETERAN);
+				}
+				else if(diff==GameDifficulty.VETERAN)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.HERO);
+					diffText.changeDifficultyText(GameDifficulty.HERO);
+				}
+				else if(diff==GameDifficulty.HERO)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.BEGINNER);
+					diffText.changeDifficultyText(GameDifficulty.BEGINNER);
+				}			
+			}
+			else //nächstniedrigerer Schwierigkeitsgrad
+			{
+				if(diff==GameDifficulty.BEGINNER)
+				{		
+					diffSelected.changeDifficulty(GameDifficulty.HERO);
+					diffText.changeDifficultyText(GameDifficulty.HERO);					
+				}
+				else if(diff==GameDifficulty.RECRUT)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.BEGINNER);
+					diffText.changeDifficultyText(GameDifficulty.BEGINNER);
+				}
+				else if(diff==GameDifficulty.VETERAN)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.RECRUT);
+					diffText.changeDifficultyText(GameDifficulty.RECRUT);
+				}
+				else if(diff==GameDifficulty.HERO)
+				{				
+					diffSelected.changeDifficulty(GameDifficulty.VETERAN);
+					diffText.changeDifficultyText(GameDifficulty.VETERAN);				
+				}
+			}
+			sbutton.setPossible(checkIfStartPossible()); //die Änderung des Schwierigkeitsgrades kann das Spiel startbar machen
+		}
+		
+		
+
 	}
 	
+	
+	public boolean checkIfStartPossible()
+	{
+		//zuerst abprüfen, ob mindestens ein Spieler ausgewählt ist
+		boolean noplayer=true;
+		for(int i=0;i<6;i++)
+		{
+			if(chosenSpecialistField[i]!=null&&chosenSpecialistField[i]!=SpecialistType.NONE)
+				noplayer=false;
+		}
+		if(noplayer)
+			return false;
+		
+		if(diffSelected.getGameDifficulty()==GameDifficulty.BEGINNER) //im Tutorial gibt es eh keine Spezialisten
+			return true;
+		//überprüfen, ob es doppelte Spezialistenwahl gibt
+		for(int i=0;i<6;i++)
+		{
+			for(int j=0;j<6;j++)
+			{
+				
+				if(chosenSpecialistField[i]!=null&&chosenSpecialistField[j]!=null&&i!=j&&chosenSpecialistField[i]==chosenSpecialistField[j])
+					return false;
+			}
+		}
+		
+		
+		return true;
+	}
+	
+	public void letTheGameBegin()
+	{
+		init_statusoverview(); //muss sich unter den Spieleranzeigen befinden
+		playercount=0; //Anzahl Spieler ermitteln, wichtig für Anzahl Brandherde zu Beginn
+		for(int i=0;i<6;i++)
+		{
+			if(chosenSpecialistField[i]!=null)
+				playercount++;
+		}		
+		difficulty= diffSelected.getGameDifficulty();
+		for(int i=0;i<6;i++)
+		{
+			if(chosenSpecialistField[i]!=null)
+			{
+				if(chosenColorField[i]==null||chosenColorField[i]==PlayerColor.DEFAULT) //freie Farbe suchen
+					chosenColorField[i]=getNextFreeColor();
+				if(difficulty==GameDifficulty.BEGINNER) //keine Spezialisten auf leicht
+					setPlayer(i,SpecialistType.DUMMY, chosenColorField[i]);
+				else
+					setPlayer(i,chosenSpecialistField[i], chosenColorField[i]);
+			}
+		}
+		//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
+		
+		remove_choosingsetup();
+		
+		//vor beginnen noch Spieler ihre Figuren platzieren lassen
+		startGame();
+	}
+
+	public PlayerColor getNextFreeColor()
+	{
+		//nächste verfügbare Farbe suchen, falls ein Spieler einen Spezialisten gewählt hat, aber keine Farbe
+		for(int i=1;i<7;i++) //default nicht beachten
+		{
+			boolean used=false;
+			for(int j=0;j<6;j++)
+			{
+				if(chosenColorField[j]!=null&&chosenColorField[j]==ColorField[i])
+				{
+					used=true;
+				}
+			}
+			if(!used)
+			{
+				
+				return ColorField[i];
+				
+				
+			}
+		}
+		return PlayerColor.DEFAULT;
+	}
+	
+	public void remove_choosingsetup()
+	{
+		//Startmenu entfernen
+		AppInjector.zoneManager().remove(sbutton);
+		sbutton=null;
+		AppInjector.zoneManager().remove(diffSelected);
+		diffSelected=null;
+		AppInjector.zoneManager().remove(diffText);
+		diffText=null;
+		for(int i=0;i<6;i++)
+		{
+			AppInjector.zoneManager().remove(speciSelectionField[i]);
+			AppInjector.zoneManager().remove(colorSelectionField[i]);
+			AppInjector.zoneManager().remove(speciTextField[i]);
+			speciSelectionField[i]=null;
+			colorSelectionField[i]=null;
+			speciTextField[i]=null;
+		}
+		for(int i=0;i<32;i++)
+		{
+			AppInjector.zoneManager().remove(switchButtonField[i]);
+			switchButtonField[i]=null;
+		}
+	}
 	
 	
 	public void init_choosingsetup()
 	{
+		//Startmenu erstellen
 		this.speciSelectionField[0]=new SpecialistSelection(x_offset-block_size,y_offset +block_size*13/2,block_size*2,block_size*5/2, pic_path, 0);
 		AppInjector.zoneManager().add(speciSelectionField[0]);
 		colorSelectionField[0]= new ColorSelection(x_offset+block_size*2,y_offset +block_size*13/2,block_size*2,block_size,pic_path,0);
@@ -535,10 +739,44 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		switchButtonField[23].addListener(this);
 		
 		
-	//	init_choosing();
+		
+		//Schwierigkeitsgradwahl
+		
+		diffSelected=new DifficultySelection(x_offset, y_offset, block_size);
+		AppInjector.zoneManager().add(diffSelected);
+		diffText= new DifficultyText(x_offset, y_offset, block_size);
+		AppInjector.zoneManager().add(diffText);
+		switchButtonField[24]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,0,3,1);
+		AppInjector.zoneManager().add(switchButtonField[24]);
+		switchButtonField[24].addListener(this);
+		switchButtonField[25]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*5,block_size/2,block_size/2,pic_path,0,3,2);
+		AppInjector.zoneManager().add(switchButtonField[25]);
+		switchButtonField[25].addListener(this);
+		switchButtonField[26]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,3,1);
+		AppInjector.zoneManager().add(switchButtonField[26]);
+		switchButtonField[26].addListener(this);
+		switchButtonField[27]= new SwitchButton(x_offset+block_size*7/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,3,2);
+		AppInjector.zoneManager().add(switchButtonField[27]);
+		switchButtonField[27].addListener(this);
+		switchButtonField[28]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,2,3,1);
+		AppInjector.zoneManager().add(switchButtonField[28]);
+		switchButtonField[28].addListener(this);
+		switchButtonField[29]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*3,block_size/2,block_size/2,pic_path,2,3,2);
+		AppInjector.zoneManager().add(switchButtonField[29]);
+		switchButtonField[29].addListener(this);
+		switchButtonField[30]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,3,1);
+		AppInjector.zoneManager().add(switchButtonField[30]);
+		switchButtonField[30].addListener(this);
+		switchButtonField[31]= new SwitchButton(x_offset+block_size*13/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,3,2);
+		AppInjector.zoneManager().add(switchButtonField[31]);
+		switchButtonField[31].addListener(this);
+		
+		
+		//StartButton
+		
+		sbutton=new StartGameButton(x_offset+block_size*4, y_offset +block_size*7/2,block_size*2,block_size,pic_path);
+		AppInjector.zoneManager().add(sbutton);
 	}
-	
-	
 	
 
 	private void init_choosing() {
@@ -550,9 +788,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		difficulty= GameDifficulty.HERO;
 		// bis auf Spiel starten gedrueckt wird
 		//testwerte
-		
-			playercount=6;
-			difficulty= GameDifficulty.HERO;
+
 			//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
 			setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
 			setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
@@ -566,7 +802,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	public void startGame()
 	{
-		init_statusoverview();
+	
 		//Startspieler ermitteln		
 		activePlayer=0;
 		while(playerbase[activePlayer]==null)
@@ -1860,9 +2096,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				}
 				
 			}
-
-				
-
+			ngbutton=new NewGameButton(x_offset+block_size*8, y_offset+block_size*5, block_size*2,block_size*2, pic_path);
+			AppInjector.zoneManager().add(ngbutton);
 		}
 		else if(this.dead_person>=this.dead_person_to_lose)
 		{
@@ -1873,11 +2108,18 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			removeVisorfield();
 			for(int i=0;i<6;i++)
 			{
-				AppInjector.zoneManager().remove(playerbase[i]);
-				AppInjector.zoneManager().remove(playerzonebase[i]);
-				AppInjector.zoneManager().remove( etbbase[i]);
+				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
+				{
+					AppInjector.zoneManager().remove(playerbase[i]);
+					AppInjector.zoneManager().remove(playerzonebase[i]);
+					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove(activemarkerfield[i]);
+					AppInjector.zoneManager().remove(playervisualbase[i]);
+				}
+				
 			}
-
+			ngbutton=new NewGameButton(x_offset+block_size*8, y_offset+block_size*5, block_size*2,block_size*2, pic_path);
+			AppInjector.zoneManager().add(ngbutton);
 		}
 		else if(this.buildingdamage>=this.maxbuildingdamage)
 		{
@@ -1888,17 +2130,22 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			removeVisorfield();
 			for(int i=0;i<6;i++)
 			{
-				AppInjector.zoneManager().remove(playerbase[i]);
-				AppInjector.zoneManager().remove(playerzonebase[i]);
-				AppInjector.zoneManager().remove( etbbase[i]);
+				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
+				{
+					AppInjector.zoneManager().remove(playerbase[i]);
+					AppInjector.zoneManager().remove(playerzonebase[i]);
+					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove(activemarkerfield[i]);
+					AppInjector.zoneManager().remove(playervisualbase[i]);
+				}
+				
 			}
-			
-			
-			           
-			                         
-               
+			ngbutton=new NewGameButton(x_offset+block_size*8, y_offset+block_size*5, block_size*2,block_size*2, pic_path);
+			AppInjector.zoneManager().add(ngbutton);
 		}
-		//TODO: Button für Spiel neustarten
+
+	
+		
 
 	}
 	

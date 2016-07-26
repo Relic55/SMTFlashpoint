@@ -121,8 +121,10 @@ public class SpecialistSelection extends Zone{
 	@Override
 	public void touch()
 	{
-		rst(false,false,false,false);
+		rst(false,false,false,false);		
 	}
+	
+
 	/**
 	 * @return the specialist
 	 */

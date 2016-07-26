@@ -61,12 +61,13 @@ public class PlayerVisual extends Zone{
 			ypos=size/6*5-size/12;
 			figureimage=Utility.getImage(pic_path+"/FireFighterOrange.gif");
 		}
-		else if(player.getPlayerColor()==PlayerColor.YELLOW)
+		else //if(player.getPlayerColor()==PlayerColor.YELLOW)
 		{
 			xpos=size/6*5-size/12;
 			ypos=size/6+size/12;
 			figureimage=Utility.getImage(pic_path+"/FireFighterYellow.gif");
 		}
+		
 		xpos-=(size/6);
 		ypos-=(size/6);
 		

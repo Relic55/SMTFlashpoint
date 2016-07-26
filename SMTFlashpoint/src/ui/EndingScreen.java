@@ -18,9 +18,7 @@ public class EndingScreen extends Zone {
 	
 	public EndingScreen(int x,int y,int width,int  height, int ending,String pic_path)
 	{
-		super(x,y,1600,900);
-		System.out.println("Breite: " + width + " Hoehe: "+ height);
-		//super(x,y,width,height);
+		super(x,y,width,height);
 		this.x=x;
 		this.y=y;
 		this.width=width;
@@ -46,15 +44,10 @@ public class EndingScreen extends Zone {
 	public void draw()
 	{
 		image(screenimage,x,y,width,height);
-//		image(screenimage,x,y,1600,900);
-		//textAlign(CENTER);
-//		textSize(900/12);
 		
 		textSize(height/12);
 		fill(0,255,255);
-		//textStroke (0,0,0);
 		text(screentext,width/10,height/3);
-//		text(screentext,1600/10,900/5);
 	}
 	@Override
 	public void touch()
