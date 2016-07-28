@@ -18,11 +18,12 @@ public class ActiveMarker extends Zone{
 	private PImage switchimage;
 	private String pic_path;
 	private GameEngine g;
-	private int timer;
+	private int timer=0, delay;
 	
 	public ActiveMarker(int x, int y, int width, int height, int playerNumber,String pic_path,GameEngine g)
 	{
 		super(x,y,width,height);
+		this.delay=g.getDelay();
 		if(playerNumber==1)
 		{
 			rotateAbout(PI/2, 0,0);
@@ -67,7 +68,7 @@ public class ActiveMarker extends Zone{
 		{
 			rst(false,false,false,false);
 			g.setVisorshown(!g.isVisorshown());
-			timer=30;
+			timer=delay;
 		}
 	}
 

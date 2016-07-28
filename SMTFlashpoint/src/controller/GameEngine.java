@@ -55,6 +55,7 @@ import ui.DriveButton;
 import ui.EndTurnButton;
 import ui.EndingScreen;
 import ui.NewGameButton;
+import ui.PlacementWindow;
 import ui.PlayerVisual;
 import ui.Playerzone;
 import ui.SpecialistSelection;
@@ -85,6 +86,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	private boolean playedOnTable=true; //auf false setzen, wenn an einem stehenden/hängenden Bildschirm gespielt wird
 	private boolean directstart=false;  //Zum Testen ohne Charakterauswahl
+	private int delay=5; //Frameverzögerung, bis erneuter Buttondruck möglich ist (sonst wird der Effekt mehrfach statt nur einmalig ausgelöst)
 	//wirkt sich aktuell nur auf die Ausrichtung der Aktionsauswahl aus
 	private int vertical_blocks = 8;
 	private int block_size;
@@ -184,6 +186,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	private DifficultyText diffText; //Beschreibung des Schwierigkeitsgrades
 	private StartGameButton sbutton;
 	private NewGameButton ngbutton; //Wird nach Spielende angezeigt für Neustart
+	private PlacementWindow pcwindow;
 	
 	
 	
@@ -298,7 +301,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		rand = new Random();
 		init_blocks(json_path+"/block_start_json.json");
 		
-		
+		currentGameState=GameStates.STATE_CHOOSEMENU;
 		if(!directstart)
 			init_choosingsetup();
 		else
@@ -549,7 +552,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		remove_choosingsetup();
 		
 		//vor beginnen noch Spieler ihre Figuren platzieren lassen
-		startGame();
+		startPositioning();
 	}
 
 	public PlayerColor getNextFreeColor()
@@ -613,16 +616,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		AppInjector.zoneManager().add(speciTextField[0]);
 				
 		//nächster Spezialist
-		switchButtonField[0]= new SwitchButton(x_offset+block_size,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,0,1,1);
+		switchButtonField[0]= new SwitchButton(x_offset+block_size,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,0,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[0]);
 		switchButtonField[0].addListener(this);
-		switchButtonField[1]= new SwitchButton(x_offset-block_size,y_offset +block_size*8,block_size/2,block_size/2,pic_path,0,1,2);
+		switchButtonField[1]= new SwitchButton(x_offset-block_size,y_offset +block_size*8,block_size/2,block_size/2,pic_path,0,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[1]);
 		switchButtonField[1].addListener(this);
-		switchButtonField[2]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,0,2,1);
+		switchButtonField[2]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,0,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[2]);
 		switchButtonField[2].addListener(this);
-		switchButtonField[3]= new SwitchButton(x_offset+block_size*2,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,0,2,2);
+		switchButtonField[3]= new SwitchButton(x_offset+block_size*2,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,0,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[3]);
 		switchButtonField[3].addListener(this);
 		
@@ -635,16 +638,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		speciTextField[1]=new SpecialistText(x_offset-block_size*5/2 , y_offset +block_size*4,block_size*3, block_size*3/2,1,SpecialistType.NONE,block_size );
 		AppInjector.zoneManager().add(speciTextField[1]);
 				
-		switchButtonField[4]= new SwitchButton(x_offset-block_size*5/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,1,1);
+		switchButtonField[4]= new SwitchButton(x_offset-block_size*5/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[4]);
 		switchButtonField[4].addListener(this);
-		switchButtonField[5]= new SwitchButton(x_offset-block_size*3,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,1,1,2);
+		switchButtonField[5]= new SwitchButton(x_offset-block_size*3,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,1,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[5]);
 		switchButtonField[5].addListener(this);
-		switchButtonField[6]= new SwitchButton(x_offset-block_size*7/4,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,1,2,1);
+		switchButtonField[6]= new SwitchButton(x_offset-block_size*7/4,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,1,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[6]);
 		switchButtonField[6].addListener(this);
-		switchButtonField[7]= new SwitchButton(x_offset-block_size*9/4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,2,2);
+		switchButtonField[7]= new SwitchButton(x_offset-block_size*9/4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[7]);
 		switchButtonField[7].addListener(this);
 		
@@ -658,16 +661,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		speciTextField[2]=new SpecialistText(x_offset+block_size*3/2 , y_offset +block_size/2,block_size*3, block_size*3/2,2,SpecialistType.NONE,block_size );
 		AppInjector.zoneManager().add(speciTextField[2]);
 		
-		switchButtonField[8]= new SwitchButton(x_offset+block_size*2,y_offset +block_size/2,block_size/2,block_size/2,pic_path,2,1,1);
+		switchButtonField[8]= new SwitchButton(x_offset+block_size*2,y_offset +block_size/2,block_size/2,block_size/2,pic_path,2,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[8]);
 		switchButtonField[8].addListener(this);
-		switchButtonField[9]= new SwitchButton(x_offset+block_size*4,y_offset,block_size/2,block_size/2,pic_path,2,1,2);
+		switchButtonField[9]= new SwitchButton(x_offset+block_size*4,y_offset,block_size/2,block_size/2,pic_path,2,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[9]);
 		switchButtonField[9].addListener(this);
-		switchButtonField[10]= new SwitchButton(x_offset-block_size,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,2,2,1);
+		switchButtonField[10]= new SwitchButton(x_offset-block_size,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,2,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[10]);
 		switchButtonField[10].addListener(this);
-		switchButtonField[11]= new SwitchButton(x_offset+block_size,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,2,2,2);
+		switchButtonField[11]= new SwitchButton(x_offset+block_size,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,2,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[11]);
 		switchButtonField[11].addListener(this);
 		
@@ -680,16 +683,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		speciTextField[3]=new SpecialistText(x_offset+block_size*17/2 , y_offset +block_size/2,block_size*3, block_size*3/2,3,SpecialistType.NONE,block_size );
 		AppInjector.zoneManager().add(speciTextField[3]);
 		
-		switchButtonField[12]= new SwitchButton(x_offset+block_size*9,y_offset +block_size/2,block_size/2,block_size/2,pic_path,3,1,1);
+		switchButtonField[12]= new SwitchButton(x_offset+block_size*9,y_offset +block_size/2,block_size/2,block_size/2,pic_path,3,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[12]);
 		switchButtonField[12].addListener(this);
-		switchButtonField[13]= new SwitchButton(x_offset+block_size*11,y_offset,block_size/2,block_size/2,pic_path,3,1,2);
+		switchButtonField[13]= new SwitchButton(x_offset+block_size*11,y_offset,block_size/2,block_size/2,pic_path,3,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[13]);
 		switchButtonField[13].addListener(this);
-		switchButtonField[14]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,3,2,1);
+		switchButtonField[14]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*5/4,block_size/2,block_size/2,pic_path,3,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[14]);
 		switchButtonField[14].addListener(this);
-		switchButtonField[15]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,3,2,2);
+		switchButtonField[15]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*3/4,block_size/2,block_size/2,pic_path,3,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[15]);
 		switchButtonField[15].addListener(this);
 		
@@ -702,16 +705,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		speciTextField[4]=new SpecialistText(x_offset+block_size*25/2 , y_offset +block_size*4,block_size*3, block_size*3/2,4,SpecialistType.NONE,block_size );
 		AppInjector.zoneManager().add(speciTextField[4]);
 		
-		switchButtonField[16]= new SwitchButton(x_offset+block_size*25/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,1,1);
+		switchButtonField[16]= new SwitchButton(x_offset+block_size*25/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[16]);
 		switchButtonField[16].addListener(this);
-		switchButtonField[17]= new SwitchButton(x_offset+block_size*13,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,4,1,2);
+		switchButtonField[17]= new SwitchButton(x_offset+block_size*13,y_offset +block_size*13/2,block_size/2,block_size/2,pic_path,4,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[17]);
 		switchButtonField[17].addListener(this);
-		switchButtonField[18]= new SwitchButton(x_offset+block_size*47/4,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,4,2,1);
+		switchButtonField[18]= new SwitchButton(x_offset+block_size*47/4,y_offset +block_size*3/2,block_size/2,block_size/2,pic_path,4,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[18]);
 		switchButtonField[18].addListener(this);
-		switchButtonField[19]= new SwitchButton(x_offset+block_size*49/4,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,2,2);
+		switchButtonField[19]= new SwitchButton(x_offset+block_size*49/4,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[19]);
 		switchButtonField[19].addListener(this);
 		
@@ -725,16 +728,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		speciTextField[5]=new SpecialistText(x_offset+block_size*17/2 , y_offset +block_size*15/2,block_size*3, block_size*3/2,5,SpecialistType.NONE,block_size );
 		AppInjector.zoneManager().add(speciTextField[5]);
 		
-		switchButtonField[20]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,5,1,1);
+		switchButtonField[20]= new SwitchButton(x_offset+block_size*8,y_offset +block_size*15/2,block_size/2,block_size/2,pic_path,5,1,1,this);
 		AppInjector.zoneManager().add(switchButtonField[20]);
 		switchButtonField[20].addListener(this);
-		switchButtonField[21]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*8,block_size/2,block_size/2,pic_path,5,1,2);
+		switchButtonField[21]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*8,block_size/2,block_size/2,pic_path,5,1,2,this);
 		AppInjector.zoneManager().add(switchButtonField[21]);
 		switchButtonField[21].addListener(this);
-		switchButtonField[22]= new SwitchButton(x_offset+block_size*11,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,5,2,1);
+		switchButtonField[22]= new SwitchButton(x_offset+block_size*11,y_offset +block_size*27/4,block_size/2,block_size/2,pic_path,5,2,1,this);
 		AppInjector.zoneManager().add(switchButtonField[22]);
 		switchButtonField[22].addListener(this);
-		switchButtonField[23]= new SwitchButton(x_offset+block_size*9,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,5,2,2);
+		switchButtonField[23]= new SwitchButton(x_offset+block_size*9,y_offset +block_size*29/4,block_size/2,block_size/2,pic_path,5,2,2,this);
 		AppInjector.zoneManager().add(switchButtonField[23]);
 		switchButtonField[23].addListener(this);
 		
@@ -746,28 +749,28 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		AppInjector.zoneManager().add(diffSelected);
 		diffText= new DifficultyText(x_offset, y_offset, block_size);
 		AppInjector.zoneManager().add(diffText);
-		switchButtonField[24]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,0,3,1);
+		switchButtonField[24]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,0,3,1,this);
 		AppInjector.zoneManager().add(switchButtonField[24]);
 		switchButtonField[24].addListener(this);
-		switchButtonField[25]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*5,block_size/2,block_size/2,pic_path,0,3,2);
+		switchButtonField[25]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*5,block_size/2,block_size/2,pic_path,0,3,2,this);
 		AppInjector.zoneManager().add(switchButtonField[25]);
 		switchButtonField[25].addListener(this);
-		switchButtonField[26]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,3,1);
+		switchButtonField[26]= new SwitchButton(x_offset+block_size*4,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,1,3,1,this);
 		AppInjector.zoneManager().add(switchButtonField[26]);
 		switchButtonField[26].addListener(this);
-		switchButtonField[27]= new SwitchButton(x_offset+block_size*7/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,3,2);
+		switchButtonField[27]= new SwitchButton(x_offset+block_size*7/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,1,3,2,this);
 		AppInjector.zoneManager().add(switchButtonField[27]);
 		switchButtonField[27].addListener(this);
-		switchButtonField[28]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,2,3,1);
+		switchButtonField[28]= new SwitchButton(x_offset+block_size*9/2,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,2,3,1,this);
 		AppInjector.zoneManager().add(switchButtonField[28]);
 		switchButtonField[28].addListener(this);
-		switchButtonField[29]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*3,block_size/2,block_size/2,pic_path,2,3,2);
+		switchButtonField[29]= new SwitchButton(x_offset+block_size*11/2,y_offset +block_size*3,block_size/2,block_size/2,pic_path,2,3,2,this);
 		AppInjector.zoneManager().add(switchButtonField[29]);
 		switchButtonField[29].addListener(this);
-		switchButtonField[30]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,3,1);
+		switchButtonField[30]= new SwitchButton(x_offset+block_size*6,y_offset +block_size*7/2,block_size/2,block_size/2,pic_path,4,3,1,this);
 		AppInjector.zoneManager().add(switchButtonField[30]);
 		switchButtonField[30].addListener(this);
-		switchButtonField[31]= new SwitchButton(x_offset+block_size*13/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,3,2);
+		switchButtonField[31]= new SwitchButton(x_offset+block_size*13/2,y_offset +block_size*9/2,block_size/2,block_size/2,pic_path,4,3,2,this);
 		AppInjector.zoneManager().add(switchButtonField[31]);
 		switchButtonField[31].addListener(this);
 		
@@ -786,8 +789,31 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		//Testwerte:
 		playercount=6;
 		difficulty= GameDifficulty.HERO;
-		// bis auf Spiel starten gedrueckt wird
-		//testwerte
+
+		//Fahrzeuge aufs Spielbrett setzen, vorerst Dummy; später nur auf entsprechende Spots setzen ermöglichen
+		/*
+		board[0][5].setAmbulance(true);	//oben
+		board[0][6].setAmbulance(true);
+		
+		board[3][9].setAmbulance(true); //rechts
+		board[4][9].setAmbulance(true);
+		board[7][3].setAmbulance(true); //unten
+		board[7][4].setAmbulance(true);
+		*/
+		board[3][0].setAmbulance(true);	//links
+		board[4][0].setAmbulance(true);
+		
+		
+		board[0][7].setFiretruck(true); //oben
+		board[0][8].setFiretruck(true);
+		/*
+		board[5][9].setFiretruck(true); //rechts
+		board[6][9].setFiretruck(true);
+		board[7][1].setFiretruck(true); //unten
+		board[7][2].setFiretruck(true);
+		board[1][0].setFiretruck(true); //links
+		board[2][0].setFiretruck(true);
+		*/
 
 			//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
 			setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
@@ -800,28 +826,44 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		
 	}
 	
-	public void startGame()
+	public void startPositioning()
 	{
-	
+		currentGameState=GameStates.STATE_STARTBOARD;		
+		init_beginningfire(); //vor dem Platzieren muss das Feuer "gelegt" werden
+		
+		
+		currentGameState=GameStates.STATE_POSITION;
 		//Startspieler ermitteln		
 		activePlayer=0;
 		while(playerbase[activePlayer]==null)
 			activePlayer++;
+		fillVisorpositioning(1); 
+		pcwindow=new PlacementWindow(x_offset, y_offset, block_size, activePlayer, playerbase[activePlayer].getPlayerColor());
+		AppInjector.zoneManager().add(pcwindow);
+	}
+	
+	
+	public void startGame()
+	{
+	
+		//Startspieler erneut ermitteln		
+		activePlayer=0;
+		while(playerbase[activePlayer]==null)
+			activePlayer++;
+		
 		playerbase[activePlayer].start_turn();
 		etbbase[activePlayer].setVisible(true); //Runde beenden Button einblenden
-		currentGameState=GameStates.STATE_STARTBOARD;
-		
-		
 
-		
-		init_beginningfire();
-		
-		currentGameState=GameStates.STATE_POSITION;
-		//init_Player so abaendern, dass die Startpositionen gewaehlt werden
-		init_player();
+
+		if(directstart) //wird ohne Spezialistenauswahl gestartet, wird hier erst das Feuer initialisiert (nur zu Testzwecken)
+		{
+			currentGameState=GameStates.STATE_STARTBOARD;		
+			init_beginningfire();
+		}
 		currentGameState=GameStates.STATE_INGAME;
 		
 		fillVisorfield();
+		
 	}
 	
 	public void setPlayer(int number, SpecialistType stype, PlayerColor pcolor)
@@ -1586,9 +1628,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 */
 	public void placesomething(int type, Block start, Block ziel)
 	{
+		if(pcwindow!=null)
+			AppInjector.zoneManager().remove(pcwindow);
 		waiting=false;
 		removeVisorfield();
-		if(type==4) //Krankenwagen umsetzen
+		if(type==4||type==7) //Krankenwagen umsetzen
 		{
 			//alte Position entfernen:
 			for(int i=1;i<this.vertical_blocks-1;i++)
@@ -1684,13 +1728,53 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			}
 			//Leute umsetzen
 			
-			
+			//fsdf
 		}
 		
 		
 		
 		removeVisorfield();
-		fillVisorfield();
+		if(type<6)			//Im Spielverlauf, alles ab else zu Spielbeginn
+			fillVisorfield(); 
+		else if(type==7)
+		{
+			//Krankenwagen wurde positioniert
+			fillVisorpositioning(3); //Feuerwehrwagen als nächstes
+			pcwindow=new PlacementWindow(x_offset, y_offset, block_size, 7, PlayerColor.DEFAULT);
+			AppInjector.zoneManager().add(pcwindow);
+			
+		
+		}
+		else if(type==8)
+		{
+			startGame(); //Nachdem der Feuerwehrwagen platziert wurde, beginnt das Spiel
+		}
+		else //Spieler wurde platziert
+		{
+			//testen, ob nächster Spieler platzieren darf, oder ob Krankenwagen plaziert werden soll bzw. das Spiel starten soll auf Anfänger
+			activePlayer++;
+			while(activePlayer<6&&playerbase[activePlayer]==null)
+				activePlayer++;
+			if(activePlayer==6) //alle Spielfiguren wurden platziert
+			{
+				if(this.difficulty==GameDifficulty.BEGINNER)
+					startGame(); //Spiel starten auf dem niedrigsten Schwierigkeitsgrad
+				else
+				{
+					fillVisorpositioning(2); //Krankenwagen platzieren
+					
+					pcwindow=new PlacementWindow(x_offset, y_offset, block_size, 6, PlayerColor.DEFAULT);
+					AppInjector.zoneManager().add(pcwindow);
+				}
+			}
+			else
+			{
+				fillVisorpositioning(1);//nächste Spielfigur platzieren
+				
+				pcwindow=new PlacementWindow(x_offset, y_offset, block_size, activePlayer, playerbase[activePlayer].getPlayerColor());
+				AppInjector.zoneManager().add(pcwindow);
+			}
+		}
 	}
 	
 	
@@ -1699,6 +1783,107 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		for(int i=0;i<visorFill;i++)
 			AppInjector.zoneManager().remove(visorfield[i]);
 		visorFill=0;
+	}
+	
+	private void fillVisorpositioning(int type)//1==Spielfigurauswahl, 2=Ambulanzplatz, 3=Feuerwehrwagenplatz
+	{
+		float factor1=(float)0.15;
+		int longside=(int)(this.block_size*0.7);
+		if(type==1)
+		{
+			for(int i=0;i<this.vertical_blocks;i++)
+			{
+					//obere Reihe
+					visorfield[visorFill]=new VisorBlock( this.pic_path,6,board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+					//untere Reihe
+					visorfield[visorFill]=new VisorBlock( this.pic_path,6,board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+			}
+			for(int i=1;i<this.horizontal_blocks-1;i++)
+			{
+					//linke Reihe
+					visorfield[visorFill]=new VisorBlock( this.pic_path,6,board[0][i],board[0][i], (float)(x_offset+i*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+					//rechte Reihe
+					visorfield[visorFill]=new VisorBlock( this.pic_path,6,board[this.vertical_blocks-1][i],board[this.vertical_blocks-1][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+			}
+		}
+		else if(type==2) //Krankenwagenauswahl
+		{
+			for(int i=1;i<this.vertical_blocks-1;i++)
+			{
+				//links
+				if(board[i-1][0].isAmbulanceplace()&&board[i][0].isAmbulanceplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,7,board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				//rechts
+				if(board[i+1][this.horizontal_blocks-1].isAmbulanceplace()&&board[i][this.horizontal_blocks-1].isAmbulanceplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,7,board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}
+			for(int i=1;i<this.horizontal_blocks-1;i++)
+			{
+				if(board[0][i].isAmbulanceplace()&&board[0][i+1].isAmbulanceplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,7,board[0][i],board[0][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				if(board[this.vertical_blocks-1][i].isAmbulanceplace()&&board[this.vertical_blocks-1][i-1].isAmbulanceplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,7,board[this.vertical_blocks-1][i],board[this.vertical_blocks-1][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}
+		}
+		else if(type==3)
+		{
+			for(int i=1;i<this.vertical_blocks-1;i++)
+			{
+				//links
+				if(board[i-1][0].isFiretruckplace()&&board[i][0].isFiretruckplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,8,board[i][0],board[i][0], (float)(x_offset+0*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				//rechts
+				if(board[i+1][this.horizontal_blocks-1].isFiretruckplace()&&board[i][this.horizontal_blocks-1].isFiretruckplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,8,board[i][this.horizontal_blocks-1],board[i][this.horizontal_blocks-1], (float)(x_offset+(this.horizontal_blocks-1)*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}
+			for(int i=1;i<this.horizontal_blocks-1;i++)
+			{
+				if(board[0][i].isFiretruckplace()&&board[0][i+1].isFiretruckplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,8,board[0][i],board[0][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(0)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+				if(board[this.vertical_blocks-1][i].isFiretruckplace()&&board[this.vertical_blocks-1][i-1].isFiretruckplace())
+				{
+					visorfield[visorFill]=new VisorBlock( this.pic_path,8,board[this.vertical_blocks-1][i],board[this.vertical_blocks-1][i], (float)(x_offset+(i)*block_size+factor1*block_size), (float)(y_offset+(this.vertical_blocks-1)*block_size+factor1*block_size), longside,longside,this);
+					AppInjector.zoneManager().add(visorfield[visorFill]);
+					visorFill++;
+				}
+			}
+		}
 	}
 	
 	private void fillVisorfieldplace(Actiontype type, Block block)
@@ -3081,37 +3266,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		return;
 	}
 	
-	private void init_player() {
-		
-		//TODO: alle Spielfiguren nacheinander aufs Spielbrett setzen
-		
-		
-		//Fahrzeuge aufs Spielbrett setzen, vorerst Dummy; später nur auf entsprechende Spots setzen ermöglichen
-		/*
-		board[0][5].setAmbulance(true);	//oben
-		board[0][6].setAmbulance(true);
-		
-		board[3][9].setAmbulance(true); //rechts
-		board[4][9].setAmbulance(true);
-		board[7][3].setAmbulance(true); //unten
-		board[7][4].setAmbulance(true);
-		*/
-		board[3][0].setAmbulance(true);	//links
-		board[4][0].setAmbulance(true);
-		
-		
-		board[0][7].setFiretruck(true); //oben
-		board[0][8].setFiretruck(true);
-		/*
-		board[5][9].setFiretruck(true); //rechts
-		board[6][9].setFiretruck(true);
-		board[7][1].setFiretruck(true); //unten
-		board[7][2].setFiretruck(true);
-		board[1][0].setFiretruck(true); //links
-		board[2][0].setFiretruck(true);
-		*/
-		
-	}
 
 	//Getter und Setter:
 	
@@ -3375,6 +3529,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 */
 	public boolean isPlayedOnTable() {
 		return playedOnTable;
+	}
+	/**
+	 * @return the delay
+	 */
+	public int getDelay() {
+		return delay;
 	}
 
 
