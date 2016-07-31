@@ -34,6 +34,7 @@ import model.Actiontype;
 import model.Action;
 import model.Block;
 import model.GameDifficulty;
+import model.LastActionBefore;
 import model.PlayerColor;
 import model.Level;
 import model.Player;
@@ -63,6 +64,7 @@ import ui.SpecialistText;
 import ui.StartGameButton;
 import ui.Statusoverview;
 import ui.SwitchButton;
+import ui.SwitchRevertButton;
 import ui.VisorBlock;
 import util.Constants;
 import util.io.Utility;
@@ -122,6 +124,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	public PlayerVisual[] playervisualbase=new PlayerVisual[6];
 	private Playerzone[] playerzonebase=new Playerzone[6];					//Feld der Spielerzonen
 	private EndTurnButton[] etbbase=new EndTurnButton[6];					//Feld für die jeweiligen Runde Beenden Buttons
+	private SwitchRevertButton[] srbbase=new SwitchRevertButton[6];					//Feld für die jeweiligen Spezialist wechseln/ Zug rückgängig Buttons
+	private String switchtext="Spezialist\nwechseln";
+	private String reverttext="letzten Zug\nrückgängig";
+	private String beginnerswitchtext="Hier könnte Ihre\nWerbung stehen";
+	
+	
 	private ActiveMarker[] activemarkerfield=new ActiveMarker[6];			//Feld für die Anzeige, wer grade aktiv ist, gleichzeitig Schalter für Visor
 	private int playercount;			//Anzahl aktiver Spieler
 	private int saved_person=0;			//Anzahl geretteter Personen
@@ -149,7 +157,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	//0=N, 1=O, 2=S, 3=W, 4=eigenes Feld
 	
 	EndingScreen ending=null;
-	private Player active_firefighter;
 	
 	private int actionnumber=21;
 	private Action[] Actionfield=new Action[actionnumber];
@@ -187,6 +194,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	private StartGameButton sbutton;
 	private NewGameButton ngbutton; //Wird nach Spielende angezeigt für Neustart
 	private PlacementWindow pcwindow;
+	
+	
+	//Spielzüge rückgängig machen:
+	private int countActionsThisTurn=0;
+	private LastActionBefore lastAction;
+	private ArrayList<LastActionBefore> lastActionsList=new ArrayList<LastActionBefore>();
 	
 	
 	
@@ -272,12 +285,14 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			playerbase[i]=null;
 			playerzonebase[i]=null;
 			etbbase[i]=null;
+			srbbase[i]=null;
 			playervisualbase[i]=null;
 			activemarkerfield[i]=null;
 			canYouDriveWithMe[i]=false;
 			wannaDriveWithMe[i]=false;
 			chosenSpecialistField[i]=null;
 			chosenColorField[i]=null;
+			
 		}
 		playercount=0;			//Anzahl aktiver Spieler
 		buildingdamage=0;		
@@ -299,6 +314,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		driveButtonField[0]=null;
 		driveButtonField[1]=null;
 		rand = new Random();
+		removeOldAmbulanceAndTruck();
 		init_blocks(json_path+"/block_start_json.json");
 		
 		currentGameState=GameStates.STATE_CHOOSEMENU;
@@ -516,7 +532,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			for(int j=0;j<6;j++)
 			{
 				
-				if(chosenSpecialistField[i]!=null&&chosenSpecialistField[j]!=null&&i!=j&&chosenSpecialistField[i]==chosenSpecialistField[j])
+				if(chosenSpecialistField[i]!=null&&chosenSpecialistField[j]!=null&&i!=j&&chosenSpecialistField[i]!=SpecialistType.NONE&&chosenSpecialistField[i]==chosenSpecialistField[j])
 					return false;
 			}
 		}
@@ -531,13 +547,13 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		playercount=0; //Anzahl Spieler ermitteln, wichtig für Anzahl Brandherde zu Beginn
 		for(int i=0;i<6;i++)
 		{
-			if(chosenSpecialistField[i]!=null)
+			if(chosenSpecialistField[i]!=null&&chosenSpecialistField[i]!=SpecialistType.NONE)
 				playercount++;
 		}		
 		difficulty= diffSelected.getGameDifficulty();
 		for(int i=0;i<6;i++)
 		{
-			if(chosenSpecialistField[i]!=null)
+			if(chosenSpecialistField[i]!=null&&chosenSpecialistField[i]!=SpecialistType.NONE)
 			{
 				if(chosenColorField[i]==null||chosenColorField[i]==PlayerColor.DEFAULT) //freie Farbe suchen
 					chosenColorField[i]=getNextFreeColor();
@@ -782,15 +798,13 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	}
 	
 
-	private void init_choosing() {
-		
-		// TODO Auto-generated method stub
-		//Spieler wählen Spielfiguren und Schwierigkeitsgrad
+	private void init_choosing() 
+	{
+		//Methode zum direkten Spielstart ohne Wahl von Spezialisten etc
+
 		//Testwerte:
 		playercount=6;
 		difficulty= GameDifficulty.HERO;
-
-		//Fahrzeuge aufs Spielbrett setzen, vorerst Dummy; später nur auf entsprechende Spots setzen ermöglichen
 		/*
 		board[0][5].setAmbulance(true);	//oben
 		board[0][6].setAmbulance(true);
@@ -814,15 +828,13 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		board[1][0].setFiretruck(true); //links
 		board[2][0].setFiretruck(true);
 		*/
-
-			//setplayer wird anhand der von den Spielern gewählten Sachen aufgerufen, wenn auf "Spiel starten" gedrückt wird
-			setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
-			setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
-			setPlayer(2,SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED);
-			setPlayer(3,SpecialistType.ALLESKOENNER, PlayerColor.YELLOW);
-			setPlayer(4,SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE);
-			setPlayer(5,SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE);
-			startGame();
+		setPlayer(0,SpecialistType.RETTUNGSSANITAETER, PlayerColor.GREEN);
+		setPlayer(1,SpecialistType.RETTUNGSSPEZIALIST, PlayerColor.WHITE);
+		setPlayer(2,SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA, PlayerColor.RED);
+		setPlayer(3,SpecialistType.ALLESKOENNER, PlayerColor.YELLOW);
+		setPlayer(4,SpecialistType.GEFAHRSTOFFSPEZIALIST, PlayerColor.BLUE);
+		setPlayer(5,SpecialistType.LOESCHSCHAUMSPEZIALIST, PlayerColor.ORANGE);
+		startGame();
 		
 	}
 	
@@ -853,7 +865,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		
 		playerbase[activePlayer].start_turn();
 		etbbase[activePlayer].setVisible(true); //Runde beenden Button einblenden
-
+		srbbase[activePlayer].setVisible(true); //Switch/Revert beenden Button einblenden
+		
+		if(this.difficulty==GameDifficulty.BEGINNER)
+			srbbase[activePlayer].setText(beginnerswitchtext);
 
 		if(directstart) //wird ohne Spezialistenauswahl gestartet, wird hier erst das Feuer initialisiert (nur zu Testzwecken)
 		{
@@ -877,15 +892,19 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			//Spieler
 			playerbase[0]=new Player(this);
-			playerbase[0].setplayer(stype, pcolor, 0, 0, 6);	
+			playerbase[0].setplayer(stype, pcolor, 0, 100, 100);	
 			AppInjector.zoneManager().add(playerbase[0]);
 			//Spielervisualisierung
 			playervisualbase[0]=new PlayerVisual(this, playerbase[0],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[0]);
 			//Runde Beenden Button
-			etbbase[0]=new EndTurnButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
+			etbbase[0]=new EndTurnButton((x_offset-4*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[0]);
-			etbbase[0].addButtonListener(this);
+			etbbase[0].addButtonListener(this);		
+			//Button für Spezialist wechseln / Zug rückgängig
+			srbbase[0]=new SwitchRevertButton((x_offset),(int)(y_offset+8*block_size),block_size*2, block_size,0,playerbase[0].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[0]);
+			srbbase[0].addButtonListener(this);			
 			//Aktivmarker
 			activemarkerfield[0]= new ActiveMarker((x_offset-3*block_size),(int)(y_offset+7*block_size),block_size,block_size,0,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[0]);
@@ -897,13 +916,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		else if(number==1) //Spieler links
 		{
 			playerbase[1]=new Player(this);
-			playerbase[1].setplayer(stype, pcolor, 0, 3, 0);
+			playerbase[1].setplayer(stype, pcolor, 0, 100, 100);
 			AppInjector.zoneManager().add(playerbase[1]);
 			playervisualbase[1]=new PlayerVisual(this, playerbase[1],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[1]);
-			etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
+			etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+1*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[1]);
 			etbbase[1].addButtonListener(this);
+			srbbase[1]=new SwitchRevertButton((x_offset-3*block_size),(int)(y_offset+5*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[1]);
+			srbbase[1].addButtonListener(this);
 			activemarkerfield[1]= new ActiveMarker((int)(x_offset-2*block_size),(int)(y_offset+2*block_size),block_size,block_size,1,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[1]);
 			playerzonebase[1]=new Playerzone(pic_path,playerbase[1],this,  1, (int)  ((x_offset/2)-block_size*0.65),(int)(y_offset/2+1.5*block_size) , 2*block_size, (int) (2.5*block_size));
@@ -913,13 +935,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		else if(number==2)//Spieler  oben links
 		{
 			playerbase[2]=new Player(this);
-			playerbase[2].setplayer(stype, pcolor,0, 3, 0);
+			playerbase[2].setplayer(stype, pcolor,0, 100, 100);
 			AppInjector.zoneManager().add(playerbase[2]);
 			playervisualbase[2]=new PlayerVisual(this, playerbase[2],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[2]);
-			etbbase[2]=new EndTurnButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
+			etbbase[2]=new EndTurnButton((x_offset-2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[2]);
 			etbbase[2].addButtonListener(this);
+			srbbase[2]=new SwitchRevertButton((x_offset+2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[2]);
+			srbbase[2].addButtonListener(this);
 			activemarkerfield[2]= new ActiveMarker((x_offset-2*block_size),(int)(y_offset+block_size),block_size,block_size,2,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[2]);
 			playerzonebase[2]=new Playerzone(pic_path,playerbase[2], this, 2,  (x_offset/2),(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
@@ -929,13 +954,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		else if(number==3)//Spieler  oben rechts
 		{
 			playerbase[3]=new Player(this);
-			playerbase[3].setplayer(stype, pcolor, 0, 7, 3);
+			playerbase[3].setplayer(stype, pcolor, 0, 100, 100);
 			AppInjector.zoneManager().add(playerbase[3]);
 			playervisualbase[3]=new PlayerVisual(this, playerbase[3],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[3]);
-			etbbase[3]=new EndTurnButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
+			etbbase[3]=new EndTurnButton((x_offset+14*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[3]);
 			etbbase[3].addButtonListener(this);
+			srbbase[3]=new SwitchRevertButton((x_offset+10*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[3]);
+			srbbase[3].addButtonListener(this);
 			activemarkerfield[3]= new ActiveMarker((x_offset+13*block_size),(int)(y_offset+block_size),block_size,block_size,3,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[3]);
 			playerzonebase[3]=new Playerzone(pic_path,playerbase[3],this,  3,  (x_offset/2)+6*block_size,(int)(y_offset/2+0.8*block_size) , 2*block_size, (int) (2.5*block_size));
@@ -945,13 +973,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		else if(number==4)//Spieler  rechts
 		{
 			playerbase[4]=new Player(this);
-			playerbase[4].setplayer(stype, pcolor, 0, 4, 9);
+			playerbase[4].setplayer(stype, pcolor, 0, 100, 100);
 			AppInjector.zoneManager().add(playerbase[4]);
 			playervisualbase[4]=new PlayerVisual(this, playerbase[4],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[4]);
 			etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[4]);	
 			etbbase[4].addButtonListener(this);
+			srbbase[4]=new SwitchRevertButton((x_offset+13*block_size),(int)(y_offset+7*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[4]);	
+			srbbase[4].addButtonListener(this);
 			activemarkerfield[4]= new ActiveMarker((int)(x_offset+12*block_size),(int)(y_offset+6*block_size),block_size,block_size,4,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[4]);
 			playerzonebase[4]=new Playerzone(pic_path,playerbase[4],this,  4, (int)  ((x_offset/2)+block_size*5.65),(int)(y_offset/2+2.5*block_size) , 2*block_size, (int) (2.5*block_size));
@@ -961,13 +992,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		else if(number==5)//Spieler  unten rechts
 		{
 			playerbase[5]=new Player(this);
-			playerbase[5].setplayer(stype, pcolor,  0, 5, 9);
+			playerbase[5].setplayer(stype, pcolor,  0, 100, 100);
 			AppInjector.zoneManager().add(playerbase[5]);
 			playervisualbase[5]=new PlayerVisual(this, playerbase[5],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[5]);
-			etbbase[5]=new EndTurnButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
+			etbbase[5]=new EndTurnButton((x_offset+12*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
 			AppInjector.zoneManager().add(etbbase[5]);
 			etbbase[5].addButtonListener(this);
+			srbbase[5]=new SwitchRevertButton((x_offset+8*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
+			AppInjector.zoneManager().add(srbbase[5]);
+			srbbase[5].addButtonListener(this);
 			activemarkerfield[5]= new ActiveMarker((x_offset+12*block_size),(int)(y_offset+7*block_size),block_size,block_size,5,pic_path,this);
 			AppInjector.zoneManager().add(activemarkerfield[5]);
 			playerzonebase[5]=new Playerzone(pic_path,playerbase[5],this,  5,  (x_offset/2)+5*block_size,(int)(y_offset/2+3.2*block_size) , 2*block_size, (int) (2.5*block_size));
@@ -977,9 +1011,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	}
 	
 	private void init_actionfield() {
-		// TODO Auto-generated method stub
-		// Actiontype.values()
-		
+
 		Actionfield[0]= new Action(Actiontype.MOVE);
 		Actionfield[1]= new Action(Actiontype.MOVE_TO_FIRE);
 		Actionfield[2]= new Action(Actiontype.MOVE_CARRY_PERSON);
@@ -1125,6 +1157,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			xposition=(int)((midpointx+block_size*Math.cos(winkel*factor+circleswitch))-0.5*block_size);
 			yposition=(int)((midpointy+block_size*Math.sin(winkel*factor+circleswitch))-0.5*block_size);
 			ActionButton ab;
+			//Kosten varieren teilweise
 			if(i>=7&&i<=9&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSANITAETER||playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
 				ab= new ActionButton(xposition,yposition,actionsize,actionsize,Actionfield[i].getApcost()*2, Actionfield[i],start,ziel);
 			else if(i==19&&(playerbase[activePlayer].getSpecialist()==SpecialistType.RETTUNGSSPEZIALIST))
@@ -1162,6 +1195,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	@Override
 	public void actionSelected(Action what,Block start, Block ziel) {
+		Wallblock wall=null;
 		if(playerbase[this.activePlayer].enoughPoints(what.getType()))
 		{
 			if(what.getType()==Actiontype.MOVE)
@@ -1172,7 +1206,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				if(ziel.isInterest())
 					ziel.scanInterest();
 				
-				//ap kosten:
+			
+
 			}
 			else if(what.getType()==Actiontype.MOVE_TO_FIRE)
 			{
@@ -1278,7 +1313,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				ziel.setSmoke(true);
 				//ap kosten: 
 			}
-			//TODO: Fahrzeugaktionen
 			else if(what.getType()==Actiontype.HEAL_PERSON)
 			{
 				System.out.println(" HealPerson: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
@@ -1296,16 +1330,21 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			else if(what.getType()==Actiontype.IDENTIFY)
 			{
 				System.out.println(" Identify: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
-				start.scanInterest();
+				ziel.scanInterest();
 				//ap kosten: 
 			}
 			//TODO: Einsatzleiter
-
-			//TODO: Wagenaktionen, inkl checkSavedPeople(Block ziel) bei Ambulance Move
+			
+			
+			else if(what.getType()==Actiontype.USE_FIRETRUCK)
+			{
+				System.out.println(" Löschmonitor.... nichts passiert");
+			}
+			
 			//Wallaktionen
 			else if(what.getType()==Actiontype.OPEN_DOOR||what.getType()==Actiontype.CLOSE_DOOR||what.getType()==Actiontype.DAMAGE_WALL)
 			{
-				Wallblock wall=null;
+				
 				if(start.getXb()<ziel.getXb())
 				{
 						wall=start.getSouth();					
@@ -1340,48 +1379,372 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			}
 			else if(what.getType()==Actiontype.CANCEL)
 			{
-	
 				System.out.println("Abbruch");
 			}
-			playerbase[this.activePlayer].spendPoints(what.getType());
+			if(what.getType()!=Actiontype.CANCEL)
+			{
+				playerbase[this.activePlayer].spendPoints(what.getType());
+				
+			}
 		}
 		if(what.getType()!=Actiontype.MOVE_AMBULANCE&&what.getType()!=Actiontype.MOVE_FIRETRUCK)
 		{
+			if(what.getType()!=Actiontype.CANCEL)
+			{
+			//ArrayList für Actionen diese Runde erweitern
+			countActionsThisTurn++;
+			lastAction=new LastActionBefore(what.getType(),playerbase[this.activePlayer], start, ziel, wall );
+			//ausgegebene Aktionspunkte
+			lastAction.setAP(playerbase[this.activePlayer].getLastSpendAp());
+			lastAction.setSP(playerbase[this.activePlayer].getLastSpendSp());
+			lastActionsList.add(lastAction);
+			playerbase[this.activePlayer].resetSpendPoints(); //nötig, um zu vermeiden, dass alte SP und AP kosten beim nächsten Zug erneut angegeben werden
+			}	
+			
+			//nächste Visorauswahl anzeigen
 			this.visorTouched=false;
 			this.actionTouched=false;
 			removeVisorfield();
 			fillVisorfield();
 		}
 		
-		
-		if(what.getType()==Actiontype.MOVE_AMBULANCE)
+		if(what.getType()==Actiontype.MOVE_AMBULANCE||what.getType()==Actiontype.MOVE_FIRETRUCK)
 		{
-			this.visorTouched=false;
-			this.actionTouched=false;
-			removeVisorfield();
-			fillVisorfieldplace(what.getType(), start);
-			//TODO: Abfrage, ob jmd mitfahren will
 			
-			System.out.println("Krankenwagen bewegen");
-		}
-		else if(what.getType()==Actiontype.MOVE_FIRETRUCK)
-		{
+			//erst untersuchen, welche Spielerpositionen überhaupt besetzt sind
+			int positions[]=new int[12];
+			for(int i=0;i<6;i++)
+			{
+				if(playerbase[i]!=null)
+				{
+					positions[i*2]=playerbase[i].getXb();
+					positions[i*2+1]=playerbase[i].getYb();
+				}
+				else
+				{
+					//Werte für Abbruch
+					positions[i*2]=100;
+					positions[i*2+1]=100;
+				}
+			}			
+			//ArrayList für Actionen diese Runde erweitern
+			countActionsThisTurn++;
+			
+			//startblock mit Fahrzeug ermitteln
+			
+			Block block=board[0][0];
+			for(int i=0; i<this.vertical_blocks;i++) //links und rechts suchen
+			{
+				if(board[i][0].isAmbulance()&&board[i-1][0].isAmbulance()&&what.getType()==Actiontype.MOVE_AMBULANCE)
+					block=board[i][0];
+				else if(board[i][this.horizontal_blocks-1].isAmbulance()&&board[i+1][this.horizontal_blocks-1].isAmbulance()&&what.getType()==Actiontype.MOVE_AMBULANCE)
+					block=board[i][this.horizontal_blocks-1];
+				else if(board[i][0].isFiretruck()&&board[i-1][0].isFiretruck()&&what.getType()==Actiontype.MOVE_FIRETRUCK)
+					block=board[i][0];
+				else if(board[i][this.horizontal_blocks-1].isFiretruck()&&board[i+1][this.horizontal_blocks-1].isFiretruck()&&what.getType()==Actiontype.MOVE_FIRETRUCK)
+					block=board[i][this.horizontal_blocks-1];	
+			}
+			for(int i=0; i<this.horizontal_blocks;i++) //oben und unten suchen
+			{
+				if(board[0][i].isAmbulance()&&board[0][i+1].isAmbulance()&&what.getType()==Actiontype.MOVE_AMBULANCE)
+					block=board[0][i];
+				else if(board[this.vertical_blocks-1][i].isAmbulance()&&board[this.vertical_blocks-1][i-1].isAmbulance()&&what.getType()==Actiontype.MOVE_AMBULANCE)
+					block=board[this.vertical_blocks-1][i];
+				else if(board[0][i].isFiretruck()&&board[0][i+1].isFiretruck()&&what.getType()==Actiontype.MOVE_FIRETRUCK)
+					block=board[0][i];
+				else if(board[this.vertical_blocks-1][i].isFiretruck()&&board[this.vertical_blocks-1][i-1].isFiretruck()&&what.getType()==Actiontype.MOVE_FIRETRUCK)
+					block=board[this.horizontal_blocks-1][i];	
+			}
+
+			
+			lastAction=new LastActionBefore(what.getType(),playerbase[this.activePlayer], block, block, wall,positions[0],positions[1],positions[2],positions[3],positions[4],positions[5],positions[6],positions[7],positions[8],positions[9],positions[10],positions[11]);
+			//ausgegebene Aktionspunkte
+			lastAction.setAP(playerbase[this.activePlayer].getLastSpendAp());
+			lastAction.setSP(playerbase[this.activePlayer].getLastSpendSp());
+			lastActionsList.add(lastAction);
+			playerbase[this.activePlayer].resetSpendPoints(); //nötig, um zu vermeiden, dass alte SP und AP kosten beim nächsten Zug erneut angegeben werden
+			
+			
+			
 			this.visorTouched=false;
 			this.actionTouched=false;
 			removeVisorfield();
+			//Visor für Zielplatz anzeigen
 			fillVisorfieldplace(what.getType(), start);
-			//TODO: Abfrage, ob jmd mitfahren will
-			System.out.println("Feuerwehrwagen bewegen");
+			
+			System.out.println("Wagen bewegen");
 		}
 		
+		if(countActionsThisTurn>0)
+		{
+				srbbase[activePlayer].setText(reverttext);
+		}
 		
-		
-		
-		
-		
-		
-
 	}
+	
+	
+	
+	
+	public void revertLastAction()
+	{
+		
+		//TODO: Rest
+		countActionsThisTurn--;
+		lastAction=lastActionsList.remove(countActionsThisTurn);
+		
+		if(lastAction.getType()==Actiontype.MOVE)
+			{
+				System.out.println("BackMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+				playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+				playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+				playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+				playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+				
+			}
+
+		
+		else if(lastAction.getType()==Actiontype.MOVE_TO_FIRE)
+		{
+			System.out.println("BackMoveFire: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+		}
+		else if(lastAction.getType()==Actiontype.MOVE_CARRY_PERSON)
+		{
+			System.out.println("BackCarryMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			
+			lastAction.getStart().increasePeople();
+
+			//Test, ob Personen gerettet wurden
+			if(!lastAction.getZiel().isInside_Block())
+			{
+				if(difficulty==GameDifficulty.BEGINNER) //Person wurde gerettet, wenn sie ausserhalb des Gebäudes ist
+				{
+					this.saved_person--;
+				}
+				else
+				{
+					if(lastAction.getZiel().isAmbulance())
+						this.saved_person--;
+					else
+						lastAction.getZiel().reducePeople();
+				}
+			}
+			else
+			{
+				lastAction.getZiel().reducePeople();
+			}
+			
+		}
+		else if(lastAction.getType()==Actiontype.MOVE_WITH_HEALED_PERSON)
+		{
+			System.out.println("BackHealMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			
+			lastAction.getStart().increaseHealedPeople();
+			//Test, ob Personen gerettet wurden
+			if(lastAction.getZiel().isAmbulance())
+				this.saved_person--;
+			else
+				lastAction.getZiel().reduceHealedPeople();
+
+			 
+		}	
+		else if(lastAction.getType()==Actiontype.MOVE_CARRY_AND_HEALED)
+		{
+			System.out.println("BackCarryHealMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			
+			lastAction.getStart().increaseHealedPeople();
+			lastAction.getStart().increasePeople();
+		
+			//Test, ob Personen gerettet wurden
+
+			if(lastAction.getZiel().isAmbulance())
+				this.saved_person--;
+			else
+			{
+				lastAction.getZiel().reduceHealedPeople();
+				lastAction.getZiel().reducePeople();
+			}
+
+		}
+		else if(lastAction.getType()==Actiontype.TRANSPORT_DANGER)
+		{
+			System.out.println("BackDangerMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			lastAction.getStart().increaseDanger();
+			if(!lastAction.getZiel().isInside_Block())
+			{
+				this.saved_danger--;
+			}
+			else
+				lastAction.getZiel().reduceDanger();
+		}
+		else if(lastAction.getType()==Actiontype.TRANSPORT_DANGER_AND_HEALED)
+		{
+			System.out.println("BackDangerHealMove: X:  "+lastAction.getStart().getXb()+"  Y: "+lastAction.getStart().getYb());
+			playerbase[this.activePlayer].setXb(lastAction.getStart().getXb());
+			playerbase[this.activePlayer].setYb(lastAction.getStart().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			lastAction.getStart().increaseDanger();
+			lastAction.getStart().increaseHealedPeople();
+			
+			if(!lastAction.getZiel().isInside_Block())
+			{
+				this.saved_danger--;
+			}
+			else
+				lastAction.getZiel().reduceDanger();
+			//Test, ob Personen gerettet wurden
+			if(lastAction.getZiel().isAmbulance())
+				this.saved_person--;
+			else
+				lastAction.getZiel().reduceHealedPeople();
+			
+			
+		}
+		else if(lastAction.getType()==Actiontype.EXTINQUISH_FIRE)
+		{
+			System.out.println("BackExtinquishFire: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+			
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			board[lastAction.getZiel().getXb()][lastAction.getZiel().getYb()].setFire(true);
+		}
+		else if(lastAction.getType()==Actiontype.EXTINQUISH_SMOKE)
+		{
+			System.out.println("BackExtinquishSmoke: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+			
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			board[lastAction.getZiel().getXb()][lastAction.getZiel().getYb()].setSmoke(true);
+		}
+		else if(lastAction.getType()==Actiontype.EXTINQUISH_STEP)
+		{
+			System.out.println("BackFireToSmoke: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+			
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			board[lastAction.getZiel().getXb()][lastAction.getZiel().getYb()].setSmoke(false);
+			board[lastAction.getZiel().getXb()][lastAction.getZiel().getYb()].setFire(true);
+		}
+		else if(lastAction.getType()==Actiontype.HEAL_PERSON)
+		{
+			System.out.println("BackHealPerson: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+			
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			lastAction.getZiel().increasePeople();
+			lastAction.getZiel().reduceHealedPeople();
+
+		}
+		else if(lastAction.getType()==Actiontype.REMOVE_DANGER)
+		{
+			System.out.println("BackRemoveDanger: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			lastAction.getZiel().increaseDanger();
+			saved_danger--;
+		}
+		else if(lastAction.getType()==Actiontype.IDENTIFY)
+		{
+			System.out.println(" BackIdentify: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb()+ "Den Punkt gibts nicht zurück");
+
+		}
+		//TODO: Einsatzleiter
+		else if(lastAction.getType()==Actiontype.USE_FIRETRUCK)
+		{
+			System.out.println("Back Löschmonitor.... es passiert wieder nichts");
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+		}
+		//Wallaktionen
+		else if(lastAction.getType()==Actiontype.OPEN_DOOR||lastAction.getType()==Actiontype.CLOSE_DOOR||lastAction.getType()==Actiontype.DAMAGE_WALL)
+		{
+			
+	
+			if(lastAction.getWall()!=null)
+			{
+				if(lastAction.getType()==Actiontype.OPEN_DOOR||lastAction.getType()==Actiontype.CLOSE_DOOR)
+				{
+					lastAction.getWall().switch_Door();
+					System.out.println(" BackDoorDoorSwitch: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+					playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+					playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+				}
+				else
+				{
+					this.buildingdamage--;
+					System.out.println(" RepairWall: X:  "+lastAction.getZiel().getXb()+"  Y: "+lastAction.getZiel().getYb());
+					lastAction.getWall().build_Wall();
+					playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+					playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+				}
+			}
+			
+		}
+
+		
+		if(lastAction.getType()==Actiontype.MOVE_AMBULANCE||lastAction.getType()==Actiontype.MOVE_FIRETRUCK)
+		{
+			
+			//alle Spielerpositionen resetten
+			int positions[]=lastAction.getPlayerPositions();
+			for(int i=0;i<12;i+=2)
+			{
+				if(positions[i]!=100) //wenn 100: Spielerposition ist nicht besetzt
+				{
+					if(playerbase[i/2]!=null) //sicherheitshalber abprüfen
+					{
+						playerbase[i/2].setXb(positions[i]);
+						playerbase[i/2].setYb(positions[i+1]);
+					}
+				}
+			}			
+			//Wagen umsetzen
+			if(lastAction.getType()==Actiontype.MOVE_AMBULANCE)
+				placesomething(4, lastAction.getZiel(),lastAction.getStart());
+			else if(lastAction.getType()==Actiontype.MOVE_FIRETRUCK)
+				placesomething(5, lastAction.getZiel(),lastAction.getStart());
+			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
+			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			
+			System.out.println("Back: Wagen bewegen");
+			
+		}
+			
+		if(countActionsThisTurn<1)
+		{
+			if(difficulty==GameDifficulty.BEGINNER)
+				srbbase[activePlayer].setText(this.beginnerswitchtext);
+			else
+				srbbase[activePlayer].setText(switchtext);
+			countActionsThisTurn=0;
+		}
+		
+		removeVisorfield();
+		fillVisorfield();
+		
+	}
+	
+	
 	
 	public void canYouRide(int car, Block start, Block ziel) //4= Ambulanz, 5=Feuerwehr
 	{
@@ -1408,13 +1771,27 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 						forward=false;  //kann nicht direkt weitergehen, erst muss abgefragt werden
 					}
 					else
+					{
 						wannaDriveWithMe[i]=true;
+					}
 				}
 			}
 		}
 		buttoncount=0;
 		if(forward)
+		{
 			placesomething(car, start, ziel);
+			if(car==5)
+			{
+				//aktuellen Spieler umsetzen als Fahrer
+				playerbase[activePlayer].setXb(ziel.getXb());
+				playerbase[activePlayer].setYb(ziel.getYb());
+				wannaDriveWithMe[activePlayer]=false;
+				//Visorfeld umsetzen
+				removeVisorfield();
+				fillVisorfield();
+			}
+		}
 		else
 		{
 			int xbz=ziel.getXb();
@@ -1442,8 +1819,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			}
 			nextRideButton(startindex);
 		}		
-		//canYouDriveWithMe[0]=true;		
-//		wannaDriveWithMe[0]=true;		
+	
 	}
 
 	
@@ -1606,8 +1982,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	public void letsRide()  //Nach Fahrt abfragen, ob die Leute mitwollen
 	{
-		AppInjector.zoneManager().remove(driveButtonField[0]);
-		AppInjector.zoneManager().remove(driveButtonField[1]);
+		if(driveButtonField[0]!=null&&driveButtonField[1]!=null)
+		{
+			AppInjector.zoneManager().remove(driveButtonField[0]);
+			AppInjector.zoneManager().remove(driveButtonField[1]);
+		}
 		for(int i=0;i<6;i++)
 		{
 			if(wannaDriveWithMe[i])
@@ -1619,7 +1998,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			wannaDriveWithMe[i]=false;
 		}
 		placesomething(carride, cargoal, cargoal);
-		this.waiting=false;
+		
 	}
 	
 	
@@ -1651,6 +2030,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			int x=ziel.getXb();
 			int y=ziel.getYb();
 			int newx=0,newy=0; //Zielkoordinaten, zum abprüfen ob dort Menschen sind und zum Mitnehmen der Feuerwehrleute
+			//TODO: evtl anpassen für revert
 			if(x==0)
 			{
 				board[0][y+1].setAmbulance(true);
@@ -1679,7 +2059,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			checkSavedPeople(board[newx][newy]);
 			
 		}
-		if(type==5) //Feuerwehrwagen umsetzen
+		if(type==5||type==8) //Feuerwehrwagen umsetzen
 		{
 			//alte Position entfernen:
 			for(int i=1;i<this.vertical_blocks-1;i++)
@@ -1697,38 +2077,35 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			//passendes Nachbarfeld finden
 			int x=ziel.getXb();
 			int y=ziel.getYb();
-			int newx=0,newy=0; //Zielkoordinaten, zum mitnehmen der Feuerwehrleute
 			if(x==0)
 			{
 				board[0][y+1].setFiretruck(true);
-				newx=0;
-				newy=y+1;
 
 			}
 			else if(x==this.vertical_blocks-1)
 			{
 				board[this.vertical_blocks-1][y-1].setFiretruck(true);
-				newx=this.vertical_blocks-1;
-				newy=y-1;
 
 			}
 			else if(y==0)
 			{
 				board[x-1][0].setFiretruck(true);
-				newx=x-1;
-				newy=0;
+
 
 			}
 			else if(y==this.horizontal_blocks-1)
 			{
 				board[x+1][this.horizontal_blocks-1].setFiretruck(true);
-				newx=x+1;
-				newy=this.horizontal_blocks-1;
+
 
 			}
-			//Leute umsetzen
 			
-			//fsdf
+		}
+		//Spielfiguren platzieren:
+		if(type==6)
+		{
+			playerbase[activePlayer].setXb(ziel.getXb());
+			playerbase[activePlayer].setYb(ziel.getYb());
 		}
 		
 		
@@ -1888,6 +2265,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	private void fillVisorfieldplace(Actiontype type, Block block)
 	{
+		this.waiting=true;
 		if(type==Actiontype.MOVE_AMBULANCE) //Krankenwagen bewegen --> 2 neue Zielfelder (kann nur auf benachbarte AmbulanzFelder gezogen werden)
 		{
 			int x=block.getXb();
@@ -1994,7 +2372,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			float factor1=(float)0.15;
 			float factor2=(float)0.2;
 			visorFill=0;
-			boolean ambulanceInRange=false;
+			boolean ambulanceInRange=false; //nötig, damit sowohl Krankenwagen bewegen (geht von jeder Position aus) und den Feuerwehrmann auf das Feld mit dem Krankenwagen zu bewegen
+			boolean warmnorth=false, warmeast=false, warmsouth=false,warmwest=false; //nötig für Wärmebildkamera, ansonsten ist ein bewegen auf benachbarte Felder mit Interestmarker nicht möglich
+			
 			//Norden
 			Wallblock test=board[x][y].getNorth();
 			if(test==null||test.passage_Wall())
@@ -2005,6 +2385,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				visorFill++;
 				if(board[x-1][y].isAmbulance())
 					ambulanceInRange=true;
+				if(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+					warmnorth=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -2026,6 +2408,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				visorFill++;
 				if(board[x][y+1].isAmbulance())
 					ambulanceInRange=true;
+				if(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+					warmeast=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -2045,6 +2429,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				visorFill++;
 				if(board[x+1][y].isAmbulance())
 					ambulanceInRange=true;
+				if(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+					warmsouth=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -2064,6 +2450,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				visorFill++;
 				if(board[x][y-1].isAmbulance())
 					ambulanceInRange=true;
+				if(playerbase[activePlayer].getSpecialist()==SpecialistType.SPEZIALIST_MIT_WAERMEBILDKAMERA)
+					warmwest=true;
 			}
 			if(test!=null&&test.getWall()!=Walltype.BOARDEND&&(test.getWall()==Walltype.DOOROPEN||!test.passage_Wall()))
 			{
@@ -2093,8 +2481,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				for(int i=1; i<this.vertical_blocks-1;i++)
 					for(int j=1; j<this.horizontal_blocks-1;j++)
 					{
-						if(board[i][j].isInterest())
+						if(board[i][j].isInterest()&&!(i==x-1&&j==y&&warmnorth)&&!(i==x+1&&j==y&&warmsouth)&&!(i==x&&j==y-1&&warmwest)&&!(i==x&&j==y+1&&warmeast))
 						{
+							
 							visorfield[visorFill]=new VisorBlock( this.pic_path,1, board[i][j],board[i][j], (float)(x_offset+j*block_size+factor1*block_size), (float)(y_offset+(i)*block_size+factor1*block_size), longside,longside,this);
 							AppInjector.zoneManager().add(visorfield[visorFill]);
 							visorFill++;
@@ -2102,7 +2491,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					}	
 			}
 			
-			if(!ambulanceInRange)
+			if(!ambulanceInRange) //nur global Krankenwagen suchen, wenn der Spieler nicht direkt neben dem Krankenwagen steht
 			{
 				//Krankenwagen suchen
 				for(int i=1; i<this.vertical_blocks-1;i++) 
@@ -2207,7 +2596,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 * 
 	 */
 	private void init_statusoverview() {
-		// TODO Auto-generated method stub
+		
 		stat= new Statusoverview(this);
 		AppInjector.zoneManager().add(stat);
 		
@@ -2256,10 +2645,61 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			nextPress(command);
 		}
+		else if(command=="player0_revertswitch"&&activePlayer==0&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();		
+		}
+		else if(command=="player1_revertswitch"&&activePlayer==1&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();	
+		}
+		else if(command=="player2_revertswitch"&&activePlayer==2&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();	
+		}
+		else if(command=="player3_revertswitch"&&activePlayer==3&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();		
+		}
+		else if(command=="player4_revertswitch"&&activePlayer==4&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();		
+		}
+		else if(command=="player5_revertswitch"&&activePlayer==5&&!waiting)
+		{
+			if(countActionsThisTurn>0)
+				revertLastAction();		
+		}
 
 		
 		
 	}
+	
+	public void removeOldAmbulanceAndTruck() //alte Fahrzeuge löschen, nötig bei zB Neustart
+	{
+		for(int i=1;i<this.vertical_blocks-1;i++)
+		{
+			board[i][0].setAmbulance(false);
+			board[i][this.horizontal_blocks-1].setAmbulance(false);
+			board[i][0].setFiretruck(false);
+			board[i][this.horizontal_blocks-1].setFiretruck(false);
+		}
+		for(int i=1;i<this.horizontal_blocks-1;i++)
+		{
+			board[0][i].setAmbulance(false);
+			board[this.vertical_blocks-1][i].setAmbulance(false);
+			board[0][i].setFiretruck(false);
+			board[this.vertical_blocks-1][i].setFiretruck(false);
+		}
+	}
+	
+	
+	
 	public void checkWinLoseConditions()
 	{
 		if(this.saved_person>=this.saved_person_to_win)
@@ -2276,6 +2716,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					AppInjector.zoneManager().remove(playerbase[i]);
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove( srbbase[i]);
 					AppInjector.zoneManager().remove(activemarkerfield[i]);
 					AppInjector.zoneManager().remove(playervisualbase[i]);
 				}
@@ -2298,6 +2739,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					AppInjector.zoneManager().remove(playerbase[i]);
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove( srbbase[i]);
 					AppInjector.zoneManager().remove(activemarkerfield[i]);
 					AppInjector.zoneManager().remove(playervisualbase[i]);
 				}
@@ -2320,6 +2762,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					AppInjector.zoneManager().remove(playerbase[i]);
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
+					AppInjector.zoneManager().remove( srbbase[i]);
 					AppInjector.zoneManager().remove(activemarkerfield[i]);
 					AppInjector.zoneManager().remove(playervisualbase[i]);
 				}
@@ -2328,18 +2771,18 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			ngbutton=new NewGameButton(x_offset+block_size*8, y_offset+block_size*5, block_size*2,block_size*2, pic_path);
 			AppInjector.zoneManager().add(ngbutton);
 		}
-
-	
-		
-
 	}
 	
 	public void nextPlayer()
 	{
 		playerbase[activePlayer].end_turn();
 		etbbase[activePlayer].setVisible(false); //Runde beenden Button ausblenden
-
-
+		srbbase[activePlayer].setVisible(false); //Switch/Revert Button ausblenden
+		//Werte für Zug rückgängig resetten
+		countActionsThisTurn=0;
+		lastActionsList.clear();
+			
+		
 		this.currentPhaseState=PhaseStates.STATE_FIRE;
 
 		
@@ -2357,6 +2800,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		this.currentPhaseState=PhaseStates.STATE_PLAYER;
 		playerbase[activePlayer].start_turn();
 		etbbase[activePlayer].setVisible(true); //Runde beenden Button einblenden
+		srbbase[activePlayer].setVisible(true); //Switch/Revert Button einblenden
+		if(difficulty==GameDifficulty.BEGINNER)
+			srbbase[activePlayer].setText(this.beginnerswitchtext);
+		else
+			srbbase[activePlayer].setText(this.switchtext);
 		removeVisorfield();
 		fillVisorfield();
 		}
@@ -2417,7 +2865,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	}
 	public void fireFighterUnderFire(int number)
 	{
-		//TODO: Feuerwehrmann ausserhalb neu platzieren
+		
 		if(this.difficulty==GameDifficulty.BEGINNER)
 		{
 			int difference=100; //Maximale Distanz kann 80 sein
@@ -2513,7 +2961,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			}
 		}
 	}
-	//TODO: nach Feuer ausbreiten Auswirkungen auf Personen-/Interestmarker und Feuerwehrleute testen
+	
+	
+	//nach Feuer ausbreiten Auswirkungen auf Personen-/Interestmarker und Feuerwehrleute testen
 	public void checkAfterExtend()
 	{
 		//Testen, ob die Feuerwehrmänner im Feuer stehen
@@ -2700,7 +3150,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 */
 	private void init_beginningfire() 
 	{
-		// TODO Auto-generated method stub
 		//Feuer verursachen bei Spielbeginn
 		 
 		if(difficulty == GameDifficulty.BEGINNER)
@@ -2938,7 +3387,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			board[0][j].setFire(false);
 			board[vertical_blocks-1][j].setFire(false);
 		}
-		//TODO: Feuerwerhmaenner/Fahrzeuge auf Spielbrett stellen und Startspieler bestimmen
 			
 		
 		
@@ -3145,7 +3593,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			  for (int j=0;j<horizontal_blocks;j++) 
 			  {
 			      board[i][j]= new Block(this); 
-			      AppInjector.zoneManager().add(board[i][j]);
 			      boardvisual[i][j]= new BlockVisual(this, pic_path,board[i][j]); 
 			      AppInjector.zoneManager().add(boardvisual[i][j]);
 			      }

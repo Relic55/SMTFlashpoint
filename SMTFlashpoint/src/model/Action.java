@@ -63,6 +63,7 @@ public class Action extends Zone { //
 		}
 		
 		
+		
 		if((wall==null||(wall!=null&&wall.passage_Wall()))&&current_block!=next_block)
 		{			
 			if(type==Actiontype.MOVE)
@@ -111,18 +112,18 @@ public class Action extends Zone { //
 					return true;
 			}			
 			else if(type==Actiontype.EXTINQUISH_SMOKE)
-			{
-				if(current_block==next_block)
-				{
-					if(current_block.isSmoke())
-						return true;
-				}			
+			{			
 				if(next_block.isSmoke())
 					return true;
 			}	
 			else if(type==Actiontype.MOVE_AMBULANCE)
 			{
 				if(next_block.isAmbulance())
+					return true;
+			}
+			else if(type==Actiontype.IDENTIFY)		//sind benachbarte Felder identifizierbar? Muss mit rein, ansonsten ist Laufen und identifizieren auf benachbartem Feld nicht möglich
+			{
+				if(next_block.isInterest())
 					return true;
 			}
 		}
@@ -133,7 +134,7 @@ public class Action extends Zone { //
 			//nur auf aktuelles Feld ausfuehren
 			if(type==Actiontype.IDENTIFY)		//global
 			{
-				if(current_block.isInterest())
+				if(next_block.isInterest())
 					return true;
 			}
 			else if(type==Actiontype.MOVE_AMBULANCE)   //global

@@ -29,7 +29,7 @@ public class Playerzone extends Zone{
 	
 	public Playerzone(String pic_path,Player ff,GameEngine g, int number, int x, int y, int width, int height)
 	{
-		super(x,y,width,height);
+		super(x,y,0,0); //TODO: abändern
 		
 		size=g.getBlock_size();   //size=AppInjector.engine().getBlock_size(); erzeugt ewigen Aufruf
 		this.x=x;

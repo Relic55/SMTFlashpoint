@@ -39,7 +39,7 @@ public class PlacementWindow extends Zone {
 			fillColor=0xFFdadada;
 		else
 			fillColor=0xFF000000;
-		textsize=(int)(blocksize/90.0*14);
+		textsize=(int)(blocksize/90.0*20);
 		
 		//Text bestimmen
 		if(playerNumber==6)
@@ -58,9 +58,9 @@ public class PlacementWindow extends Zone {
 			
 			pushMatrix();
 			//Anzeige unten
-			translate(x_offset+blocksize*3,y_offset+blocksize*5);
+			translate(x_offset+blocksize*7/2,y_offset+blocksize*9/2);
 			fill(fillColor);
-			rect(0,0,this.width,this.height);
+			rect(0,0,this.width,this.height/2);
 			textAlign(CENTER);
 			fill(255);
 	        textSize(textsize);
@@ -68,10 +68,10 @@ public class PlacementWindow extends Zone {
 		popMatrix();
 		pushMatrix();
 			//Anzeige links
-			translate(x_offset+blocksize*3,y_offset+blocksize*2);
+			translate(x_offset+blocksize*7/2,y_offset+blocksize*5/2);
 			rotate(PI/2);
 			fill(fillColor);
-			rect(0,0,this.width,this.height);
+			rect(0,0,this.width,this.height/2);
 			textAlign(CENTER);
 			fill(255);
 	        textSize(textsize);
@@ -79,10 +79,10 @@ public class PlacementWindow extends Zone {
 		popMatrix();
 		pushMatrix();
 			//Anzeige oben
-			translate(x_offset+blocksize*7,y_offset+blocksize*3);
+			translate(x_offset+blocksize*13/2,y_offset+blocksize*7/2);
 			rotate(PI);
 			fill(fillColor);
-			rect(0,0,this.width,this.height);
+			rect(0,0,this.width,this.height/2);
 			textAlign(CENTER);
 			fill(255);
 	        textSize(textsize);
@@ -90,10 +90,10 @@ public class PlacementWindow extends Zone {
 		popMatrix();
 		pushMatrix();
 			//Anzeige rechts
-			translate(x_offset+blocksize*7,y_offset+blocksize*6);
+			translate(x_offset+blocksize*13/2,y_offset+blocksize*11/2);
 			rotate(PI*3/2);
 			fill(fillColor);
-			rect(0,0,this.width,this.height);
+			rect(0,0,this.width,this.height/2);
 			textAlign(CENTER);
 			fill(255);
 	        textSize(textsize);
@@ -105,7 +105,7 @@ public class PlacementWindow extends Zone {
 		else if(playerNumber==0)
 		{			
 			pushMatrix();
-			translate(x_offset-blocksize*2,y_offset+blocksize*13/2);
+			translate(x_offset-blocksize*3,y_offset+blocksize*13/2);
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
@@ -117,7 +117,7 @@ public class PlacementWindow extends Zone {
 		else if(playerNumber==5)
 		{			
 			pushMatrix();
-			translate(x_offset+blocksize*9,y_offset+blocksize*13/2);
+			translate(x_offset+blocksize*10,y_offset+blocksize*13/2);
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
@@ -129,7 +129,7 @@ public class PlacementWindow extends Zone {
 		else if(playerNumber==2)
 		{
 			pushMatrix();
-			translate(x_offset+blocksize*1,y_offset+blocksize*3/2);
+			translate(x_offset,y_offset+blocksize*3/2);
 			rotate(PI);
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
@@ -142,7 +142,7 @@ public class PlacementWindow extends Zone {
 		else if(playerNumber==3)
 		{
 			pushMatrix();
-			translate(x_offset+blocksize*12,y_offset+blocksize*3/2);
+			translate(x_offset+blocksize*13,y_offset+blocksize*3/2);
 			rotate(PI);
 			fill(fillColor);
 			rect(0,0,this.width,this.height);

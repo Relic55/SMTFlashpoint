@@ -16,12 +16,10 @@ public class Player extends Zone{
 	
 	private SpecialistType specialist;
 	private PlayerColor playerColor;
-	//private int fillColor;
 	private Integer xb,yb, ap, sp, apgain, spgain; 
-	//float xpos,ypos;
 	private GameEngine g;
 	private boolean noapcost=false; //keine Kosten zu Testzwecken
-	//TODO: entfernen
+	private int lastSpendAp=0, lastSpendSp=0; //nötig für Zug rückgängig 
 	
 	
 	 public Player(GameEngine g)	 
@@ -231,7 +229,9 @@ public class Player extends Zone{
 		if(type==Actiontype.MOVE||type==Actiontype.MOVE_WITH_HEALED_PERSON)
 		{
 			if (this.specialist==SpecialistType.RETTUNGSSPEZIALIST&&sp>0)
+			{
 				this.spend_sp(1);
+			}
 			else if(ap>0)
 				this.spend_ap(1);
 			 
@@ -345,6 +345,7 @@ public class Player extends Zone{
 		if(ap>=anz)
 		{
 			ap-=anz;
+			lastSpendAp=anz;
 			return true;
 		}
 		return false;
@@ -354,9 +355,27 @@ public class Player extends Zone{
 		if(sp>=anz)
 		{
 			sp-=anz;
+			lastSpendSp=anz;
 			return true;
 		}
 		return false;
+	}
+	public void increase_ap(Integer anz)
+	{
+
+			ap+=anz;
+
+	}
+	public void increase_sp(Integer anz)
+	{
+
+			sp+=anz;
+
+	}
+	public void resetSpendPoints()
+	{
+		lastSpendSp=0;
+		lastSpendAp=0;
 	}
 
 	
@@ -464,6 +483,20 @@ public class Player extends Zone{
 	 */
 	public void setYb(Integer yb) {
 		this.yb = yb;
+	}
+
+	/**
+	 * @return the lastSpendAp
+	 */
+	public int getLastSpendAp() {
+		return lastSpendAp;
+	}
+
+	/**
+	 * @return the lastSpendSp
+	 */
+	public int getLastSpendSp() {
+		return lastSpendSp;
 	}
 	
 }

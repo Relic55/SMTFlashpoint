@@ -75,7 +75,10 @@ public class PlayerVisual extends Zone{
 	@Override
 	public void draw() {
 		if(player.getXb()==100||player.getYb()==100)
+		{
 			return;
+			//TODO: Figuren beim Spieler anzeigen vorm Platzieren
+		}
 		
 
 		//fill(fillColor);

@@ -74,6 +74,23 @@ public class Wallblock extends Zone {
 		}				
 		return 0;
 	}
+	
+	public void build_Wall()		//Wand einschlagen rückgängig
+	{
+
+		if(wall==Walltype.WALLDESTROYED)
+		{
+			wall=Walltype.WALLDAMAGED;
+
+		}		
+		else if(wall==Walltype.WALLDAMAGED)
+		{
+			wall=Walltype.WALL;
+
+		}				
+	}
+	
+	
 	public boolean passage_Wall() //ist der Wallabschnitt begehbar
 	{
 		if(wall==null)
