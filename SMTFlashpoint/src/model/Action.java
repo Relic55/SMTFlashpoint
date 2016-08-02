@@ -10,7 +10,7 @@ import vialab.SMT.Zone;
  * CONTROL_FIREFIGHTER fehlt
  * Zeile 108 USE_FIRETRUCK weitere Kriterien notwendig
  */
-public class Action extends Zone { // 
+public class Action{ // 
 	private int apcost;
 	private Actiontype type;
 
@@ -222,15 +222,6 @@ public class Action extends Zone { //
 		return type;
 	}
 
-	@Override
-	public void draw()
-	{
-		
-	}
-	@Override
-	public void touch()
-	{
-		
-	}
+
 	
 }

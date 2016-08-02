@@ -49,7 +49,7 @@ public class VisorBlock extends Zone{
 		size=g.getBlock_size();
 		x_offset=g.getX_offset();
 		y_offset=g.getY_offset();
-		this.type=type; //1= Block, 2=horizontaler Wall, 3=vertikaler Wall
+		this.type=type; //1= Block, 2=horizontaler Wall, 3=vertikaler Wall, 4=Krankenwagen fahren, 5= Feuerwehr fahren, 6= Spielerposition zu Beginn des Spiels, 7= Krankenwagenposition zu Beginn des Spiels, 8=Feuerwehr zu Beginn des Spiels
 		
 	}
 	

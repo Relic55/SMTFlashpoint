@@ -12,7 +12,7 @@ import vialab.SMT.Zone;
  */
 public class PlacementWindow extends Zone {
 	private int x_offset,y_offset,width,height,blocksize, playerNumber,textsize;
-	private int fillColor;
+	private int fillColor, textColor;
 	private String windowText;
 	
 	public PlacementWindow(int x_offset, int y_offset, int blocksize, int playerNumber, PlayerColor buttonColor)
@@ -21,10 +21,10 @@ public class PlacementWindow extends Zone {
 		this.x_offset=x_offset;
 		this.y_offset=y_offset;
 		this.width=3*blocksize;
-		this.height=2*blocksize;
+		this.height=blocksize;
 		this.playerNumber=playerNumber;
 		this.blocksize=blocksize;
-
+		textColor=0;
 		if(buttonColor==PlayerColor.GREEN)
 			fillColor=0xFF1c5b2e;
 		else if(buttonColor==PlayerColor.ORANGE)
@@ -39,8 +39,10 @@ public class PlacementWindow extends Zone {
 			fillColor=0xFFdadada;
 		else
 			fillColor=0xFF000000;
+		
 		textsize=(int)(blocksize/90.0*20);
 		
+			
 		//Text bestimmen
 		if(playerNumber==6)
 			windowText="Krankenwagen \nplatzieren";
@@ -109,9 +111,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(0);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 		else if(playerNumber==5)
@@ -121,9 +123,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(0);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 		else if(playerNumber==2)
@@ -134,9 +136,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(0);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 		else if(playerNumber==3)
@@ -147,9 +149,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(0);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 		else if(playerNumber==1)
@@ -160,9 +162,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(255);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 		else if(playerNumber==4)
@@ -174,9 +176,9 @@ public class PlacementWindow extends Zone {
 			fill(fillColor);
 			rect(0,0,this.width,this.height);
 			textAlign(CENTER);
-			fill(255);
+			fill(textColor);
 	        textSize(textsize);
-	        text(windowText,width/2,height/7);
+	        text(windowText,width/2,height/3);
 	        popMatrix();
 		}
 	}

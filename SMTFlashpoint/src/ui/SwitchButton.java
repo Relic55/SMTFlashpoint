@@ -37,7 +37,7 @@ public class SwitchButton extends Zone {
 		this.playerNumber=playerNumber;
 		this.direction=direction;   //1= weiter,   2= vorher
 		this.what=what;
-		delay=g.getDelay();
+		delay=g.getDelay()/2;
 		arrowimage=Utility.getImage(pic_path+"/Pfeil_rechts.png");
 		
 		 //direction: 1= weiter,   2= vorher

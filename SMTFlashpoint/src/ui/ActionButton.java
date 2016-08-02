@@ -41,7 +41,7 @@ public class ActionButton extends Zone{
 		
 		buttonImage=Utility.getImage(type.getType().path);
 		tsize=(int)(AppInjector.engine().getBlock_size()/90.0*25);
-		if(type.getType()==Actiontype.HEAL_PERSON) //weiss auf weissem Hintergrund eher ungünstig
+		if(type.getType()==Actiontype.HEAL_PERSON||type.getType()==Actiontype.MOVE_CARRY_AND_HEALED||type.getType()==Actiontype.MOVE_WITH_HEALED_PERSON||type.getType()==Actiontype.TRANSPORT_DANGER_AND_HEALED) //weiss auf weissem Hintergrund eher ungünstig
 			textcolor=0;
 		else
 			textcolor=255;

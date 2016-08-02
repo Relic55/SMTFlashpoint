@@ -38,13 +38,23 @@ public class Statusoverview extends Zone{
 		//noStroke();
 		fill(0xFFFFD700);
         rect(x1,y1,size,size*4);
-        fill(0);
+        
         textSize((int)(size/90.0*14));
         
-        
+        if(g.getBuildingdamage()<18)
+        	fill(0);
+        else
+        	fill(100,0,0);
         text("Dmg: "+g.getBuildingdamage()+"/24", (float)(x1+0.15*size),(float)(y1+0.8*size));
+        fill(0);
         text("Save: "+g.getSaved_person()+"/7", (float)(x1+0.15*size),(float)(y1+1.6*size));
+        if(g.getDead_person()<3)
+        	fill(0);
+        else
+        	fill(100,0,0);
+        
         text("Dead: "+g.getDead_person()+"/4", (float)(x1+0.15*size),(float)(y1+2.4*size));
+        fill(0);
         text("Seat: "+g.getInactive_seats(), (float)(x1+0.15*size),(float)(y1+3.2*size));
         
         //rotate(PI/2);
@@ -56,9 +66,19 @@ public class Statusoverview extends Zone{
         fill(0);
         translate(x2,y1);
         rotate(PI);
+        if(g.getBuildingdamage()<18)
+        	fill(0);
+        else
+        	fill(100,0,0);
         text("Dmg: "+g.getBuildingdamage()+"/"+g.getMaxbuildingdamage(),(float)(-size+ 0.15*size),(float)(-4*size+0.8*size));
+        fill(0);
         text("Save: "+g.getSaved_person()+"/7", (float)(-size+ 0.15*size),(float)(-4*size+1.6*size));
+        if(g.getDead_person()<3)
+        	fill(0);
+        else
+        	fill(100,0,0);
         text("Dead: "+g.getDead_person()+"/4", (float)(-size+ 0.15*size),(float)(-4*size+2.4*size));
+        fill(0);
         text("Seat: "+g.getInactive_seats(), (float)(-size+ 0.15*size),(float)(-4*size+3.2*size));
         this.popMatrix();
 		

@@ -12,7 +12,7 @@ import vialab.SMT.Zone;
  * @author Relic
  *
  */
-public class Player extends Zone{
+public class Player{
 	
 	private SpecialistType specialist;
 	private PlayerColor playerColor;
@@ -397,24 +397,7 @@ public class Player extends Zone{
 		
 	}
 	
-	@Override
-	public void draw() {
-		/*
-		if(xb==100||yb==100)
-			return;
-		int size=g.getBlock_size();
-		//noStroke();
 
-		fill(fillColor);
-              ellipse(g.getX_offset()+(yb*size)+(xpos),g.getY_offset()+xb*size+(ypos), (size*80/100/3),(size*80/100/3) );
-		//image(picture,x,y,width,height);
-		 
-		 */
-	}
-	@Override
-	public void touch() {
-		//drag();
-	}
 	/**
 	 * @return the ap
 	 */

@@ -29,22 +29,7 @@ public class Block{
 	
 	private boolean firetruckplace=false;
 	private boolean ambulanceplace=false;
-	
-//	private String pic_path;
-//	private PImage fireimage;
-//	private PImage smokeimage;
-//	private PImage interestimage;
-//	private PImage dangerimage;
-//	private PImage seatimage;
-//	private PImage closeddoorimage;
-//	private PImage opendoorimage;
-//	private PImage catimage;
-//	private PImage healoverlayimage;
-//	private PImage firetruckimage;
-//	private PImage ambulanceimage;
-	
-	
-	
+		
 	public Block(GameEngine g)
 	{
 		
@@ -73,17 +58,6 @@ public class Block{
 		size=g.getBlock_size();
 		x_offset=g.getX_offset();
 		y_offset=g.getY_offset();
-//		fireimage=Utility.getImage(pic_path+"/Feuer.gif");
-//		smokeimage=Utility.getImage(pic_path+"/Rauch.gif") ;
-//		interestimage=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
-//		dangerimage=Utility.getImage(pic_path+"/Marker_Gefahrenstoff.gif");
-//		seatimage=Utility.getImage(pic_path+"/Brandherd.gif");
-//		closeddoorimage=Utility.getImage(pic_path+"/Marker_Tuer_geschlossen.gif");
-//		opendoorimage=Utility.getImage(pic_path+"/Marker_Tuer_offen.gif");
-//		catimage=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
-//		healoverlayimage=Utility.getImage(pic_path+"/Marker_Person_geheilt.gif");
-//		firetruckimage= Utility.getImage(pic_path+"/Feuerwehrwagen.gif");
-//		ambulanceimage=Utility.getImage(pic_path+"/Krankenwagen.gif");
 	}
 	public void set_all(int xb, int yb, boolean inside_Block,boolean smoke, boolean fire, Integer danger ,boolean interest, boolean seat,Integer people ,Integer healed_people,Wallblock north,Wallblock east,Wallblock south,Wallblock west )
 	{

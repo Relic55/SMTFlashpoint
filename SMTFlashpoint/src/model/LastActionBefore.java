@@ -10,10 +10,11 @@ package model;
 public class LastActionBefore {
 	private Actiontype type;
 	private Player player;
-	private Block start, ziel;
+	private Block start, ziel, side; //side : zweiter Block des Ambulanz Ziels
 	private Wallblock wall;
 	private int spendAP=0,spendSP=0;
 	private int[] playerPositions=new int[12];
+	private int savedhealpeople, savedpeople,sidesavedhealpeople,sidesavedpeople;
 
 	public LastActionBefore(Actiontype type, Player player, Block start, Block ziel, Wallblock wall)
 	{
@@ -38,6 +39,12 @@ public class LastActionBefore {
 		this.playerPositions[9]=p4y;
 		this.playerPositions[10]=p5x;
 		this.playerPositions[11]=p5y;
+		
+		side=null;
+		savedhealpeople=0; 
+		savedpeople=0;
+		sidesavedhealpeople=0;
+		sidesavedpeople=0;
 	}
 	
 	public void setAP(int anz)
@@ -72,6 +79,9 @@ public class LastActionBefore {
 	public Block getZiel() {
 		return ziel;
 	}
+	public Block getSide() {
+		return side;
+	}
 	/**
 	 * @return the wall
 	 */
@@ -95,5 +105,51 @@ public class LastActionBefore {
 	 */
 	public int[] getPlayerPositions() {
 		return playerPositions;
+	}
+	/**
+	 * @return the savedhealpeople
+	 */
+	public int getSavedhealpeople() {
+		return savedhealpeople;
+		
+	}
+	public int getSavedhealpeopleSide() {
+		return sidesavedhealpeople;
+	}
+	/**
+	 * @param savedhealpeople the savedhealpeople to set
+	 */
+	public void setSavedhealpeople(int savedhealpeople) {
+		this.savedhealpeople = savedhealpeople;
+	}
+	public void setSavedhealpeopleSide(int savedhealpeople) {
+		this.sidesavedhealpeople = savedhealpeople;
+	}
+	/**
+	 * @return the savedpeople
+	 */
+	public int getSavedpeople() {
+		return savedpeople;
+	}
+	public int getSavedpeopleSide() {
+		return sidesavedpeople;
+	}
+	/**
+	 * @param savedpeople the savedpeople to set
+	 */
+	public void setSavedpeople(int savedpeople) {
+		this.savedpeople = savedpeople;
+	}
+	public void setSavedpeopleSide(int savedpeople) {
+		this.sidesavedpeople = savedpeople;
+	}
+	/**
+	 * @param ziel the ziel to set
+	 */
+	public void setZiel(Block ziel) {
+		this.ziel = ziel;
+	}
+	public void setSide(Block side) {
+		this.ziel = side;
 	}
 }

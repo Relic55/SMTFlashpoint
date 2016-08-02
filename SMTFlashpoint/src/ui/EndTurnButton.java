@@ -45,7 +45,7 @@ public class EndTurnButton  extends ButtonZone{
 		this.width=width;
 		this.playerNumber=playerNumber;
 		this.setForm(Form.RECTANGLE);
-		this.setFontSize((int)(g.getBlock_size()/90.0*27));
+		this.setFontSize((int)(g.getBlock_size()/90.0*24));
 		
 		if(playerNumber==0)
 			this.setButtonCommand(CMD_PLAYER_TURNEND_0);

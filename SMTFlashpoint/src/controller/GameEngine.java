@@ -200,6 +200,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	private int countActionsThisTurn=0;
 	private LastActionBefore lastAction;
 	private ArrayList<LastActionBefore> lastActionsList=new ArrayList<LastActionBefore>();
+	private boolean revertinProgress=false;
 	
 	
 	
@@ -1427,7 +1428,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					positions[i*2+1]=100;
 				}
 			}			
-			//ArrayList für Actionen diese Runde erweitern
+			//ArrayList für Aktionen diese Runde erweitern
 			countActionsThisTurn++;
 			
 			//startblock mit Fahrzeug ermitteln
@@ -1470,7 +1471,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			this.actionTouched=false;
 			removeVisorfield();
 			//Visor für Zielplatz anzeigen
-			fillVisorfieldplace(what.getType(), start);
+			fillVisorfieldplace(what.getType(), ziel);
 			
 			System.out.println("Wagen bewegen");
 		}
@@ -1730,7 +1731,44 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 						playerbase[i/2].setYb(positions[i+1]);
 					}
 				}
-			}			
+			}		
+			//TODO: gerettete Personen resetten
+			if(lastAction.getSavedpeople()>0)
+			{
+				System.out.println("Saved ");
+				lastAction.getZiel().setPeople(lastAction.getSavedpeople());
+				this.interest_onboard+=lastAction.getSavedpeople();
+				this.saved_person-=lastAction.getSavedpeople();
+				person_marker+=lastAction.getSavedpeople();
+			}
+			if(lastAction.getSavedhealpeople()>0)
+			{
+				System.out.println("Savedheal ");
+				lastAction.getZiel().setHealed_people(lastAction.getSavedhealpeople());
+				this.interest_onboard+=lastAction.getSavedhealpeople();
+				this.saved_person-=lastAction.getSavedhealpeople();
+				person_marker+=lastAction.getSavedhealpeople();
+			}
+			if(lastAction.getSide()!=null)
+			{
+				if(lastAction.getSavedpeopleSide()>0)
+				{
+					System.out.println("SideSaved ");
+					lastAction.getSide().setPeople(lastAction.getSavedpeopleSide());
+					this.interest_onboard+=lastAction.getSavedpeopleSide();
+					this.saved_person-=lastAction.getSavedpeopleSide();
+					person_marker+=lastAction.getSavedpeopleSide();
+				}
+				if(lastAction.getSavedhealpeopleSide()>0)
+				{
+					System.out.println("SideSavedHeal ");
+					lastAction.getSide().setHealed_people(lastAction.getSavedhealpeopleSide());
+					this.interest_onboard+=lastAction.getSavedhealpeopleSide();
+					this.saved_person-=lastAction.getSavedhealpeopleSide();
+					person_marker+=lastAction.getSavedhealpeopleSide();
+				}
+			}
+			revertinProgress=true;
 			//Wagen umsetzen
 			if(lastAction.getType()==Actiontype.MOVE_AMBULANCE)
 				placesomething(4, lastAction.getZiel(),lastAction.getStart());
@@ -1738,8 +1776,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				placesomething(5, lastAction.getZiel(),lastAction.getStart());
 			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
 			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
-			
-			//TODO: gerettete Personen resetten
+			System.out.println("	   Saved: " +lastAction.getSavedpeople() +"  SavedHeal: " +lastAction.getSavedhealpeople());
+			System.out.println("Side   Saved: " +lastAction.getSavedpeopleSide() +"  SavedHeal: " +lastAction.getSavedhealpeopleSide());
+			revertinProgress=false;
 			//this.interest_onboard++;
 			
 			System.out.println("Back: Wagen bewegen");
@@ -2071,8 +2110,35 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				newx=x+1;
 				newy=this.horizontal_blocks-1;
 			}
-			checkSavedPeople(ziel);
-			checkSavedPeople(board[newx][newy]);
+			if(!revertinProgress&&type==4&&countActionsThisTurn>0&&lastActionsList.get(countActionsThisTurn-1)!=null)
+			{
+				//TODO:Anzahl Personen auf dem Zielfeld merken für rückgängig machen, ebenso das Zielfeld merken
+				System.out.println("Ziel einfügen: "+ ziel.getXb() +"  "+ ziel.getYb());
+				lastActionsList.get(countActionsThisTurn-1).setSide(ziel);
+				lastActionsList.get(countActionsThisTurn-1).setSavedpeopleSide(ziel.getPeople());
+				lastActionsList.get(countActionsThisTurn-1).setSavedhealpeopleSide(ziel.getHealed_people());
+				System.out.println("Side einfügen: "+ board[newx][newy].getXb() +"  "+ board[newx][newy].getYb());
+				lastActionsList.get(countActionsThisTurn-1).setZiel(board[newx][newy]);
+				lastActionsList.get(countActionsThisTurn-1).setSavedpeople(board[newx][newy].getPeople());
+				lastActionsList.get(countActionsThisTurn-1).setSavedhealpeople(board[newx][newy].getHealed_people());
+				
+//				System.out.println("Ziel einfügen: "+ ziel.getXb() +"  "+ ziel.getYb());
+//				lastActionsList.get(countActionsThisTurn-1).setZiel(ziel);
+//				lastActionsList.get(countActionsThisTurn-1).setSavedpeople(ziel.getPeople());
+//				lastActionsList.get(countActionsThisTurn-1).setSavedhealpeople(ziel.getHealed_people());
+//				System.out.println("Side einfügen: "+ board[newx][newy].getXb() +"  "+ board[newx][newy].getYb());
+//				lastActionsList.get(countActionsThisTurn-1).setSide(board[newx][newy]);
+//				lastActionsList.get(countActionsThisTurn-1).setSavedpeopleSide(board[newx][newy].getPeople());
+//				lastActionsList.get(countActionsThisTurn-1).setSavedhealpeopleSide(board[newx][newy].getHealed_people());
+				
+			}
+			if(!revertinProgress)
+			{
+				checkSavedPeople(ziel);
+				checkSavedPeople(board[newx][newy]);
+			}
+			
+			
 			
 		}
 		if(type==5||type==8) //Feuerwehrwagen umsetzen
