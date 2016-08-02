@@ -893,7 +893,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			//Spieler
 			playerbase[0]=new Player(this);
 			playerbase[0].setplayer(stype, pcolor, 0, 100, 100);	
-			AppInjector.zoneManager().add(playerbase[0]);
+
 			//Spielervisualisierung
 			playervisualbase[0]=new PlayerVisual(this, playerbase[0],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[0]);
@@ -917,7 +917,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			playerbase[1]=new Player(this);
 			playerbase[1].setplayer(stype, pcolor, 0, 100, 100);
-			AppInjector.zoneManager().add(playerbase[1]);
+
 			playervisualbase[1]=new PlayerVisual(this, playerbase[1],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[1]);
 			etbbase[1]=new EndTurnButton((x_offset-3*block_size),(int)(y_offset+1*block_size),block_size*2, block_size,1,playerbase[1].getPlayerColor(),this);
@@ -936,7 +936,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			playerbase[2]=new Player(this);
 			playerbase[2].setplayer(stype, pcolor,0, 100, 100);
-			AppInjector.zoneManager().add(playerbase[2]);
+
 			playervisualbase[2]=new PlayerVisual(this, playerbase[2],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[2]);
 			etbbase[2]=new EndTurnButton((x_offset-2*block_size),(int)(y_offset),block_size*2, block_size,2,playerbase[2].getPlayerColor(),this);
@@ -955,7 +955,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			playerbase[3]=new Player(this);
 			playerbase[3].setplayer(stype, pcolor, 0, 100, 100);
-			AppInjector.zoneManager().add(playerbase[3]);
+
 			playervisualbase[3]=new PlayerVisual(this, playerbase[3],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[3]);
 			etbbase[3]=new EndTurnButton((x_offset+14*block_size),(int)(y_offset),block_size*2, block_size,3,playerbase[3].getPlayerColor(),this);
@@ -974,7 +974,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			playerbase[4]=new Player(this);
 			playerbase[4].setplayer(stype, pcolor, 0, 100, 100);
-			AppInjector.zoneManager().add(playerbase[4]);
+
 			playervisualbase[4]=new PlayerVisual(this, playerbase[4],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[4]);
 			etbbase[4]=new EndTurnButton((x_offset+13*block_size),(int)(y_offset+3*block_size),block_size*2, block_size,4,playerbase[4].getPlayerColor(),this);
@@ -993,7 +993,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		{
 			playerbase[5]=new Player(this);
 			playerbase[5].setplayer(stype, pcolor,  0, 100, 100);
-			AppInjector.zoneManager().add(playerbase[5]);
+
 			playervisualbase[5]=new PlayerVisual(this, playerbase[5],pic_path);
 			AppInjector.zoneManager().add(playervisualbase[5]);
 			etbbase[5]=new EndTurnButton((x_offset+12*block_size),(int)(y_offset+8*block_size),block_size*2, block_size,5,playerbase[5].getPlayerColor(),this);
@@ -1526,12 +1526,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			{
 				if(difficulty==GameDifficulty.BEGINNER) //Person wurde gerettet, wenn sie ausserhalb des Gebäudes ist
 				{
+					this.interest_onboard++;
 					this.saved_person--;
 				}
 				else
 				{
 					if(lastAction.getZiel().isAmbulance())
+					{
+						this.interest_onboard++;
 						this.saved_person--;
+					}
 					else
 						lastAction.getZiel().reducePeople();
 				}
@@ -1553,7 +1557,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			lastAction.getStart().increaseHealedPeople();
 			//Test, ob Personen gerettet wurden
 			if(lastAction.getZiel().isAmbulance())
+			{
+				this.interest_onboard++;
 				this.saved_person--;
+			}
 			else
 				lastAction.getZiel().reduceHealedPeople();
 
@@ -1573,7 +1580,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			//Test, ob Personen gerettet wurden
 
 			if(lastAction.getZiel().isAmbulance())
+			{
+				this.interest_onboard++;
 				this.saved_person--;
+			}
 			else
 			{
 				lastAction.getZiel().reduceHealedPeople();
@@ -1614,7 +1624,10 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				lastAction.getZiel().reduceDanger();
 			//Test, ob Personen gerettet wurden
 			if(lastAction.getZiel().isAmbulance())
+			{
+				this.interest_onboard++;
 				this.saved_person--;
+			}
 			else
 				lastAction.getZiel().reduceHealedPeople();
 			
@@ -1725,6 +1738,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				placesomething(5, lastAction.getZiel(),lastAction.getStart());
 			playerbase[this.activePlayer].increase_ap(lastAction.getSpendAP()); 
 			playerbase[this.activePlayer].increase_sp(lastAction.getSpendSP());
+			
+			//TODO: gerettete Personen resetten
+			//this.interest_onboard++;
 			
 			System.out.println("Back: Wagen bewegen");
 			
@@ -2713,7 +2729,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			{
 				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
 				{
-					AppInjector.zoneManager().remove(playerbase[i]);
+
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
 					AppInjector.zoneManager().remove( srbbase[i]);
@@ -2736,7 +2752,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			{
 				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
 				{
-					AppInjector.zoneManager().remove(playerbase[i]);
+	
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
 					AppInjector.zoneManager().remove( srbbase[i]);
@@ -2759,7 +2775,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			{
 				if(playerbase[i]!=null)//alte Zonen löschen, bei Neustart nötig
 				{
-					AppInjector.zoneManager().remove(playerbase[i]);
+
 					AppInjector.zoneManager().remove(playerzonebase[i]);
 					AppInjector.zoneManager().remove( etbbase[i]);
 					AppInjector.zoneManager().remove( srbbase[i]);
