@@ -31,6 +31,7 @@ import controller.listener.IActionListener;
 import controller.listener.ILevelListener;
 import controller.listener.ISwitchListener;
 import model.Actiontype;
+import model.AnimationKind;
 import model.Action;
 import model.Block;
 import model.GameDifficulty;
@@ -47,6 +48,7 @@ import processing.data.JSONArray;
 import processing.data.JSONObject;
 import ui.ActionButton;
 import ui.ActiveMarker;
+import ui.AnimationToken;
 import ui.Background;
 import ui.BlockVisual;
 import ui.ColorSelection;
@@ -203,6 +205,15 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	private boolean revertinProgress=false;
 	
 	
+	//Animationen
+	
+	private AnimationToken animation;
+	private boolean animationInProgess=false;
+	private long animationDuration=2000; //Animationsdauer in Millisekunden
+	private boolean animationactivated=true; //Für Spiele ohne Animation: auf false setzen
+	
+	
+	
 	
 	
 	private GameStates currentGameState;
@@ -274,6 +285,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			AppInjector.zoneManager().remove(ending);
 			ending=null;
 		}
+		if(animation!=null) //alte Animation entfernen
+			AppInjector.zoneManager().remove(animation);
 		
 		
 		currentLevel = 1;
@@ -314,6 +327,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		carride=4;
 		driveButtonField[0]=null;
 		driveButtonField[1]=null;
+		animation=null;
+		animationInProgess=false;
 		rand = new Random();
 		removeOldAmbulanceAndTruck();
 		init_blocks(json_path+"/block_start_json.json");
@@ -3114,23 +3129,75 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	//Feuer ausbreiten
 	public void extendFire()
 	{
+		//TODO: Animationen  //Nach Neustart fehlen Animationen
 		boolean seatonspot=false;		//true, wenn auf aktuellem Feld ein Brandherd ist (muss gemerkt werden, da bei Gefahrenstoffexplosion ein neuer Brandherd entstehen kann)
 		int randomvalue = rand.nextInt(8)+1;
 		int randomvaluered = rand.nextInt(6)+1;
 		System.out.println("Zielfeld: "+ randomvaluered + ": " + randomvalue );
 		if(!board[randomvaluered][randomvalue].isFire()&&!board[randomvaluered][randomvalue].isSmoke())
-		{
+		{ //neuer Rauchmarker
+			if(this.currentPhaseState==PhaseStates.STATE_FIRE&&animationactivated)
+			{
+				if(animation!=null) //alte Animation entfernen
+					AppInjector.zoneManager().remove(animation);
+				this.animationInProgess=true;
+				animation=new AnimationToken(x_offset+block_size*randomvalue, y_offset+block_size*randomvaluered, block_size, block_size, this, AnimationKind.NEWSMOKE, pic_path);
+				AppInjector.zoneManager().add(animation);
+				
+
+//				long t= System.currentTimeMillis();
+//				long end = t+this.animationDuration;
+//				while(System.currentTimeMillis() < end) {
+//					
+//				}
+
+
+			}
 			board[randomvaluered][randomvalue].setSmoke(true);
 			System.out.println("neuer Rauchmarker auf: "+ randomvaluered + ": " + randomvalue );
 		}
 		else if(board[randomvaluered][randomvalue].isSmoke())
-		{
+		{ //Rauchmarker wird zu Feuermarker
+			if(this.currentPhaseState==PhaseStates.STATE_FIRE&&animationactivated)
+			{
+				if(animation!=null) //alte Animation entfernen
+					AppInjector.zoneManager().remove(animation);
+				this.animationInProgess=true;
+				animation=new AnimationToken(x_offset+block_size*randomvalue, y_offset+block_size*randomvaluered, block_size, block_size, this, AnimationKind.NEWFIREONSMOKE, pic_path);
+				AppInjector.zoneManager().add(animation);
+				
+
+//				long t= System.currentTimeMillis();
+//				long end = t+this.animationDuration;
+//				while(System.currentTimeMillis() < end) {
+//	
+//				}
+
+			}
+			
 			board[randomvaluered][randomvalue].setSmoke(false);
 			board[randomvaluered][randomvalue].setFire(true);
 			System.out.println("neuer Feuermarker auf: "+ randomvaluered + ": " + randomvalue );
 		}
 		else if(board[randomvaluered][randomvalue].isFire())
-		{
+		{//Explosion
+			if(this.currentPhaseState==PhaseStates.STATE_FIRE&&animationactivated)
+			{
+				if(animation!=null) //alte Animation entfernen
+					AppInjector.zoneManager().remove(animation);
+				this.animationInProgess=true;
+				animation=new AnimationToken(x_offset+block_size*randomvalue, y_offset+block_size*randomvaluered, block_size, block_size, this, AnimationKind.EXPLOSION, pic_path);
+				AppInjector.zoneManager().add(animation);
+				
+
+//				long t= System.currentTimeMillis();
+//				long end = t+this.animationDuration;
+//				while(System.currentTimeMillis() < end) {
+//	
+//				}
+
+			}
+			
 			explosion(randomvaluered,randomvalue);	
 			System.out.println("Explosion auf: "+ randomvaluered + ": " + randomvalue );
 		}
@@ -3156,6 +3223,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 							test=board[i][j].checkneightbors_Fire(i,j);
 							if(test)
 							{
+//								if(animation!=null) //alte Animation entfernen
+//									AppInjector.zoneManager().remove(animation);
+//								this.animationInProgess=true;
+//								animation=new AnimationToken(x_offset+block_size*randomvalue, y_offset+block_size*randomvaluered, block_size, block_size, this, AnimationKind.NEWFIREONSMOKE, pic_path);
+//								AppInjector.zoneManager().add(animation);
 								smokesearch=true;
 								System.out.println("Rauch auf Feuer gedreht beim Durchsuchen auf: "+ i + ": " + j );
 							}
@@ -4064,6 +4136,42 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 */
 	public int getDelay() {
 		return delay;
+	}
+	/**
+	 * @return the animation
+	 */
+	public AnimationToken getAnimation() {
+		return animation;
+	}
+	/**
+	 * @param animation the animation to set
+	 */
+	public void setAnimation(AnimationToken animation) {
+		this.animation = animation;
+	}
+	/**
+	 * @return the animationInProgess
+	 */
+	public boolean isAnimationInProgess() {
+		return animationInProgess;
+	}
+	/**
+	 * @param animationInProgess the animationInProgess to set
+	 */
+	public void setAnimationInProgess(boolean animationInProgess) {
+		this.animationInProgess = animationInProgess;
+	}
+	/**
+	 * @return the animationDuration
+	 */
+	public long getAnimationDuration() {
+		return animationDuration;
+	}
+	/**
+	 * @return the pic_path
+	 */
+	public String getPic_path() {
+		return pic_path;
 	}
 
 

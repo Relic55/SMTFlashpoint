@@ -4,7 +4,9 @@
 package ui;
 
 import controller.GameEngine;
+import processing.core.PImage;
 import util.AppInjector;
+import util.io.Utility;
 import vialab.SMT.Zone;
 
 /**
@@ -18,6 +20,8 @@ public class Statusoverview extends Zone{
 	private int x1, y1, x2, y2;			//Position fuer die Anzeige
 	private int size;
 	private GameEngine g;
+	private String pic_path;
+	private PImage seatimage, catimage, savedimage, deadimage;
 	
 	
 
@@ -31,6 +35,11 @@ public class Statusoverview extends Zone{
 		x1=g.getX_offset()-size;
 		y1=g.getY_offset()+2*size;
 		x2=x1+11*size;
+		pic_path=g.getPic_path();
+		seatimage=Utility.getImage(pic_path+"/Brandherd.gif");
+		catimage=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
+		savedimage=Utility.getImage(pic_path+"/Gerettet.gif");
+		deadimage=Utility.getImage(pic_path+"/Gestorben.gif");
 	}
 	
 	@Override
@@ -45,17 +54,23 @@ public class Statusoverview extends Zone{
         	fill(0);
         else
         	fill(100,0,0);
-        text("Dmg: "+g.getBuildingdamage()+"/24", (float)(x1+0.15*size),(float)(y1+0.8*size));
+        text("Dmg:"+g.getBuildingdamage()+"/24", (float)(x1+0.15*size),(float)(y1+0.8*size));
+        image(catimage,x1+size*8/90,y1+(int)(size*14/90*8.5),size*40/90,size*40/90);
+        image(savedimage,x1+size*8/90,y1+(int)(size*14/90*8.5),size*40/90,size*40/90);
         fill(0);
-        text("Save: "+g.getSaved_person()+"/7", (float)(x1+0.15*size),(float)(y1+1.6*size));
+        text("         "+g.getSaved_person()+"/7", (float)(x1+0.15*size),(float)(y1+1.6*size));
+        
+        image(catimage,x1+size*8/90,y1+(int)(size*14/90*13.5),size*40/90,size*40/90);
+        image(deadimage,x1+size*8/90,y1+(int)(size*14/90*13.5),size*40/90,size*40/90);
         if(g.getDead_person()<3)
         	fill(0);
         else
         	fill(100,0,0);
         
-        text("Dead: "+g.getDead_person()+"/4", (float)(x1+0.15*size),(float)(y1+2.4*size));
+        text("         "+g.getDead_person()+"/4", (float)(x1+0.15*size),(float)(y1+2.4*size));
         fill(0);
-        text("Seat: "+g.getInactive_seats(), (float)(x1+0.15*size),(float)(y1+3.2*size));
+        image(seatimage,x1+size*8/90,y1+(int)(size*14/90*18.5),size*40/90,size*40/90);
+        text("         "+g.getInactive_seats(), (float)(x1+0.15*size),(float)(y1+3.2*size));
         
         //rotate(PI/2);
         
@@ -71,15 +86,20 @@ public class Statusoverview extends Zone{
         else
         	fill(100,0,0);
         text("Dmg: "+g.getBuildingdamage()+"/"+g.getMaxbuildingdamage(),(float)(-size+ 0.15*size),(float)(-4*size+0.8*size));
+        image(catimage,-10*size*8/90,(int)(-size*14/90*17),size*40/90,size*40/90);
+        image(savedimage,-10*size*8/90,(int)(-size*14/90*17),size*40/90,size*40/90);
         fill(0);
-        text("Save: "+g.getSaved_person()+"/7", (float)(-size+ 0.15*size),(float)(-4*size+1.6*size));
+        text("         "+g.getSaved_person()+"/7", (float)(-size+ 0.15*size),(float)(-4*size+1.6*size));
         if(g.getDead_person()<3)
         	fill(0);
         else
         	fill(100,0,0);
-        text("Dead: "+g.getDead_person()+"/4", (float)(-size+ 0.15*size),(float)(-4*size+2.4*size));
+        image(catimage,-10*size*8/90,(int)(-size*15/8),size*40/90,size*40/90);
+        image(deadimage,-10*size*8/90,(int)(-size*15/8),size*40/90,size*40/90);
+        text("         "+g.getDead_person()+"/4", (float)(-size+ 0.15*size),(float)(-4*size+2.4*size));
         fill(0);
-        text("Seat: "+g.getInactive_seats(), (float)(-size+ 0.15*size),(float)(-4*size+3.2*size));
+        image(seatimage,-10*size*8/90,(int)(-size*9/8),size*40/90,size*40/90);
+        text("         "+g.getInactive_seats(), (float)(-size+ 0.15*size),(float)(-4*size+3.2*size));
         this.popMatrix();
 		
 	}

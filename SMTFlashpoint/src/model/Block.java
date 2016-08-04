@@ -271,7 +271,7 @@ public class Block{
 		return test;
 	}
 	
-	public void scanInterest()
+	public boolean scanInterest()
 	{
 		this.interest=false;
 		Random rand=new Random();
@@ -280,6 +280,7 @@ public class Block{
 		if(fam==0)
 		{
 			this.people++;
+			return true;
 			
 			//g.setNewInterest();
 		}
@@ -293,11 +294,13 @@ public class Block{
 				System.out.println("Fehlalarm" + xb + ":" +yb);
 				g.setFalse_alarm_marker(fam-1);
 				g.decreaseInterest_onboard();
+				return false;
 			}
 			else
 			{
 				System.out.println("Person gefunden" + xb + ":" +yb);
 				this.people++;
+				return true;
 			}
 			
 			
