@@ -33,7 +33,7 @@ public class VisorBlock extends Zone{
 		this.start=start;
 		this.ziel=ziel;
 		this.delay=g.getDelay();
-		timer=delay;
+		timer=delay*3;
 		
 		this.height=height;
 		this.width=width;
