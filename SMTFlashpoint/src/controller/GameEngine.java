@@ -1220,7 +1220,17 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				playerbase[this.activePlayer].setXb(ziel.getXb());
 				playerbase[this.activePlayer].setYb(ziel.getYb());
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+					
+				}
 				
 			
 
@@ -1241,7 +1251,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				start.reducePeople();
 				ziel.increasePeople();
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
 				//Test, ob Personen gerettet wurde
 				if(!ziel.isInside_Block())
 				{
@@ -1257,7 +1276,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				start.reduceHealedPeople();   
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
 				if(!ziel.isInside_Block())
 				{
 					this.checkSavedPeople(ziel);
@@ -1274,7 +1302,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				start.reduceHealedPeople();   
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
 				if(!ziel.isInside_Block())
 				{
 					this.checkSavedPeople(ziel);
@@ -1288,7 +1325,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				start.reduceDanger();
 				ziel.increaseDanger();
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{					
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
 				if(!ziel.isInside_Block())
 				{
 					this.checkSavedPeople(ziel);
@@ -1304,7 +1350,16 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				start.reduceHealedPeople();   
 				ziel.increaseHealedPeople();
 				if(ziel.isInterest())
-					ziel.scanInterest();
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
 				if(!ziel.isInside_Block())
 				{
 					this.checkSavedPeople(ziel);
@@ -1314,40 +1369,45 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			{
 				System.out.println(" ExtinquishFire: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 				ziel.setFire(false);			
-				//ap kosten: 
 			}
 			else if(what.getType()==Actiontype.EXTINQUISH_SMOKE)
 			{
 				System.out.println(" ExtinquishSmoke: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 				ziel.setSmoke(false);
-				//ap kosten: 
 			}
 			else if(what.getType()==Actiontype.EXTINQUISH_STEP)
 			{
 				System.out.println(" FireToSmoke: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 				ziel.setFire(false);
 				ziel.setSmoke(true);
-				//ap kosten: 
 			}
 			else if(what.getType()==Actiontype.HEAL_PERSON)
 			{
 				System.out.println(" HealPerson: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 				start.reducePeople();
-				start.increaseHealedPeople();
-				//ap kosten: 
+				start.increaseHealedPeople(); 
 			}
 			else if(what.getType()==Actiontype.REMOVE_DANGER)
 			{
 				System.out.println(" RemoveDanger: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
 				start.reduceDanger();
 				saved_danger++;
-				//ap kosten: 
 			}
 			else if(what.getType()==Actiontype.IDENTIFY)
 			{
 				System.out.println(" Identify: X:  "+ziel.getXb()+"  Y: "+ziel.getYb());
-				ziel.scanInterest();
-				//ap kosten: 
+				if(ziel.isInterest())
+				{
+					if(animation!=null) //alte Animation entfernen
+						AppInjector.zoneManager().remove(animation);
+					this.animationInProgess=true;
+					if(ziel.scanInterest())
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.PERSONFOUND, pic_path);
+					else
+						animation=new AnimationToken(x_offset+block_size*ziel.getYb(), y_offset+block_size*ziel.getXb(), block_size, block_size, this, AnimationKind.FALSEALARM, pic_path);
+					AppInjector.zoneManager().add(animation);
+				}
+
 			}
 			//TODO: Einsatzleiter
 			
@@ -1504,7 +1564,6 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	public void revertLastAction()
 	{
 		
-		//TODO: Rest
 		countActionsThisTurn--;
 		lastAction=lastActionsList.remove(countActionsThisTurn);
 		
@@ -1747,7 +1806,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 					}
 				}
 			}		
-			//TODO: gerettete Personen resetten
+			//TODO: gerettete Personen resetten --> teils verbuggt
 			if(lastAction.getSavedpeople()>0)
 			{
 				System.out.println("Saved ");
@@ -2128,6 +2187,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			if(!revertinProgress&&type==4&&countActionsThisTurn>0&&lastActionsList.get(countActionsThisTurn-1)!=null)
 			{
 				//TODO:Anzahl Personen auf dem Zielfeld merken für rückgängig machen, ebenso das Zielfeld merken
+				
 				System.out.println("Ziel einfügen: "+ ziel.getXb() +"  "+ ziel.getYb());
 				lastActionsList.get(countActionsThisTurn-1).setSide(ziel);
 				lastActionsList.get(countActionsThisTurn-1).setSavedpeopleSide(ziel.getPeople());
@@ -2657,6 +2717,9 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			if(lucky)
 			{
 				board[randomvaluered][randomvalue].scanInterest();
+
+					//TODO: Animation abspielen
+
 			}
 		}
 		else //andere Schwierigkeitsgrade
@@ -3081,7 +3144,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				if(board[i][j].isFire())
 				{
 					if(board[i][j].isInterest())
+					{
 						board[i][j].scanInterest();
+						//TODO: Animation abspielen
+
+					}
+					
 					while(board[i][j].getPeople()>0)   //Leute sterben
 					{
 						board[i][j].reducePeople();
@@ -3129,7 +3197,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	//Feuer ausbreiten
 	public void extendFire()
 	{
-		//TODO: Animationen  //Nach Neustart fehlen Animationen
+		//TODO: Animationen  
 		boolean seatonspot=false;		//true, wenn auf aktuellem Feld ein Brandherd ist (muss gemerkt werden, da bei Gefahrenstoffexplosion ein neuer Brandherd entstehen kann)
 		int randomvalue = rand.nextInt(8)+1;
 		int randomvaluered = rand.nextInt(6)+1;
@@ -3144,7 +3212,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				animation=new AnimationToken(x_offset+block_size*randomvalue, y_offset+block_size*randomvaluered, block_size, block_size, this, AnimationKind.NEWSMOKE, pic_path);
 				AppInjector.zoneManager().add(animation);
 				
-
+				//TODO: Delay
 //				long t= System.currentTimeMillis();
 //				long end = t+this.animationDuration;
 //				while(System.currentTimeMillis() < end) {

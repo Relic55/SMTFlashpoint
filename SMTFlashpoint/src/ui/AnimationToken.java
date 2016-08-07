@@ -55,6 +55,16 @@ public class AnimationToken extends Zone{
 		{
 			image1=Utility.getImage(pic_path+"/Feuer.gif");
 		}
+		else if(type==AnimationKind.FALSEALARM)
+		{
+			image1=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
+			image2=Utility.getImage(pic_path+"/Marker_Fehlalarm.gif");
+		}
+		else if(type==AnimationKind.PERSONFOUND)
+		{
+			image1=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
+			image2=Utility.getImage(pic_path+"/Marker_Person_Katze.gif");
+		}
 //		image1=Utility.getImage(pic_path+"/Feuer.gif");
 //		
 //		image1=Utility.getImage(pic_path+"/Marker_Einsatzmarker.gif");
@@ -112,6 +122,14 @@ public class AnimationToken extends Zone{
 					image(image1,0+width/4,+block_size+height/4, width/2,height/2);
 				}
 //				
+			}
+			else if(type==AnimationKind.FALSEALARM||type==AnimationKind.PERSONFOUND)
+			{		
+				if(actualtime<starttime+this.animationDuration/2) //vorhandener Rauch wird größer
+					image(image1,-((actualtime-starttime)/block_size)*2,-((actualtime-starttime)/block_size)*2, width+((actualtime-starttime)/block_size)*6,height+((actualtime-starttime)/block_size)*6);
+				else //Rauch wird zu Feuer und wieder kleiner
+					image(image2,-block_size*3/4+ ((actualtime-starttime)/block_size)*2,-block_size*3/4+ ((actualtime-starttime)/block_size)*2, width*3-((actualtime-starttime)/block_size)*6,height*3-((actualtime-starttime)/block_size)*6);
+									
 			}
 		}
 	}
