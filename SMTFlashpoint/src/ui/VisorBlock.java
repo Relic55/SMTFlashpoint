@@ -119,6 +119,8 @@ public class VisorBlock extends Zone{
 				else 
 				{
 					timer=delay;
+					if(type==6)
+						timer*=3;
 					g.placesomething(type, start, start);
 	
 				}
