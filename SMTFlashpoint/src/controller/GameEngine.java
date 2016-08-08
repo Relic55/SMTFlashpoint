@@ -107,7 +107,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	private Statusoverview stat;
 	
-	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_groﬂ.gif");
+	PImage backgroundpic= Utility.getImage(pic_path+ "/Spielplan_gross.gif");
 	
 	private Background background;
 	//background.draw();
