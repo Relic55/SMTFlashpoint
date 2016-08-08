@@ -3025,6 +3025,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 		}
 		//testen, ob gewonnen
 		checkWinLoseConditions();
+		
 	}
 	public void fireFighterUnderFire(int number)
 	{
