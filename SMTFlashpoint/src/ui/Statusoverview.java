@@ -39,6 +39,8 @@ public class Statusoverview extends Zone{
 		x2=x1+11*size;				//Position rechts
 		x3=g.getX_offset()+size*5/2;  //Unten
 		y3=g.getY_offset()+8*size;
+		x4=g.getX_offset()+size*15/2; //oben
+		y4=g.getY_offset();
 		
 		
 		pic_path=g.getPic_path();
@@ -165,8 +167,50 @@ public class Statusoverview extends Zone{
         
         this.popMatrix();
         
+        this.pushMatrix();
+        fill(0xFFFFD700);
+        translate(x4,y4);
+        rotate(PI);
+        rect(0,0,size*5,size);
         
         
+        if(difficulty==GameDifficulty.BEGINNER)
+        {
+        	textSize((int)(size/90.0*10));
+        	image(interestimage, size/10,size/10,size*25/90,size*25/90 );
+        	fill(0);
+        	text("         Einsatzmarker; wird beim \n         Betreten zu Person/Falschalarm" ,(float)(0.15*size),(float)(0.15*size) );
+        	image(falsealarmimage, size/10+size*5/2,size/10,size*25/90,size*25/90 );
+        	fill(0);
+        	text("         Falschalarm" ,(float)(0.15*size+size*5/2),(float)(0.25*size) );
+        	
+        	image(catimage, size/10,size/10+size/3,size*25/90,size*25/90 );
+        	fill(0);
+        	text("         identifizierte Person; Nach draussen\n         tragen, um sie zu retten" ,(float)(0.15*size),(float)(0.55*size) );
+        	
+        	
+        }
+        else
+        {
+        	textSize((int)(size/90.0*9));
+        	image(interestimage, size/10,size/10,size*25/90,size*25/90 );
+        	fill(0);
+        	text("         Einsatzmarker; wird beim \n         Betreten zu Person/Falschalarm" ,(float)(0.15*size),(float)(0.15*size) );
+        	image(falsealarmimage, size/10+size*5/2,size/10,size*25/90,size*25/90 );
+        	text("         Falschalarm" ,(float)(0.15*size+size*5/2),(float)(0.25*size) );
+        	
+        	image(catimage, size/10,size/10+size/3,size*25/90,size*25/90 );
+        	text("         identifizierte Person; zum Kranken-\n         wagen tragen, um sie zu retten" ,(float)(0.15*size),(float)(0.5*size) );
+        	
+        	image(dangerimage, size/10+size*5/2,size/10+size/3,size*25/90,size*25/90 );
+        	text("         Gefahrenstoff;Explodiert bei Feuer-\n         kontakt; nach draussen tragen" ,(float)(0.15*size+size*5/2),(float)(0.5*size) );
+        	    	
+        	image(seatimage, size/10,size/10+size/3*2,size*25/90,size*25/90 );
+        	text("         Brandherd; nicht löschbar; erzeugt weitere Feuer, wenn getroffen" ,(float)(0.15*size),(float)(0.9*size) );
+        	
+        }
+        
+        this.popMatrix();
         
         
         //Anzeige oben

@@ -3023,6 +3023,8 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			}
 
 		}
+		//testen, ob gewonnen
+		checkWinLoseConditions();
 	}
 	public void fireFighterUnderFire(int number)
 	{
@@ -3214,11 +3216,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				AppInjector.zoneManager().add(animation);
 				
 				//TODO: Delay
-				long t= System.currentTimeMillis();
-				long end = t+this.animationDuration;
-				while(System.currentTimeMillis() < end) {
-					
-				}
+//				long t= System.currentTimeMillis();
+//				long end = t+this.animationDuration;
+//				while(System.currentTimeMillis() < end) {
+//					
+//				}
 
 
 			}
