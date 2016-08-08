@@ -81,7 +81,7 @@ import util.AppInjector;
  * @version 0.1 <BR>
  * <BR>
  *          History:<BR>
- *          <LI>[storz][28.07.2015] Created</LI>
+ *          <LI>[storz][28.07.2015]c Created</LI>
  */
 //public class GameEngine implements IStencilListener, ILevelListener {
 public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchListener {
@@ -559,6 +559,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	
 	public void letTheGameBegin()
 	{
+		difficulty= diffSelected.getGameDifficulty();
 		init_statusoverview(); //muss sich unter den Spieleranzeigen befinden
 		playercount=0; //Anzahl Spieler ermitteln, wichtig für Anzahl Brandherde zu Beginn
 		for(int i=0;i<6;i++)
@@ -566,7 +567,7 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 			if(chosenSpecialistField[i]!=null&&chosenSpecialistField[i]!=SpecialistType.NONE)
 				playercount++;
 		}		
-		difficulty= diffSelected.getGameDifficulty();
+		
 		for(int i=0;i<6;i++)
 		{
 			if(chosenSpecialistField[i]!=null&&chosenSpecialistField[i]!=SpecialistType.NONE)
@@ -3213,11 +3214,11 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 				AppInjector.zoneManager().add(animation);
 				
 				//TODO: Delay
-//				long t= System.currentTimeMillis();
-//				long end = t+this.animationDuration;
-//				while(System.currentTimeMillis() < end) {
-//					
-//				}
+				long t= System.currentTimeMillis();
+				long end = t+this.animationDuration;
+				while(System.currentTimeMillis() < end) {
+					
+				}
 
 
 			}
@@ -4240,6 +4241,12 @@ public class GameEngine implements IActionListener, ButtonZoneListener,ISwitchLi
 	 */
 	public String getPic_path() {
 		return pic_path;
+	}
+	/**
+	 * @return the difficulty
+	 */
+	public GameDifficulty getDifficulty() {
+		return difficulty;
 	}
 
 
